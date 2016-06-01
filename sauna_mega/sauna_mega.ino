@@ -13,6 +13,9 @@
 #define Rele1 6
 #define Rele2 9
 
+#define adr_temperatura 38
+
+
 //RTC_Millis rtc;
 
 byte second, minute, hour, dayOfWeek, dayOfMonth;
@@ -119,7 +122,7 @@ void loop()
     byte h = 36;
     byte tt = 25;
 
-  EEPROM.write(38, tt);
+  EEPROM.write(adr_temperatura, tt);
   if (client)
   {
     boolean currentIsBlank = true;
@@ -155,7 +158,7 @@ void loop()
             client.println("Content-Type: text/html");
             client.println("Connection: keep-alive");
             client.println();
-		    client.print(EEPROM.read(38));
+		    client.print(EEPROM.read(adr_temperatura));
             client.print(":");
             client.print(h);
             client.print(":");
@@ -555,12 +558,12 @@ void loop()
     {
       digitalWrite(Rele2, LOW);
     }
-    if (EEPROM.read(38) > EEPROM.read(addr1[35]))
+    if (EEPROM.read(adr_temperatura) > EEPROM.read(addr1[35]))
     {
       digitalWrite(Rele1, LOW);
       EEPROM.write(50, 0);
     }
-    if (EEPROM.read(38)  < (EEPROM.read(addr1[35]) - 5))
+    if (EEPROM.read(adr_temperatura)  < (EEPROM.read(addr1[35]) - 5))
     {
       digitalWrite(Rele1, HIGH);
       EEPROM.write(50, 1);
@@ -665,12 +668,12 @@ void loop()
       c14++;
       c13 = 0;
     }
-    if (EEPROM.read(38) > EEPROM.read(addr1[35]))
+    if (EEPROM.read(adr_temperatura) > EEPROM.read(addr1[35]))
     {
       digitalWrite(Rele1, LOW);
       EEPROM.write(41, 0);
     }
-    if (EEPROM.read(38)  <= (EEPROM.read(addr1[35]) - 5))
+    if (EEPROM.read(adr_temperatura)  <= (EEPROM.read(addr1[35]) - 5))
     {
       digitalWrite(Rele1, HIGH);
       EEPROM.write(41, 1);
