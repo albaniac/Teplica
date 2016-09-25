@@ -1,0 +1,100 @@
+LABCENTER PROTEUS TOOL INFORMATION FILE
+=======================================
+
+In case of difficulty, please e-mail support@labcenter.co.uk
+
+Tool set up for Proteus layout 'Teplitca1_1.pdsprj'.
+CADCAM generated at 22:01:21 on 19 апреля 2015 г..
+
+File List
+---------
+Top Copper              : Teplitca1_1 - CADCAM Top Copper.TXT
+Bottom Copper           : Teplitca1_1 - CADCAM Bottom Copper.TXT
+Top Silk Screen         : Teplitca1_1 - CADCAM Top Silk Screen.TXT
+Bottom Silk Screen      : Teplitca1_1 - CADCAM Bottom Silk Screen.TXT
+Top Solder Resist       : Teplitca1_1 - CADCAM Top Solder Resist.TXT
+Bottom Solder Resist    : Teplitca1_1 - CADCAM Bottom Solder Resist.TXT
+Top SMT Paste Mask      : Teplitca1_1 - CADCAM Top SMT Paste Mask.TXT
+Bottom SMT Paste Mask   : Teplitca1_1 - CADCAM Bottom SMT Paste Mask.TXT
+Mechanical 1            : Teplitca1_1 - CADCAM Mechanical 1.TXT
+Mechanical 3            : Teplitca1_1 - CADCAM Mechanical 3.TXT
+Drill                   : Teplitca1_1 - CADCAM Drill.TXT
+
+Photoplotter Setup
+------------------
+Format: RS274X, ASCII, 2.4, imperial, absolute, eob=*, LZO
+Notes:  D=Diameter, S=Side, W=Width, H=Height, C=Chamfer
+
+D10	CIRCLE  D=10th                                                            DRAW
+D11	CIRCLE  D=20th                                                            DRAW
+D12	CIRCLE  D=25th                                                            DRAW
+D13	CIRCLE  D=30th                                                            DRAW
+D14	CIRCLE  D=12th                                                            DRAW
+D15	CIRCLE  D=15th                                                            DRAW
+D16	CIRCLE  D=50th                                                            DRAW
+D17	CIRCLE  D=40th                                                            DRAW
+D18	CIRCLE  D=8th                                                             DRAW
+D19	CIRCLE  D=30th                                                            FLASH
+D70	SQUARE  S=80th                                                            FLASH
+D71	CIRCLE  D=160th                                                           FLASH
+D20	CIRCLE  D=100th                                                           FLASH
+D21	SQUARE  S=50th                                                            FLASH
+D22	CIRCLE  D=50th                                                            FLASH
+D23	CIRCLE  D=132th                                                           FLASH
+D24	CIRCLE  D=60th                                                            FLASH
+D25	CIRCLE  D=190th                                                           FLASH
+D26	CIRCLE  D=90th                                                            FLASH
+D27	RECT    W=57th                H=37th                                      FLASH
+D28	RECT    W=37th                H=57th                                      FLASH
+D29	RECT    W=40th                H=50th                                      FLASH
+D72	RECT    W=50th                H=40th                                      FLASH
+D73	RECT    W=40th                H=35th                                      FLASH
+D30	RECT    W=80th                H=25th                                      FLASH
+D31	CIRCLE  D=120th                                                           FLASH
+D32	RECT    W=33th                H=20th                                      FLASH
+D33	RECT    W=20th                H=33th                                      FLASH
+D34	RECT    W=93th                H=96th                                      FLASH
+D35	RECT    W=96th                H=93th                                      FLASH
+D36	CIRCLE  D=70th                                                            FLASH
+D37	CIRCLE  D=60th                                                            DRAW
+D38	RECT    W=15.7th              H=43.3th                                    FLASH
+D39	RECT    W=43.3th              H=15.7th                                    FLASH
+D40	RECT    W=61th                H=24th                                      FLASH
+D41	CIRCLE  D=7.8th                                                           DRAW
+D42	CIRCLE  D=9.8th                                                           DRAW
+D43	CIRCLE  D=6th                                                             DRAW
+D44	CIRCLE  D=23.6th                                                          DRAW
+D45	SQUARE  S=100th                                                           FLASH
+D46	CIRCLE  D=178th                                                           FLASH
+D47	CIRCLE  D=130th                                                           FLASH
+D48	SQUARE  S=70th                                                            FLASH
+D49	CIRCLE  D=80th                                                            FLASH
+D50	CIRCLE  D=210th                                                           FLASH
+D51	CIRCLE  D=110th                                                           FLASH
+D52	RECT    W=60th                H=70th                                      FLASH
+D53	RECT    W=70th                H=60th                                      FLASH
+D54	RECT    W=60th                H=55th                                      FLASH
+D55	RECT    W=100th               H=45th                                      FLASH
+D56	CIRCLE  D=150th                                                           FLASH
+D57	CIRCLE  D=140th                                                           FLASH
+D58	RECT    W=35.7th              H=63.3th                                    FLASH
+D59	RECT    W=63.3th              H=35.7th                                    FLASH
+
+NC Drill Setup
+--------------
+Format: ASCII, 2.4, imperial, absolute, eob=<CR><LF>, no zero suppression.
+Notes:  Tool sizes are diameters. Layer sets are in brackets - 0=TOP, 15=BOTTOM, 1-14=INNER.
+
+T01	15th (0-15)
+T02	40th (0-15)
+T03	125.9th (0-15)
+T04	45th (0-15)
+T05	30th (0-15)
+T06	112th (0-15)
+T07	35th (0-15)
+T08	120th (0-15)
+T09	60th (0-15)
+T10	70th (0-15)
+
+
+[END OF FILE]
