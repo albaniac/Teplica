@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Teplitca_upr1_1", "Teplitca_upr1_1.vcxproj", "{F4CE1967-7C14-4511-B87A-6172175C6684}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F4CE1967-7C14-4511-B87A-6172175C6684}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4CE1967-7C14-4511-B87A-6172175C6684}.Debug|Win32.Build.0 = Debug|Win32
+		{F4CE1967-7C14-4511-B87A-6172175C6684}.Release|Win32.ActiveCfg = Release|Win32
+		{F4CE1967-7C14-4511-B87A-6172175C6684}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
