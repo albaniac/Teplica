@@ -6,7 +6,7 @@
 #endif
 
 #if WATER_RELAYS_COUNT > 0
-static uint8_t WATER_RELAYS[] = { WATER_RELAYS_PINS }; // объявляем массив пинов реле
+static uint8_t WATER_RELAYS[] = { WATER_RELAYS_PINS };             // объявляем массив пинов реле
 #endif
 
 #ifdef WATER_DEBUG
@@ -377,7 +377,7 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
         for(uint8_t i=0;i<WATER_RELAYS_COUNT;i++)
         {
           WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов
-          WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
+          WORK_STATUS.SaveWaterChannelState(i,state);   // сохраняем статус каналов полива     
         } // for
         
       return;
@@ -388,7 +388,7 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
     if(channel->IsChanged() || internalNeedChange)
     {
       WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина
-      WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
+      WORK_STATUS.SaveWaterChannelState(channelIdx,state);  // сохраняем статус канала полива
     }
   
 }

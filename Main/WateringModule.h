@@ -32,33 +32,33 @@ public:
     
 }; 
 
-class WateringModule : public AbstractModule // модуль управления поливом
+class WateringModule : public AbstractModule                                        // модуль управления поливом
 {
   private:
 
   #if WATER_RELAYS_COUNT > 0
   
-  WateringChannel wateringChannels[WATER_RELAYS_COUNT]; // каналы полива
-  WateringChannel dummyAllChannels; // управляем всеми каналами посредством этой структуры
-  void UpdateChannel(int8_t channelIdx, WateringChannel* channel, uint16_t dt); // обновляем состояние канала
-  void HoldChannelState(int8_t channelIdx, WateringChannel* channel);  // поддерживаем состояние реле для канала.
-  bool IsAnyChannelActive(uint8_t wateringOption); // возвращает true, если хотя бы один из каналов активен
+  WateringChannel wateringChannels[WATER_RELAYS_COUNT];                             // каналы полива
+  WateringChannel dummyAllChannels;                                                 // управляем всеми каналами посредством этой структуры
+  void UpdateChannel(int8_t channelIdx, WateringChannel* channel, uint16_t dt);     // обновляем состояние канала
+  void HoldChannelState(int8_t channelIdx, WateringChannel* channel);               // поддерживаем состояние реле для канала.
+  bool IsAnyChannelActive(uint8_t wateringOption);                                  // возвращает true, если хотя бы один из каналов активен
 
   bool internalNeedChange;
 
   #endif
 
 
-  GlobalSettings* settings; // настройки
+  GlobalSettings* settings;                   // настройки
 
-  uint8_t workMode; // текущий режим работы
+  uint8_t workMode;                           // текущий режим работы
 
-  int8_t lastAnyChannelActiveFlag; // флаг последнего состояния активности каналов
+  int8_t lastAnyChannelActiveFlag;            // флаг последнего состояния активности каналов
 
-  uint8_t lastDOW; // день недели с момента предыдущего опроса
-  uint8_t currentDOW; // текущий день недели
-  uint8_t currentHour; // текущий час
-  bool bIsRTClockPresent; // флаг наличия модуля часов реального времени
+  uint8_t lastDOW;                            // день недели с момента предыдущего опроса
+  uint8_t currentDOW;                         // текущий день недели
+  uint8_t currentHour;                        // текущий час
+  bool bIsRTClockPresent;                     // флаг наличия модуля часов реального времени
 #ifdef USE_WATERING_MANUAL_MODE_DIODE
   BlinkModeInterop blinker;
 #endif
