@@ -1,6 +1,6 @@
-C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.cpp.o: \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.cpp \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.h \
+C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.cpp.o: \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.cpp \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PDUClasses.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/binary.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/WCharacter.h \

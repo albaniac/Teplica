@@ -1,6 +1,6 @@
-C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.cpp.o: \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.cpp \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.h \
+C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.cpp.o: \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.cpp \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/binary.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/WCharacter.h \
@@ -12,5 +12,5 @@ C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settin
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/USBAPI.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\variants\mega/pins_arduino.h \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Globals.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Globals.h \
  C:\Arduino-1.6.7\hardware\arduino\avr\libraries\EEPROM/EEPROM.h
