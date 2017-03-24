@@ -6,7 +6,7 @@
 byte local_mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 
 // IP-адрес по умолчанию
-IPAddress default_ip(192, 168, 0, 177);
+IPAddress default_ip(192, 168, 1, 177);
 
 // наш сервер, который будет обработывать клиентов
 EthernetServer lanServer(1975);
