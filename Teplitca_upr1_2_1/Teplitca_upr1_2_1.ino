@@ -169,9 +169,7 @@ int ret               = 0;         // Признак прерывания операции
 //-------------------------------------------------------------------------------------------------------
 //Назначение переменных для хранения № опций меню (клавиш)
 int but1, but2, but3, but4, but5, but6, but7, but8, but9, but10, butX, butY, butA, butB, butC, butD, but_m1, but_m2, but_m3, but_m4, but_m5, pressed_button;
- //int kbut1, kbut2, kbut3, kbut4, kbut5, kbut6, kbut7, kbut8, kbut9, kbut0, kbut_save,kbut_clear, kbut_exit;
- //int kbutA, kbutB, kbutC, kbutD, kbutE, kbutF;
- int m2 = 1; // Переменная номера меню
+int m2 = 1; // Переменная номера меню
 
  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -323,8 +321,6 @@ int adr2_7kl_stop_sec                = 275;   //
  char  txt_info30[]        = "\x89o\x97\xA4op."; 
 
 
-
-
 //------------------------------------------------------------------------------------------------------
 
 dht11 DHT11;
@@ -448,7 +444,7 @@ void drawDisplay()
   myGLCD.setBackColor(64, 64, 128);
   myGLCD.print("RET", 266, 150);
   myGLCD.setBackColor(0, 0, 0);*/
-
+   
 }
 void drawMark(int h)
 {
@@ -614,7 +610,7 @@ void AnalogClock()
 	  {
 		if (oldsec != second)
 		{
-		  if ((second == 0) and (minute == 0) and (hour == 0))
+		  if ((second == 0) && (minute == 0) && (hour == 0))
 		  {
 			clearDate();
 			printDate();

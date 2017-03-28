@@ -15,7 +15,7 @@
 #define UNI_WIRED_MODULES_COUNT 1 // сколько проводных линий для универсальных модулей используется (0 - нисколько)
 // ДЛЯ ПЛАТЫ ВЫВОДЫ ПО УМОЛЧАНИЮ, ПОДТЯНУТЫЕ РЕЗИСТОРАМИ - A11, A12, A13
 #define UNI_WIRED_MODULES A12//, A13 // номера пинов (через запятую), на которых висят универсальные модули, кол-вом  UNI_WIRED_SENSORS_COUNT
-#define USE_UNI_NEXTION_MODULE // закомментировать, если не нужен выносной модуль с дисплеем Nextion на шине 1-Wire
+//#define USE_UNI_NEXTION_MODULE // закомментировать, если не нужен выносной модуль с дисплеем Nextion на шине 1-Wire
 #define USE_UNI_EXECUTION_MODULE // закомментировать, если не нужна поддержка исполнительных модулей
 // показания с каких датчиков передавать выносному модулю с дисплеем Nextion? максимум 5 датчиков 
 #define UNI_NEXTION_WAIT_SCREEN_SENSORS {StateTemperature,0,"STATE"}, {StateHumidity,1,"HUMIDITY"}, {StateLuminosity,0,"LIGHT"}
@@ -273,7 +273,7 @@
 // пин R/W дисплея идёт на SCREEN_MOSI_PIN (программный SPI), или - на хардварный MOSI микроконтроллера (аппаратный SPI)
 // пин RS дисплея - идёт на SCREEN_CS_PIN, это линия chip select, для выбора ведомого
 
-//#define SCREEN_USE_SOFT_SPI // раскомментировать, если нужен режим программного SPI
+#define SCREEN_USE_SOFT_SPI // раскомментировать, если нужен режим программного SPI
 #define SCREEN_SCK_PIN 52 // пин SCK, актуален для режима программного SPI (в режиме железного SPI используются соответствующий пин SCK микроконтроллера)
 #define SCREEN_MOSI_PIN 51 // пин MOSI, актуален для режима программного SPI (в режиме железного SPI используются соответствующий пин MOSI микроконтроллера)
 #define SCREEN_CS_PIN 4 // пин CS
