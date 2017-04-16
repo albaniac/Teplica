@@ -1073,6 +1073,8 @@ void control_command()
   }
 }
 
+
+
 void draw_Glav_Menu()
 {
   but1   = myButtons.addButton( 10,  20, 250,  35, txt_menu1_1);
@@ -1085,7 +1087,13 @@ void draw_Glav_Menu()
   but_m3 = myButtons.addButton(  112, 199, 45,  40, "3");
   but_m4 = myButtons.addButton(  163, 199, 45,  40, "4");
   but_m5 = myButtons.addButton(  214, 199, 45,  40, "5");
-  myButtons.drawButtons(); // Восстановить кнопки
+ // myButtons.drawButtons(); // Нарисовать кнопки
+  myButtons.drawButton(butX); // Нарисовать кнопки
+  myButtons.drawButton(but_m1); // Нарисовать кнопки
+  myButtons.drawButton(but_m2); // Нарисовать кнопки
+  myButtons.drawButton(but_m3); // Нарисовать кнопки
+  myButtons.drawButton(but_m4); // Нарисовать кнопки
+  myButtons.drawButton(but_m5); // Нарисовать кнопки
   myGLCD.setColor(VGA_BLACK);
   myGLCD.setBackColor(VGA_WHITE);
   myGLCD.setColor(0, 255, 0);
@@ -1120,13 +1128,14 @@ void draw_Glav_Menu()
 void swichMenu()                                             // Тексты меню в строках "txt....."
 {
   m2 = 1;                                                    // Устанивить первую странице меню
+
   while (1)
   {
 	wait_time = millis();                                    // Программа вызова часов при простое
 	if (wait_time - wait_time_Old > 60000 * time_minute)
 	{
 	  wait_time_Old =  millis();
-	  AnalogClock();
+	//  AnalogClock();
 	  myGLCD.clrScr();
 	  myButtons.drawButtons();                               // Восстановить кнопки
 	  print_up();                                            // Восстановить верхнюю строку
@@ -1143,20 +1152,37 @@ void swichMenu()                                             // Тексты меню в ст
 	  {
 		AnalogClock();
 		myGLCD.clrScr();
-		myButtons.drawButtons();                             // Восстановить кнопки
-		print_up();                                          // Восстановить верхнюю строку
+		if (m2 == 1)
+		{
+			myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE); // Голубой фон меню
+			myButtons.drawButton(butX); // Нарисовать кнопки
+			myButtons.drawButton(but_m1); // Нарисовать кнопки
+			myButtons.drawButton(but_m2); // Нарисовать кнопки
+			myButtons.drawButton(but_m3); // Нарисовать кнопки
+			myButtons.drawButton(but_m4); // Нарисовать кнопки
+			myButtons.drawButton(but_m5); // Нарисовать кнопки
+			default_colors = true;
+		}
+		else
+		{
+			myButtons.drawButtons();                             // Восстановить кнопки
+		}
+		print_up();                                              // Восстановить верхнюю строку
 	  }
 
-	  if (pressed_button == but_m1)                          // Нажата 1 страница меню
+	  if (pressed_button == but_m1)                              // Нажата 1 страница меню
 	  {
+		myGLCD.clrScr();
 		myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE); // Голубой фон меню
-		myButtons.drawButtons();                             // Восстановить кнопки
+		myButtons.drawButton(butX);   // Нарисовать кнопки
+		myButtons.drawButton(but_m1); // Нарисовать кнопки
+		myButtons.drawButton(but_m2); // Нарисовать кнопки
+		myButtons.drawButton(but_m3); // Нарисовать кнопки
+		myButtons.drawButton(but_m4); // Нарисовать кнопки
+		myButtons.drawButton(but_m5); // Нарисовать кнопки
 		default_colors = true;
 		m2 = 1;                                              // Устанивить первую странице меню
-		myButtons.relabelButton(but1, txt_menu1_1, m2 == 1);
-		myButtons.relabelButton(but2, txt_menu1_2, m2 == 1);
-		myButtons.relabelButton(but3, txt_menu1_3, m2 == 1);
-		myButtons.relabelButton(but4, txt_menu1_4, m2 == 1);
+	
 		myGLCD.setColor(0, 255, 0);
 		myGLCD.setBackColor(0, 0, 0);
 		myGLCD.print("                      ", CENTER, 0);
@@ -1232,12 +1258,12 @@ void swichMenu()                                             // Тексты меню в ст
 	  }
 
 	  //*****************  Меню №1  **************
-
+	  /*
 	  if (pressed_button == but1 && m2 == 1)
 	  {
 		// Тест кабеля №1
 		myGLCD.clrScr();                                     // Очистить экран
-		test_cabel_N1();
+		//test_cabel_N1();
 		myGLCD.clrScr();
 		myButtons.drawButtons();
 		print_up();
@@ -1247,7 +1273,7 @@ void swichMenu()                                             // Тексты меню в ст
 	  {
 		// Тест кабеля №2
 		myGLCD.clrScr();                                     // Очистить экран
-		test_cabel_N2();
+		//test_cabel_N2();
 		myGLCD.clrScr();
 		myButtons.drawButtons();
 		print_up();
@@ -1257,7 +1283,7 @@ void swichMenu()                                             // Тексты меню в ст
 	  {
 		// Тест кабеля №3
 		myGLCD.clrScr();                                     // Очистить экран
-		test_cabel_N3();
+		//test_cabel_N3();
 		myGLCD.clrScr();
 		myButtons.drawButtons();
 		print_up();
@@ -1271,7 +1297,7 @@ void swichMenu()                                             // Тексты меню в ст
 		myButtons.drawButtons();
 		print_up();
 	  }
-
+	  */
 	  //*****************  Меню №2  **************
 
 
