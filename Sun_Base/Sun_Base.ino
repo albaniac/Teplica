@@ -82,11 +82,12 @@ extern uint8_t Dingbats1_XL[];
 extern uint8_t SmallSymbolFont[];
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-boolean connect_gnd1 = false;
-boolean connect_gnd2 = false;
-//byte N_block = 1;
-boolean view_tab_run = false;
+float temp_n1 = 18.12;
+float temp_n2 = 28.12;
+float temp_n3 = 13.12;
+float temp_n4 = 48.12;
+float temp_n5 = 33.12;
+float temp_n6 = 58.12;
 
 //+++++++++++++++++++++++++++ Настройка часов +++++++++++++++++++++++++++++++
 uint8_t second = 0;                                    //Initialization time
@@ -657,7 +658,7 @@ void AnalogClock()
 
 void flash_time()                                              // Программа обработчик прерывания
 {
-	if (m2 == 1 && m3 == 0)
+	/*if (m2 == 1 && m3 == 0)
 	{
 		myGLCD.setColor(255, 255, 255);
 		myGLCD.setBackColor(0, 0, 255);
@@ -666,7 +667,7 @@ void flash_time()                                              // Программа обра
 		myGLCD.printNumI(102, 174, 54);
 		myGLCD.printNumI(103, 252, 54);
 		myGLCD.setBackColor(0, 0, 0);
-	}
+	}*/
   // PORTB = B00000000; // пин 12 переводим в состояние LOW
   slave.run();
   // PORTB = B01000000; // пин 12 переводим в состояние HIGH
@@ -675,7 +676,7 @@ void serialEvent3()
 {
   control_command();
 }
-
+ 
 void reset_klav()
 {
   myGLCD.clrScr();
@@ -1049,17 +1050,30 @@ void control_command()
 
 void Set_Down_Buttons()
 {
-	butX = myButtons.addButton(279, 199, 40, 40, "W", BUTTON_SYMBOL); // кнопка Часы
-	but_m1 = myButtons.addButton(10, 199, 45, 40, "1");
-	but_m2 = myButtons.addButton(61, 199, 45, 40, "2");
-	but_m3 = myButtons.addButton(112, 199, 45, 40, "3");
-	but_m4 = myButtons.addButton(163, 199, 45, 40, "4");
-	but_m5 = myButtons.addButton(214, 199, 45, 40, "5");
+	for (x = 0; x < 5; x++)
+	{
+		myGLCD.setColor(0, 0, 255);
+		myGLCD.fillRoundRect(10 + (x * 60), 189, 60 + (x * 60), 239);
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.drawRoundRect(10 + (x * 60), 189, 60 + (x * 60), 239);
+		myGLCD.setBackColor(0, 0, 255);
+		myGLCD.printNumI(x + 1, 27 + (x * 60), 206);
+	}
+	myGLCD.setBackColor(0, 0, 0);
 }
+
+
+void draw_Glav_Menu1()
+{
+	myGLCD.clrScr();
+	Set_Down_Buttons();
+	draw_measure();
+}
+
 
 void draw_Glav_Menu()
 {
-	myGLCD.clrScr();
+  myGLCD.clrScr();
   myButtons.deleteAllButtons();
   Set_Down_Buttons();
   myButtons.drawButtons(); // Восстановить кнопки
@@ -1097,6 +1111,119 @@ void draw_Glav_Menu()
 	  myGLCD.print(buffer, CENTER, 0);                               // txt_info5
 	  break;
   }
+}
+
+void swichMenu1()
+{
+	m2 = 1;
+	while (1)
+	{
+		
+		measure();
+
+
+		wait_time = millis();                                    // Программа вызова часов при простое
+		if (wait_time - wait_time_Old > 60000 * time_minute)
+		{
+			wait_time_Old = millis();
+			// AnalogClock();
+			myGLCD.clrScr();
+		}
+
+		if (myTouch.dataAvailable() == true)                     // Проверить нажатие кнопок
+		{
+
+			myTouch.read();
+			x = myTouch.getX();
+			y = myTouch.getY();
+
+			if ((y >= 189) && (y <= 239))   //нажата кнопка "Повторить проверку"
+			{
+				myGLCD.setFont(BigFont);
+				
+				if ((x >= 10) && (x <= 60))   //нажата кнопка "1"
+				{
+					waitForIt(10, 189, 60, 239);
+					m2 = 1;
+					draw_measure();                                  // Восстановить верхнюю строку
+
+
+
+				}
+
+				if ((x >= 70) && (x <= 120))   //нажата кнопка "2"
+				{
+					waitForIt(70, 189, 120, 239);
+					m2 = 2;
+					clear_display();
+
+
+
+				}
+
+				if ((x >= 130) && (x <= 180))   //нажата кнопка "3"
+				{
+					waitForIt(130, 189, 180, 239);
+					m2 = 3;
+					clear_display();
+
+
+
+				}
+
+				if ((x >= 190) && (x <= 240))   //нажата кнопка "4"
+				{
+					waitForIt(190, 189, 240, 239);
+					m2 = 4;
+					clear_display();
+
+
+
+				}
+
+				if ((x >= 250) && (x <= 300))   //нажата кнопка "5"
+				{
+					waitForIt(250, 189, 300, 239);
+					m3 = 1;
+					AnalogClock();
+					myGLCD.clrScr();
+					Set_Down_Buttons();
+					m3 = 0;
+					if (m2 == 1)
+					{
+						draw_measure();
+
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void measure()
+{
+	if (m2 == 1 && m3 == 0)
+	{
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.setBackColor(0, 0, 255);
+		myGLCD.printNumF(temp_n1, 2, 40, 26);
+		myGLCD.printNumF(temp_n2, 2, 196, 26);
+		myGLCD.printNumF(temp_n3, 2, 40, 66);
+		myGLCD.printNumF(temp_n4, 2, 196, 66);
+		myGLCD.printNumF(temp_n5, 2, 40, 106);
+		myGLCD.printNumF(temp_n6, 2, 196, 106);
+		myGLCD.printNumF(temp_n5, 2, 40, 153);
+		myGLCD.printNumF(temp_n6, 2, 196, 153);
+		myGLCD.setBackColor(0, 0, 0);
+	}
+}
+
+void clear_display()
+{
+	myGLCD.setColor(0, 0, 0);
+	myGLCD.fillRoundRect(1, 1, 319, 188);
+	myGLCD.setColor(255, 255, 255);
 }
 
 void swichMenu()                                             // Тексты меню в строках "txt....."
@@ -2000,20 +2127,29 @@ void kommut_off()
 
 void draw_measure()
 {
-//	myGLCD.clrScr();
 	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
 	
-	myGLCD.drawRoundRect(8, 40, 78, 80);
-	myGLCD.drawRoundRect(86, 40, 156, 80);
-	myGLCD.drawRoundRect(164, 40, 234, 80);
-	myGLCD.drawRoundRect(242, 40, 312, 80);
+	myGLCD.drawRoundRect(8, 20, 156, 50);
+	myGLCD.drawRoundRect(164, 20, 312, 50);
+	myGLCD.drawRoundRect(8, 60, 156, 90);
+	myGLCD.drawRoundRect(164, 60, 312, 90);
+	myGLCD.drawRoundRect(8, 100, 156, 130);
+	myGLCD.drawRoundRect(164, 100, 312, 130);
+
+	myGLCD.drawRoundRect(8, 145, 156, 175);
+	myGLCD.drawRoundRect(164, 145, 312, 175);
 
 	myGLCD.setColor(0, 0, 255);
 
-	myGLCD.fillRoundRect(9, 41, 77, 79);
-	myGLCD.fillRoundRect(87, 41, 155, 79);
-	myGLCD.fillRoundRect(165, 41, 233, 79);
-	myGLCD.fillRoundRect(243, 41, 311, 79);
+	myGLCD.fillRoundRect(9, 21, 155, 49);
+	myGLCD.fillRoundRect(165, 21, 311, 49);
+	myGLCD.fillRoundRect(9, 61, 155, 89);
+	myGLCD.fillRoundRect(165, 61, 311, 89);
+	myGLCD.fillRoundRect(9, 101, 155, 129);
+	myGLCD.fillRoundRect(165, 101, 311, 129);
+
+	myGLCD.fillRoundRect(9, 146, 155, 174);
+	myGLCD.fillRoundRect(165, 146, 311, 174);
 
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.setBackColor(0, 0, 0);
@@ -2269,11 +2405,11 @@ void setup()
   digitalWrite(led_Red, LOW);                           
   Serial.println(" ");                                   
   Serial.println(F("System initialization OK!."));        // Информация о завершении настройки
-  MsTimer2::start();
+  //MsTimer2::start();
 }
 
 void loop()
 {
-  draw_Glav_Menu();
-  swichMenu();
+  draw_Glav_Menu1();
+  swichMenu1();
 }
