@@ -53,4 +53,5 @@ C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Su
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/SdFat.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\OneWire/OneWire.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\HMC5883L/HMC5883L.h \
- D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\DallasTemperature/DallasTemperature.h
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\DallasTemperature/DallasTemperature.h \
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\BH1750/BH1750.h

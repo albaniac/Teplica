@@ -32,6 +32,7 @@ VisualMicro
 #include <OneWire.h>
 #include <HMC5883L.h>
 #include <DallasTemperature.h>
+#include <BH1750.h>
 
 
 
@@ -131,6 +132,37 @@ int minY = 0;
 int maxY = 0;
 int offX = 0;
 int offY = 0;
+//+++++++++++++++++++++++++ Расчет положения солнца ++++++++++++++++++++++++++
+
+
+//////////////////////////////////////////////////  
+//PUT YOUR LATITUDE, LONGITUDE, AND TIME ZONE HERE
+  float latitude = 55.98;
+  float longitude = 37.21;
+  float timezone = 3;
+//////////////////////////////////////////////////  
+  
+//If you live in the southern hemisphere, it would probably be easier
+//for you if you make north as the direction where the azimuth equals
+//0 degrees. To do so, switch the 0 below with 180.  
+  float northOrSouth = 180;
+
+/////////////////////////////////////////////////////////// 
+//MISC. VARIABLES
+///////////////////////////////////////////////////////////  
+  float pi = 3.14159265;
+  float altitude;
+  float azimuth;
+  float delta;
+  float h;
+/////////////////////////////////////////////////////////// 
+
+
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+BH1750 lightMeter(0x23);
 
 //+++++++++++++++++++++++++++ Настройка часов +++++++++++++++++++++++++++++++
 uint8_t second = 0;                                    //Initialization time
@@ -2590,6 +2622,11 @@ void setup()
 
  // read_compass();
   */
+
+  lightMeter.begin(BH1750_CONTINUOUS_HIGH_RES_MODE);
+  Serial.println(F("BH1750 Test"));
+
+
   //MsTimer2::start();
 }
 
