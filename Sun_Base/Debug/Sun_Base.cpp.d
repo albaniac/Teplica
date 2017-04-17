@@ -1,20 +1,20 @@
-C:\Users\Александр\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Sun_Base.cpp.o: \
- C:\Users\Александр\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Sun_Base.cpp \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/binary.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/WCharacter.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/WString.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/HardwareSerial.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Stream.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Print.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Printable.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/USBAPI.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\mega/pins_arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\SPI\src/SPI.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\Wire\src/Wire.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Stream.h \
+C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Sun_Base.cpp.o: \
+ C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Sun_Base.cpp \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/arduino.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/binary.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/WCharacter.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/WString.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/HardwareSerial.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Stream.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Print.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Printable.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/USBAPI.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\mega/pins_arduino.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\SPI\src/SPI.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\Wire\src/Wire.h \
+ C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Stream.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\RTClib/RTClib.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\MsTimer2/MsTimer2.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\MODBUS/modbus.h \
@@ -50,4 +50,7 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Sun_Base\mega_atmega2560\Debug\Su
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/utility/StdioStream.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/utility/fstream.h \
  D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/SdFatUtil.h \
- D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/SdFat.h
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\SdFat/SdFat.h \
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\OneWire/OneWire.h \
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\HMC5883L/HMC5883L.h \
+ D:\2\ SVN\ Teplica\trunk\Sun_Base\libraries\DallasTemperature/DallasTemperature.h

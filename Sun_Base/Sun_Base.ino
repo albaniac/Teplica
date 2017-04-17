@@ -1,14 +1,13 @@
 /*
-ArduinoNanoCabelTest.ino
-Visual Studio 2010
+Sun_Base.ino
+Visual Studio 2015
 VisualMicro
 
-Программа тестирования исправности кабелей.
+Программа управления солнечной установкой.
 Версия:               - 1.0
-Организация:          - ООО "Децима"
 Автор:                - Мосейчук А.В.
-Дата начала работ:    - 01.09.2016г.
-Дата окончания работ: - 01.03.2017г.
+Дата начала работ:    - 16.04.2017г.
+Дата окончания работ: - 00.00.2017г.
  
 */
 
@@ -30,6 +29,12 @@ VisualMicro
 #include <Arduino.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>
+#include <OneWire.h>
+#include <HMC5883L.h>
+#include <DallasTemperature.h>
+
+
+
 
 #define led_Green 12                                     // Светодиод на передней панели зеленый
 #define led_Red   13                                     // Светодиод на передней панели красный
@@ -61,11 +66,11 @@ unsigned int adr_memN1_1 = 0;                           // Начальный адрес памят
 unsigned int adr_memN1_2 = 0;                           // Начальный адрес памяти таблицы соответствия контактов разъемов №2А, №2В
 
 unsigned int adr_tempN1 = 10;                           // адрес памяти данных датчика температуры №1
-unsigned int adr_tempN2 = 14;                           // адрес памяти данных датчика температуры №2
-unsigned int adr_tempN3 = 18;                           // адрес памяти данных датчика температуры №3
-unsigned int adr_tempN4 = 24;                           // адрес памяти данных датчика температуры №4
-unsigned int adr_radius = 28;                           // адрес памяти данных датчика компаса
-unsigned int adr_asimut = 32;                           // адрес памяти данных датчика вертикали
+unsigned int adr_tempN2 = 12;                           // адрес памяти данных датчика температуры №2
+unsigned int adr_tempN3 = 14;                           // адрес памяти данных датчика температуры №3
+unsigned int adr_tempN4 = 16;                           // адрес памяти данных датчика температуры №4
+unsigned int adr_radius = 18;                           // адрес памяти данных датчика компаса
+unsigned int adr_asimut = 20;                           // адрес памяти данных датчика вертикали
 
 
 //********************* Настройка монитора ***********************************
@@ -81,13 +86,51 @@ extern uint8_t BigFont[];
 extern uint8_t Dingbats1_XL[];
 extern uint8_t SmallSymbolFont[];
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-float temp_n1 = 18.12;
-float temp_n2 = 28.12;
-float temp_n3 = 13.12;
-float temp_n4 = 48.12;
-float temp_n5 = 33.12;
-float temp_n6 = 58.12;
+//++++++++++++++++++++++++ Параметры температуры +++++++++++++++++++++++++++++++++
+float temp_sun_in = 0.00;
+float temp_sun_out = 0.00;
+float temp_tube_in = 0.00;
+float temp_tube_out = 0.00;
+float temp_tank = 0.00;
+float temp_out = 0.00;
+
+
+
+#define ONE_WIRE_BUS_1 44
+#define ONE_WIRE_BUS_2 45
+#define ONE_WIRE_BUS_3 46
+#define ONE_WIRE_BUS_4 47
+#define ONE_WIRE_BUS_5 48
+#define ONE_WIRE_BUS_6 49
+
+OneWire oneWire_sun_in(ONE_WIRE_BUS_1);
+OneWire oneWire_sun_out(ONE_WIRE_BUS_2);
+OneWire oneWire_tube_in(ONE_WIRE_BUS_3);
+OneWire oneWire_tube_out(ONE_WIRE_BUS_4);
+OneWire oneWire_tank(ONE_WIRE_BUS_5);
+OneWire oneWire_out(ONE_WIRE_BUS_6);
+
+DallasTemperature sensor_sun_in(&oneWire_sun_in);
+DallasTemperature sensor_sun_out(&oneWire_sun_out);
+DallasTemperature sensor_tube_in(&oneWire_tube_in);
+DallasTemperature sensor_tube_out(&oneWire_tube_out);
+DallasTemperature sensor_tank(&oneWire_tank);
+DallasTemperature sensor_outhouse(&oneWire_out);
+
+//++++++++++++++++++++++++++++++++++ compass +++++++++++++++++++++++++++++++++++++++++
+
+
+HMC5883L compass;
+float headingDegrees = 0.00;
+bool compass_enable1 = false;
+
+
+int minX = 0;
+int maxX = 0;
+int minY = 0;
+int maxY = 0;
+int offX = 0;
+int offY = 0;
 
 //+++++++++++++++++++++++++++ Настройка часов +++++++++++++++++++++++++++++++
 uint8_t second = 0;                                    //Initialization time
@@ -1118,70 +1161,68 @@ void swichMenu1()
 	m2 = 1;
 	while (1)
 	{
-		
-		measure();
+		measure_view();
 
-
-		wait_time = millis();                                    // Программа вызова часов при простое
+    	wait_time = millis();                                      // Программа вызова часов при простое
 		if (wait_time - wait_time_Old > 60000 * time_minute)
 		{
 			wait_time_Old = millis();
 			// AnalogClock();
-			myGLCD.clrScr();
+			// myGLCD.clrScr();
 		}
 
-		if (myTouch.dataAvailable() == true)                     // Проверить нажатие кнопок
+		if (myTouch.dataAvailable() == true)                       // Проверить нажатие кнопок
 		{
 
 			myTouch.read();
 			x = myTouch.getX();
 			y = myTouch.getY();
 
-			if ((y >= 189) && (y <= 239))   //нажата кнопка "Повторить проверку"
+			if ((y >= 189) && (y <= 239))                          //нажата кнопка 
 			{
 				myGLCD.setFont(BigFont);
 				
-				if ((x >= 10) && (x <= 60))   //нажата кнопка "1"
+				if ((x >= 10) && (x <= 60))                       //нажата кнопка "1"
 				{
 					waitForIt(10, 189, 60, 239);
 					m2 = 1;
-					draw_measure();                                  // Восстановить верхнюю строку
+					draw_measure();                               // Отобразить результат измерения
 
 
 
 				}
 
-				if ((x >= 70) && (x <= 120))   //нажата кнопка "2"
+				if ((x >= 70) && (x <= 120))                      //нажата кнопка "2"
 				{
 					waitForIt(70, 189, 120, 239);
 					m2 = 2;
-					clear_display();
+					clear_display();                             // Очистить экран
 
 
 
 				}
 
-				if ((x >= 130) && (x <= 180))   //нажата кнопка "3"
+				if ((x >= 130) && (x <= 180))                     //нажата кнопка "3"
 				{
 					waitForIt(130, 189, 180, 239);
 					m2 = 3;
-					clear_display();
+					clear_display();                             // Очистить экран
 
 
 
 				}
 
-				if ((x >= 190) && (x <= 240))   //нажата кнопка "4"
+				if ((x >= 190) && (x <= 240))                    //нажата кнопка "4"
 				{
 					waitForIt(190, 189, 240, 239);
 					m2 = 4;
-					clear_display();
+					clear_display();                             // Очистить экран
 
 
 
 				}
 
-				if ((x >= 250) && (x <= 300))   //нажата кнопка "5"
+				if ((x >= 250) && (x <= 300))                    //нажата кнопка "5"
 				{
 					waitForIt(250, 189, 300, 239);
 					m3 = 1;
@@ -1191,7 +1232,7 @@ void swichMenu1()
 					m3 = 0;
 					if (m2 == 1)
 					{
-						draw_measure();
+						draw_measure();                          // Отобразить результат измерения
 
 					}
 				}
@@ -1201,22 +1242,127 @@ void swichMenu1()
 }
 
 
-void measure()
+void measure_view()
 {
+	
 	if (m2 == 1 && m3 == 0)
 	{
 		myGLCD.setColor(255, 255, 255);
 		myGLCD.setBackColor(0, 0, 255);
-		myGLCD.printNumF(temp_n1, 2, 40, 26);
-		myGLCD.printNumF(temp_n2, 2, 196, 26);
-		myGLCD.printNumF(temp_n3, 2, 40, 66);
-		myGLCD.printNumF(temp_n4, 2, 196, 66);
-		myGLCD.printNumF(temp_n5, 2, 40, 106);
-		myGLCD.printNumF(temp_n6, 2, 196, 106);
-		myGLCD.printNumF(temp_n5, 2, 40, 153);
-		myGLCD.printNumF(temp_n6, 2, 196, 153);
+		myGLCD.printNumF(temp_sun_in, 2, 40, 26);
+		myGLCD.printNumF(temp_sun_out, 2, 196, 26);
+		myGLCD.printNumF(temp_tube_in, 2, 40, 66);
+		myGLCD.printNumF(temp_tube_out, 2, 196, 66);
+		myGLCD.printNumF(temp_tank, 2, 40, 106);
+		myGLCD.printNumF(temp_out, 2, 196, 106);
+		myGLCD.printNumF(headingDegrees, 2, 40, 153);
+		myGLCD.printNumF(temp_out, 2, 196, 153);
 		myGLCD.setBackColor(0, 0, 0);
+		
 	}
+}
+
+
+
+int read_int_eeprom(unsigned int adr)
+{
+	unsigned int res_eeprom;
+	hi = i2c_eeprom_read_byte(deviceaddress, adr);                // 
+	low = i2c_eeprom_read_byte(deviceaddress, adr + 1);
+	res_eeprom = (hi << 8) | low;
+	return res_eeprom;
+}
+
+void save_int_eeprom(unsigned int adr, unsigned int res)
+{
+	hi = highByte(res);
+	low = lowByte(res);
+	// тут мы эти hi,low можем сохранить EEPROM
+	i2c_eeprom_write_byte(deviceaddress, adr, hi);
+	i2c_eeprom_write_byte(deviceaddress, adr + 1, low);
+}
+
+void clear_eeprom(int start, int long_mem)
+{
+	for (int i = start; i < long_mem; i++)                            // Очистить блока регистров в памяти.        
+	{
+		i2c_eeprom_write_byte(deviceaddress, i, 0);
+	}
+
+}
+
+void read_Temperatures()
+{
+
+	sensor_sun_in.requestTemperatures();
+	sensor_sun_out.requestTemperatures();
+	sensor_tube_in.requestTemperatures();
+	sensor_tube_out.requestTemperatures();
+	sensor_tank.requestTemperatures();
+	sensor_outhouse.requestTemperatures();
+
+	temp_sun_in = sensor_sun_in.getTempCByIndex(0);
+	temp_sun_out = sensor_sun_out.getTempCByIndex(0);
+	temp_tube_in = sensor_tube_in.getTempCByIndex(0);
+	temp_tube_out = sensor_tube_out.getTempCByIndex(0);
+	temp_tank = sensor_tank.getTempCByIndex(0);
+	temp_out = sensor_outhouse.getTempCByIndex(0);
+	
+	Serial.print("sensor_sun_in: ");
+	Serial.println(temp_sun_in);
+
+	Serial.print("sensor_sun_out: ");
+	Serial.println(temp_sun_out);
+
+	Serial.print("sensor_tube_in: ");
+	Serial.println(temp_tube_in);
+
+	Serial.print("sensor_tube_out: ");
+	Serial.println(temp_tube_out);
+
+	Serial.print("sensor_tank: ");
+	Serial.println(temp_tank);
+
+	Serial.print("Outhouse: ");
+	Serial.println(temp_out);
+
+}
+
+void read_compass()
+{
+	Vector norm = compass.readNormalize();
+
+	// Calculate heading
+	float heading = atan2(norm.YAxis, norm.XAxis);
+
+	// Set declination angle on your location and fix heading
+	// You can find your declination on: http://magnetic-declination.com/
+	// (+) Positive or (-) for negative
+	// For Bytom / Poland declination angle is 4'26E (positive)
+	// Formula: (deg + (min / 60.0)) / (180 / M_PI);
+	float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
+	heading += declinationAngle;
+
+	// Correct for heading < 0deg and heading > 360deg
+	if (heading < 0)
+	{
+		heading += 2 * PI;
+	}
+
+	if (heading > 2 * PI)
+	{
+		heading -= 2 * PI;
+	}
+
+	// Convert to degrees
+	headingDegrees = heading * 180 / M_PI;
+
+	// Output
+	Serial.print(" Heading = ");
+	Serial.print(heading);
+	Serial.print(" Degress = ");
+	Serial.print(headingDegrees);
+	Serial.println();
 }
 
 void clear_display()
@@ -2402,9 +2548,48 @@ void setup()
   Serial.println(FreeRam());
   wait_time_Old =  millis();
   digitalWrite(led_Green, HIGH);                          
-  digitalWrite(led_Red, LOW);                           
+  digitalWrite(led_Red, LOW);      
+
+  sensor_sun_in.begin();
+  sensor_sun_out.begin();
+  sensor_tube_in.begin();
+  sensor_tube_out.begin();
+  sensor_tank.begin();
+  sensor_outhouse.begin();
+
   Serial.println(" ");                                   
   Serial.println(F("System initialization OK!."));        // Информация о завершении настройки
+
+  read_Temperatures();
+
+
+  // Initialize Initialize HMC5883L
+  Serial.println("Initialize HMC5883L");
+ 
+
+ /* while (!compass.begin())
+  {
+	  Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
+	  delay(500);
+  }
+
+  // Set measurement range
+  compass.setRange(HMC5883L_RANGE_1_3GA);
+
+  // Set measurement mode
+  compass.setMeasurementMode(HMC5883L_CONTINOUS);
+
+  // Set data rate
+  compass.setDataRate(HMC5883L_DATARATE_30HZ);
+
+  // Set number of samples averaged
+  compass.setSamples(HMC5883L_SAMPLES_8);
+
+  // Set calibration offset. See HMC5883L_calibration.ino
+  compass.setOffset(0, 0);
+
+ // read_compass();
+  */
   //MsTimer2::start();
 }
 
