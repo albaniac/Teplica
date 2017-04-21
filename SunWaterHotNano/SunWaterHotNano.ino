@@ -32,11 +32,18 @@ DS18B20 №3  oneWire_sun
 #include <modbusDevice.h>
 #include <modbusRegBank.h>
 #include <modbusSlave.h>
-#include <Wire.h>
+#include <Arduino.h>
+#include <Wire.h>         // this #include still required because the RTClib depends on it
+#include "RTClib.h"
 #include <BH1750.h>
 #include <OneWire.h>
 #include <MsTimer2.h> 
 #include "RTClib.h"
+#include <DallasTemperature.h>
+#include <avr/pgmspace.h>
+#include <EEPROM.h>
+#include <avr/wdt.h>
+
 
 #define  ds1   2                        // Назначение DS1820 №1  
 #define  ds2   3                        // Назначение DS1820 №2  
@@ -74,8 +81,8 @@ double x_GY61;
 double y_GY61;
 double z_GY61;
 //--------------------------------------------------
-
-RTC_DS1307 rtc;
+RTC_Millis rtc;
+//RTC_DS1307 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 OneWire  ds_tube(ds1);                  // on pin 10 (a 4.7K resistor is necessary)
@@ -361,7 +368,7 @@ void measure_time()
     Serial.print('/');
     Serial.print(now.day(), DEC);
     Serial.print(" (");
-    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+ //   Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
     Serial.print(") ");
     Serial.print(now.hour(), DEC);
     Serial.print(':');
@@ -405,17 +412,23 @@ void setup(void)
 	//slave.setSerial(0,9600);                              // Подключение к протоколу MODBUS компьютера Serial
 	lightMeter.begin();
 
-	 if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    while (1);
-  }
-	if (!rtc.isrunning()) 
-	{
-		Serial.println("RTC is NOT running!");
-		// following line sets the RTC to the date & time this sketch was compiled
-		rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-	
-	}
+	 //if (! rtc.begin()) {
+  //  Serial.println("Couldn't find RTC");
+  //  while (1);
+  //}
+
+	 rtc.begin(DateTime(F(__DATE__), F(__TIME__)));
+
+
+
+
+	//if (!rtc.isrunning()) 
+	//{
+	//	Serial.println("RTC is NOT running!");
+	//	// following line sets the RTC to the date & time this sketch was compiled
+	//	rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+	//
+	//}
 	//rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
 	pinMode(SW_West, INPUT);                                 // Назначение  
