@@ -74,10 +74,10 @@ uint16_t year = 16;
 #define  SW_Down   9                    // Назначение концевик Низ
 #define  Rele1    10                    // Назначение Реле 1
 #define  Rele2    11                    // Назначение Реле 2  
-#define  motor_West  12                 // Назначение  
-#define  motor_East  A3                 // Светодиод подсоединен к цифровому выводу 13 
-#define  motor_High  A6                 // Назначение  
-#define  motor_Down  A7                 // Назначение  
+#define  motor_West  12                 // Назначение  мотор Запад
+#define  motor_East  A3                 // Назначение  мотор Восток  Светодиод подсоединен к цифровому выводу 13 
+#define  motor_High  A6                 // Назначение  мотор Вверх
+#define  motor_Down  A7                 // Назначение  мотор Вниз 
 
 #define  ds1   2                        // Назначение DS1820 №1  
 #define  ds2   3                        // Назначение DS1820 №2  
@@ -103,12 +103,12 @@ DallasTemperature sensor3(&ds18x20_3);
 DallasTemperature sensor4(&ds18x20_4);
 
 
-int setTmp  = 31; // переменная для заданного значения температуры
+int setTmp  = 45; // переменная для заданного значения температуры
 
 				 //Объявим переменную для хранения состояния реле
 boolean relay1Status = LOW;
 boolean relay2Status = LOW;
-
+int delta_motor = 10;
 
 //Объявим переменные для задания задержки
 long previousMillis1 = 0;
@@ -255,7 +255,7 @@ void sun_calc()
 	//SET TIME AND DATE HERE//////////////
 	month2 = month;
 	day2 = day;
-	hour2 = hour;//Use 24hr clock (ex: 1:00pm = 13:00) and don't use day3light saving time.
+	hour2 =  hour;//Use 24hr clock (ex: 1:00pm = 13:00) and don't use day3light saving time.
 	minute2 = minute;
 	//END SET TIME AND DATE /////////////
 
@@ -290,26 +290,55 @@ void run_uprav(float azimuth, float headingDegrees)
 {
 	// azimuth - расчетная величина
 	// headingDegrees показания компаса
-
-	if (headingDegrees < azimuth)
+	// Время восход 05.10 ()56.2 град,  закат 19.50 (282.5 град)
+	//if (azimuth > 56 && azimuth < 280)
+	if (headingDegrees > 56 && headingDegrees < 300)
 	{
-		if ((azimuth - headingDegrees) > 5)
+		if (headingDegrees < azimuth)                 // Установка восточнее расчетной величины
 		{
-			Serial.println("PLUS");             // Применить для расчета положения установки
+			if ((azimuth - headingDegrees) > delta_motor)
+			{
+				if (SW_West)        // Не достигнут конец разворота
+				{
+					digitalWrite(motor_West, HIGH);                          //  
+					Serial.println("PLUS");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_West, LOW);                          //  
+				Serial.println("PLUS Stop");             // Применить для расчета положения установки
+			}
 		}
-	}
 
-	if (headingDegrees > azimuth)
+		if (headingDegrees > azimuth)               // Установка западние расчетной величины
+		{
+			if ((headingDegrees - azimuth) > delta_motor)
+			{
+				if (SW_East)
+				{
+					digitalWrite(motor_East, HIGH);                          //  
+
+					Serial.println("MINUS");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_East, LOW);                          //  
+
+				Serial.println("MINUS Stop");             // Применить для расчета положения установки
+
+			}
+		}
+
+	}
+	else
 	{
-		if((headingDegrees - azimuth)> 5)
-		Serial.println("MINUS");             // Применить для расчета положения установки
+		Serial.println("No SUN");             // Применить для расчета положения установки
+
 	}
 
 }
-
-
-
-
 
 
 void setup() {
