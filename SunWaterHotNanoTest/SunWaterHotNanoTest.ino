@@ -440,24 +440,24 @@ void loop() {
 		//Запуск процедуры измерения температуры
 		print_data();
 		sun_calc();
-		//sendTemps();
-		//Serial.println("Temperature: ");
+		sendTemps();
+		Serial.println("Temperature: ");
 
-		//Serial.println(t1);
-		//Serial.println(t2);
-		//Serial.println(t3);
-		//Serial.println(t4);
+		Serial.println(t1);
+		Serial.println(t2);
+		Serial.println(t3);
+		Serial.println(t4);
 
 
-		////Проверка условия включения/выключения мотора
-		//if (t1<setTmp&&relay1Status == LOW) { relay1Status = HIGH; digitalWrite(Rele1, LOW); }
-		//if (t1>setTmp&&relay1Status == HIGH) { relay1Status = LOW; digitalWrite(Rele1, HIGH); }
+		//Проверка условия включения/выключения мотора
+		if (t1<setTmp&&relay1Status == LOW) { relay1Status = HIGH; digitalWrite(Rele1, LOW); }
+		if (t1>setTmp&&relay1Status == HIGH) { relay1Status = LOW; digitalWrite(Rele1, HIGH); }
 
-		//if (t2<setTmp&&relay2Status == LOW) { relay2Status = HIGH; digitalWrite(Rele2, LOW); }
-		//if (t2>setTmp&&relay2Status == HIGH) { relay2Status = LOW; digitalWrite(Rele2, HIGH); }
+		if (t2<setTmp&&relay2Status == LOW) { relay2Status = HIGH; digitalWrite(Rele2, LOW); }
+		if (t2>setTmp&&relay2Status == HIGH) { relay2Status = LOW; digitalWrite(Rele2, HIGH); }
 
-		//Serial.print("relay1Status: "); Serial.println(relay1Status);
-		//Serial.print("relay1Status: "); Serial.println(relay2Status);
+		Serial.print("relay1Status: "); Serial.println(relay1Status);
+		Serial.print("relay1Status: "); Serial.println(relay2Status);
 
 		read_compass();
 
