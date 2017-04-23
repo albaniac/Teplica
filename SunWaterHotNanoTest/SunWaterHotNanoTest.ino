@@ -47,7 +47,7 @@ ADD-NC or GND
 #include <BH1750.h>
 #include <EEPROM2.h>
 #include <HMC5883L.h>
-
+#include "Kalman.h"
 
 
 #if defined(ARDUINO_ARCH_SAMD)
@@ -112,7 +112,7 @@ int delta_motor = 10;
 
 //ќбъ€вим переменные дл€ задани€ задержки
 long previousMillis1 = 0;
-long interval1 = 1000; // интервал опроса датчиков температуры
+long interval1 = 3000; // интервал опроса датчиков температуры
 
 
 BH1750 lightMeter;
@@ -150,8 +150,7 @@ float h;
 
 HMC5883L compass;
 float headingDegrees = 0.00;
-bool compass_enable1 = false;
-
+bool compass_enable = false;
 
 
 
@@ -341,6 +340,10 @@ void run_uprav(float azimuth, float headingDegrees)
 }
 
 
+//------------------------------------------------------------------------------
+
+
+
 void setup() {
 	Serial.begin(9600);
 	// following line sets the RTC to the date & time this sketch was compiled
@@ -402,7 +405,7 @@ void setup() {
 	if (!compass.begin())
 	{
 		Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
-		delay(500);
+		compass_enable = false;
 	}
 	else
 	{
@@ -422,6 +425,7 @@ void setup() {
 		compass.setOffset(0, 0);
 
 		//read_compass();
+		compass_enable = true;
 	}
 
 	Serial.println(" ");
@@ -459,10 +463,11 @@ void loop() {
 		Serial.print("relay1Status: "); Serial.println(relay1Status);
 		Serial.print("relay1Status: "); Serial.println(relay2Status);
 
-		read_compass();
-
-
-		run_uprav(azimuth, headingDegrees);
+		if(compass_enable)
+		{
+			read_compass();
+			run_uprav(azimuth, headingDegrees);
+		}
 
 	}
 
@@ -607,4 +612,3 @@ float FindH(int day3, int month) {
 
 	return h;
 }
-/////////////////////////////////////////////////////////////
