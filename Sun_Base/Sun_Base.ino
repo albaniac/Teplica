@@ -1272,7 +1272,7 @@ void read_Temperatures()
 	//Serial.print("Outhouse: ");
 	//Serial.println(temp_out);
 
-}
+} 
 
 void read_compass()
 {
