@@ -258,35 +258,28 @@ int m3 = 0; // Переменная номера меню
 //------------------------------------------------------------------------------------------------------------------
 // Назначение переменных для хранения текстов
 
-char  txt_menu1_1[]            = "Tec\xA4 ""\x9F""a\x96""e\xA0\xAF N1";                                    // Тест кабель N 1
-char  txt_menu1_2[]            = "Tec\xA4 ""\x9F""a\x96""e\xA0\xAF N2";                                    // Тест кабель N 2
-char  txt_menu1_3[]            = "Tec\xA4 ""\x9F""a\x96""e\xA0\xAF N3";                                    // Тест кабель N 3
-char  txt_menu1_4[]            = "Tec\xA4 ""\x9F""a\x96""e\xA0\xAF N4";                                    // Тест кабель N 4
-char  txt_menu2_1[]            = "Tec""\xA4"" ""\x80""BC";                                                 // Тест БВС                                           
-char  txt_menu2_2[]            = "=========";                                                              // ================      
-char  txt_menu2_3[]            = "=========";                                                              // ================      
-char  txt_menu2_4[]            = "=========";                                                              // ================  
-char  txt_menu3_1[]            = "Ko""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAC"" N1";                   // Копия кабель N 1
-char  txt_menu3_2[]            = "Ko""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAC"" N2";                   // Копия кабель N 2
-char  txt_menu3_3[]            = "Ko""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAC"" N3";                   // Копия кабель N 3 
-char  txt_menu3_4[]            = "Ko""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAC"" N4";                   // Копия кабель N 4
-char  txt_menu4_1[]            = "Ta""\x96\xA0\x9D\xA6""a coe""\x99"".";                                   // Таблица соед.
-char  txt_menu4_2[]            = "Ko""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAF";                        // Копия кабеля
-char  txt_menu4_3[]            = "\x85""a""\x98""py""\x9C"".\xA4""a""\x96\xA0\x9D\xA6";                    // Загруз. умолч.
-char  txt_menu4_4[]            = "Tec""\xA4"" pa""\x9C\xAA""e""\xA1""o""\x97";                             // Тест разъемов 
+//char  txt_menu1_1[]            = " ";                                    //  
+//char  txt_menu1_2[]            = " ";                                    //  
+//char  txt_menu1_3[]            = " ";                                    //  
+//char  txt_menu1_4[]            = " ";                                    //  
+//char  txt_menu2_1[]            = " ";                                    //                                   
+//char  txt_menu2_2[]            = "=========";                                                              // ================      
+//char  txt_menu2_3[]            = "=========";                                                              // ================      
+//char  txt_menu2_4[]            = "=========";                                                              // ================  
+//char  txt_menu3_1[]            = " ";                   // 
+//char  txt_menu3_2[]            = " ";                   //  
+//char  txt_menu3_3[]            = " ";                   //  
+//char  txt_menu3_4[]            = " ";                   // 
+//char  txt_menu4_1[]            = " ";                                   // 
+//char  txt_menu4_2[]            = " ";                        //  
+//char  txt_menu4_3[]            = " ";                    //  
+//char  txt_menu4_4[]            = " ";                             //  
 char  txt_menu5_1[]            = "=========";                                                              // ================  
 char  txt_menu5_2[]            = "=========";                                                              // ================  
 char  txt_menu5_3[]            = "=========";                                                              // ================  
 char  txt_menu5_4[]            = "Bpe""\xA1\xAF"" ""\xA3""poc""\xA4""o""\xAF";                             // Время простоя
 
 char buffer[40];
-
-const char* const table_message[] PROGMEM =
-{
- 
-};
-
-byte   temp_buffer[40] ;                                                                                    // Буфер хранения временной информации
 
 void serial_print_date()                           // Печать даты и времени
 {
@@ -842,24 +835,21 @@ void drawButtons1() // Отображение цифровой клавиатуры
   myGLCD.fillRoundRect (10, 130, 120, 180);
   myGLCD.setColor(255, 255, 255);
   myGLCD.drawRoundRect (10, 130, 120, 180);
-  strcpy_P(buffer,(char*)pgm_read_word(&(table_message[8])));
-  myGLCD.print(buffer, 20, 147);                                   // "Отмена"
+  myGLCD.print("O""\xA4\xA1""e""\xA2""a", 20, 147);                                   // "Отмена"
 
 
   myGLCD.setColor(0, 0, 255);
   myGLCD.fillRoundRect (130, 130, 240, 180);
   myGLCD.setColor(255, 255, 255);
   myGLCD.drawRoundRect (130, 130, 240, 180);
-  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[9])));
-  myGLCD.print(buffer, 155, 147);                                  // "Ввод"
+  myGLCD.print("B""\x97""o""\x99", 155, 147);                                  // "Ввод"
 
 
   myGLCD.setColor(0, 0, 255);
   myGLCD.fillRoundRect (250, 130, 300, 180);
   myGLCD.setColor(255, 255, 255);
   myGLCD.drawRoundRect (250, 130, 300, 180);
-  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[10])));
-  myGLCD.print(buffer, 252, 147);                                  // Вых
+  myGLCD.print("B""\xAB""x", 252, 147);                                  // Вых
   myGLCD.setBackColor (0, 0, 0);
 }
 void updateStr(int val)
@@ -1085,24 +1075,24 @@ void draw_Glav_Menu()
   switch (m2)
   {
 	case 1:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
-	  myGLCD.print(buffer, CENTER, 0);                               // txt_info1
+	  //strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
+	  //myGLCD.print(buffer, CENTER, 0);                               // txt_info1
 	  break;
 	case 2:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
-	  myGLCD.print(buffer, CENTER, 0);                               // txt_info2
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
+	  myGLCD.print(buffer, CENTER, 0);   */                            // txt_info2
 	  break;
 	case 3:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
-	  myGLCD.print(buffer, CENTER, 0);                               // txt_info3
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
+	  myGLCD.print(buffer, CENTER, 0);     */                          // txt_info3
 	  break;
 	case 4:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
-	  myGLCD.print(buffer, CENTER, 0);                               // txt_info4
+	 /* strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
+	  myGLCD.print(buffer, CENTER, 0);      */                         // txt_info4
 	  break;
 	case 5:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
-	  myGLCD.print(buffer, CENTER, 0);                               // txt_info5
+	  //strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
+	  //myGLCD.print(buffer, CENTER, 0);                               // txt_info5
 	  break;
   }
 }
@@ -1357,336 +1347,6 @@ void clear_display()
 	myGLCD.setColor(255, 255, 255);
 }
 
-void swichMenu()                                             // Тексты меню в строках "txt....."
-{
-  m2 = 1;                                                    // Устанивить первую странице меню
-
-  while (1)
-  {
-	wait_time = millis();                                    // Программа вызова часов при простое
-	if (wait_time - wait_time_Old > 60000 * time_minute)
-	{
-	  wait_time_Old =  millis();
-	 // AnalogClock();
-	  myGLCD.clrScr();
-	  myButtons.drawButtons();                               // Восстановить кнопки
-	  print_up();                                            // Восстановить верхнюю строку
-	}
-	
-	myButtons.setTextFont(BigFont);                          // Установить Большой шрифт кнопок
-
-	if (myTouch.dataAvailable() == true)                     // Проверить нажатие кнопок
-	{
-	  pressed_button = myButtons.checkButtons();             // Если нажата - проверить что нажато
-	  delay(100);
-	  wait_time_Old =  millis();
-
-	  if (pressed_button == butX)                            // Нажата - вызов часы
-	  {
-		m3 = 1;
-		AnalogClock();
-		myGLCD.clrScr();
-		myButtons.drawButtons();                             // Восстановить кнопки
-		print_up();                                          // Восстановить верхнюю строку
-		m3 = 0;
-		if (m2 == 1)
-		{
-			draw_measure();
-
-		}
-	  }
-
-	  if (pressed_button == but_m1)                          // Нажата 1 страница меню
-	  {
-		m2 = 1;                                              // Устанивить первую странице меню
-		myGLCD.clrScr();
-		myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE); // Голубой фон меню
-		myButtons.deleteAllButtons();
-		Set_Down_Buttons();
-		myButtons.drawButtons();                             // Восстановить кнопки
-		default_colors = true;
-		myGLCD.setColor(0, 255, 0);
-		myGLCD.setBackColor(0, 0, 0);
-		myGLCD.print("                      ", CENTER, 0);
-		strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
-		myGLCD.print(buffer, CENTER, 0);                     // txt_info1 "Тест кабелей"
-
-		draw_measure();
-
-	  }
-	  else if (pressed_button == but_m2)
-	  {
-		m2 = 2;
-	    myGLCD.clrScr();
-		myButtons.deleteAllButtons();
-		myButtons.setButtonColors(VGA_WHITE, VGA_RED, VGA_YELLOW, VGA_BLUE, VGA_TEAL);
-		but1   = myButtons.addButton( 10,  20, 250,  35, txt_menu2_1);
-		but2   = myButtons.addButton( 10,  65, 250,  35, txt_menu2_2);
-		but3   = myButtons.addButton( 10, 110, 250,  35, txt_menu2_3);
-		but4   = myButtons.addButton( 10, 155, 250,  35, txt_menu2_4);
-		Set_Down_Buttons();
-		myButtons.drawButtons();
-		default_colors = false;
-		myGLCD.setColor(0, 255, 0);
-		myGLCD.setBackColor(0, 0, 0);
-		myGLCD.print("                      ", CENTER, 0);
-		strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
-		myGLCD.print(buffer, CENTER, 0);                     // txt_info2 Тест блока гарнитур
-	  }
-
-	  else if (pressed_button == but_m3)
-	  {
-		m2 = 3;
-		myGLCD.clrScr();
-		myButtons.deleteAllButtons();
-		myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_GREEN);
-		but1 = myButtons.addButton(10, 20, 250, 35, txt_menu3_1);
-		but2 = myButtons.addButton(10, 65, 250, 35, txt_menu3_2);
-		but3 = myButtons.addButton(10, 110, 250, 35, txt_menu3_3);
-		but4 = myButtons.addButton(10, 155, 250, 35, txt_menu3_4);
-		Set_Down_Buttons();
-		myButtons.drawButtons();
-		default_colors = false;
-		myGLCD.setColor(0, 255, 0);
-		myGLCD.setBackColor(0, 0, 0);
-		myGLCD.print("                      ", CENTER, 0);
-		strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
-		myGLCD.print(buffer, CENTER, 0);                     // txt_info3 Настройка системы
-	  }
-	  else if (pressed_button == but_m4)
-	  {
-	    m2 = 4;
-		myGLCD.clrScr();
-		myButtons.deleteAllButtons();
-		myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_RED);
-		but1 = myButtons.addButton(10, 20, 250, 35, txt_menu4_1);
-		but2 = myButtons.addButton(10, 65, 250, 35, txt_menu4_2);
-		but3 = myButtons.addButton(10, 110, 250, 35, txt_menu4_3);
-		but4 = myButtons.addButton(10, 155, 250, 35, txt_menu4_4);
-		Set_Down_Buttons();
-		myButtons.drawButtons();
-		default_colors = false;
-		myGLCD.setColor(0, 255, 0);
-		myGLCD.setBackColor(0, 0, 0);
-		myGLCD.print("                      ", CENTER, 0);
-		strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
-		myGLCD.print(buffer, CENTER, 0);                     // txt_info4 
-	  }
-
-	  else if (pressed_button == but_m5)
-	  {
-		m2 = 5;
-		myGLCD.clrScr();
-		myButtons.deleteAllButtons();
-		myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_NAVY);
-		but1 = myButtons.addButton(10, 20, 250, 35, txt_menu5_1);
-		but2 = myButtons.addButton(10, 65, 250, 35, txt_menu5_2);
-		but3 = myButtons.addButton(10, 110, 250, 35, txt_menu5_3);
-		but4 = myButtons.addButton(10, 155, 250, 35, txt_menu5_4);
-		Set_Down_Buttons();
-		myButtons.drawButtons();
-		default_colors = false;
-		myGLCD.setColor(0, 255, 0);
-		myGLCD.setBackColor(0, 0, 0);
-		myGLCD.print("                      ", CENTER, 0);
-		strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
-		myGLCD.print(buffer, CENTER, 0);                     // txt_info5  Осциллограф
-	  }
-
-	//  //*****************  Меню №1  **************
-
-	//  if (pressed_button == but1 && m2 == 1)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  if (pressed_button == but2 && m2 == 1)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  if (pressed_button == but3 && m2 == 1)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-	//  if (pressed_button == but4 && m2 == 1)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  //*****************  Меню №2  **************
-
-
-	//  if (pressed_button == but1 && m2 == 2)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  if (pressed_button == but2 && m2 == 2)
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  if (pressed_button == but3 && m2 == 2)
-	//  {
- //
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-	//  if (pressed_button == but4 && m2 == 2)
-	//  {
-
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  //*****************  Меню №3  **************
-	//  if (pressed_button == but1 && m2 == 3)                 // Первый пункт меню 3
-	//  {
-	// 
-	//	 myGLCD.clrScr();                                    // Очистить экран
-	//	 myButtons.drawButtons();
-	//	 print_up();
-	//  }
-
-	//  //--------------------------------------------------------------
-	//  if (pressed_button == but2 && m2 == 3)                 // Второй пункт меню 3
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  //------------------------------------------------------------------
-
-	//  if (pressed_button == but3 && m2 == 3)                 // Третий пункт меню 3
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  //------------------------------------------------------------------
-	//  if (pressed_button == but4 && m2 == 3)                 // Четвертый пункт меню 3
-	//  {
-	// 
-	//	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();
-	//  }
-
-	//  //*****************  Меню №4  **************
-
-	//  if (pressed_button == but1 && m2 == 4) //
-	//  {
-	// 
-	//	  myGLCD.clrScr();                                    // Очистить экран
-	//	  myButtons.drawButtons();
-	//	  print_up();
-	//  }
-
-	//  if (pressed_button == but2 && m2 == 4)
-	//  {
-	// 
-	//	  myGLCD.clrScr();                                     // Очистить экран
-	//	  myButtons.drawButtons();
-	//	  print_up();;
-	//  }
-
-	//  if (pressed_button == but3 && m2 == 4) //
-	//  {
-	// 
-	//	  myGLCD.clrScr();
-	//	  myButtons.drawButtons();
-	//	  print_up();
-	//  }
-	//  if (pressed_button == but4 && m2 == 4) //
-	//  {
-	// 
-	//	  myGLCD.clrScr();
-	//	  myButtons.drawButtons();
-	//	  print_up();
-	//  }
-	  //*****************  Меню №5  **************
-
-	//  if (pressed_button == but1 && m2 == 5)                 // Сброс данных
-	//  {
-	// 
-
-	///*	myGLCD.clrScr();
-	//	myButtons.drawButtons();
-	//	print_up();*/
-	//  }
-	//  if (pressed_button == but2 && m2 == 5)
-	//  {
-	// 
-
-	//	//myGLCD.clrScr();                                     // Очистить экран
-	// //  	myButtons.drawButtons();
-	//	//print_up();
-	//  }
-
-	//  if (pressed_button == but3 && m2 == 5)                 // Ввод 
-	//  {
-	///*	  myGLCD.clrScr();
-	//	  myButtons.drawButtons();
-	//	  print_up();*/
-	//  }
-
-	  if (pressed_button == but4 && m2 == 5) //
-	  {
-		  myGLCD.clrScr();
-		  myGLCD.setFont(BigFont);
-		  myGLCD.setBackColor(0, 0, 255);
-		  myGLCD.clrScr();
-		  drawButtons1();                                      // Нарисовать цифровую клавиатуру
-		  myGLCD.printNumI(time_minute, LEFT, 208);
-		  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[14])));
-		  myGLCD.print(buffer, 35, 208);                       // txt_time_wait
-		  klav123();                                           // Считать информацию с клавиатуры
-		  if (ret == 1)                                        // Если "Возврат" - закончить
-		  {
-			  goto bailout41;                                  // Перейти на окончание выполнения пункта меню
-		  }
-		  else                                                 // Иначе выполнить пункт меню
-		  {
-			  time_minute = atol(stLast);
-		  }
-	  bailout41:                                               // Восстановить пункты меню
-		  myGLCD.clrScr();
-		  myButtons.drawButtons();
-		  print_up();
-	  }
-
-	  if (pressed_button == -1)
-	  {
-		 // myGLCD.print("HET", 220, 220);
-	  }
-	}
-  }
-}
 void print_up() // Печать верхней строчки над меню
 {
   myGLCD.setColor(0, 255, 0);
@@ -1695,24 +1355,24 @@ void print_up() // Печать верхней строчки над меню
   switch (m2)
   {
 	case 1:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
-	  myGLCD.print(buffer, CENTER, 0);                                 // txt_info1
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
+	  myGLCD.print(buffer, CENTER, 0);          */                       // txt_info1
 	  break;
 	case 2:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
-	  myGLCD.print(buffer, CENTER, 0);                                 // txt_info2
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
+	  myGLCD.print(buffer, CENTER, 0);    */                             // txt_info2
 	  break;
 	case 3:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
-	  myGLCD.print(buffer, CENTER, 0);                                 // txt_info3
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
+	  myGLCD.print(buffer, CENTER, 0);      */                           // txt_info3
 	  break;
 	case 4:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
-	  myGLCD.print(buffer, CENTER, 0);                                 // txt_info4
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
+	  myGLCD.print(buffer, CENTER, 0);      */                           // txt_info4
 	  break;
 	case 5:
-	  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
-	  myGLCD.print(buffer, CENTER, 0);                                 // txt_info5
+	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
+	  myGLCD.print(buffer, CENTER, 0);         */                        // txt_info5
 	  break;
   }
 }
@@ -1744,45 +1404,6 @@ void draw_measure()
 
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.setBackColor(0, 0, 0);
-}
-
-void view_menu_search()
-{
-	myGLCD.clrScr();
-	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
-	myGLCD.drawRoundRect(5, 200, 155, 239);
-	myGLCD.drawRoundRect(160, 200, 315, 239);
-
-	myGLCD.drawRoundRect(5, 20, 285, 55);
-	myGLCD.drawRoundRect(5, 65, 285, 100);
-	myGLCD.drawRoundRect(5, 110, 285, 145);
-	myGLCD.drawRoundRect(5, 155, 285, 190);
-
-	//myGLCD.drawLine(10, 60, 310, 60);
-	myGLCD.setColor(0, 0, 255);
-	myGLCD.fillRoundRect(6, 201, 154, 238);
-	myGLCD.fillRoundRect(161, 201, 314, 238);
-
-	myGLCD.fillRoundRect(6, 21, 284, 54);
-	myGLCD.fillRoundRect(6, 66, 284, 99);
-	myGLCD.fillRoundRect(6, 111, 284, 144);
-	myGLCD.fillRoundRect(6, 156, 284, 189);
-
-
-
-	myGLCD.setColor(255, 255, 255);
-	myGLCD.setBackColor(0, 0, 255);
-
-	myGLCD.print("Bap""\x9D""a""\xA2\xA4"" ""\x9F""a""\x96""e""\xA0\xAF"" N1", 10, 30);    // Вариант кабеля N1
-	myGLCD.print("Bap""\x9D""a""\xA2\xA4"" ""\x9F""a""\x96""e""\xA0\xAF"" N2", 10, 75);    // Вариант кабеля N2
-	myGLCD.print("Bap""\x9D""a""\xA2\xA4"" ""\x9F""a""\x96""e""\xA0\xAF"" N3", 10, 120);   // Вариант кабеля N3
-	myGLCD.print("Bap""\x9D""a""\xA2\xA4"" ""\x9F""a""\x96""e""\xA0\xAF"" N4", 10, 165);   // Вариант кабеля N4
-
-	myGLCD.print("B""\xAB\xA3""o""\xA0\xA2\x9D\xA4\xAC", 10, 210);                         // Выполнить
-	strcpy_P(buffer, (char*)pgm_read_word(&(table_message[20])));
-	myGLCD.print(buffer, 168, 210);                                                        // Завершить
-	myGLCD.setBackColor(0, 0, 0);
-
 }
 
 void setup_pin()
