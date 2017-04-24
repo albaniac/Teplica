@@ -9,7 +9,38 @@ VisualMicro
 Дата начала работ:    - 16.04.2017г.
 Дата окончания работ: - 00.00.2017г.
  
-*/
+
+ /*
+
+ DS18B20 №1  oneWire_in
+ Черный - GND
+ Белый - 8
+ Красный - +5в
+
+ DS18B20 №1  oneWire_in
+ Черный - GND
+ Белый - 9
+ Красный - +5в
+
+ DS18B20 №2  oneWire_out
+ Черный - GND
+ Белый - 10
+ Красный - +5в
+
+ DS18B20 №3  oneWire_sun
+ Черный - GND
+ Белый - 11
+ Красный - +5в
+
+
+
+ */
+
+
+
+
+
+
 
 #include <SPI.h>
 #include <Wire.h>
@@ -42,12 +73,55 @@ VisualMicro
 
 #define Chanal_A   A8                                    // Выход канала А блока коммутаторов
 #define Chanal_B   A9                                    // Выход канала B блока коммутаторов
+
+
 #define Rele1       8                                    // Управление реле 1
 #define Rele2       9                                    // Управление реле 2
 #define Rele3      10                                    // Управление реле 3
 
 MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  4 A - Out, B - Out
 MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  6 A - Out, B - Out
+
+
+
+
+#define  SW_West   9                    // Назначение концевик Запад  
+#define  SW_East   8                    // Назначение концевик Восток 
+#define  SW_High   10                    // Назначение концевик Верх
+#define  SW_Down   11                    // Назначение концевик Низ
+//#define  Rele1    10                    // Назначение Реле 1
+//#define  Rele2    11                    // Назначение Реле 2  
+#define  motor_West  0                 // Назначение  мотор Запад
+#define  motor_East  1                 // Назначение  мотор Восток  Светодиод подсоединен к цифровому выводу 13 
+#define  motor_High  2                 // Назначение  мотор Вверх
+#define  motor_Down  3                 // Назначение  мотор Вниз 
+
+#define  ds1   8                        // Назначение DS1820 №1  
+#define  ds2   9                        // Назначение DS1820 №2  
+#define  ds3   10                        // Назначение DS1820 №3  
+#define  ds4   11                        // Назначение DS1820 №4  
+
+float t1 = 0.0;                         // Результат измерения датчика температуры №1
+float t2 = 0.0;                         // Результат измерения датчика температуры №2
+float t3 = 0.0;                         // Результат измерения датчика температуры №3
+float t4 = 0.0;                         // Результат измерения датчика температуры №4
+
+uint8_t oneWirePins[] = { ds1, ds2, ds3, ds4 };                      //номера датчиков температуры DS18x20. Переставляя номера можно устанавливать очередность передачи в строке.
+																	 // Сейчас первым идет внутренний датчик.
+uint8_t oneWirePinsCount = sizeof(oneWirePins) / sizeof(int);
+
+OneWire ds18x20_1(oneWirePins[0]);
+OneWire ds18x20_2(oneWirePins[1]);
+OneWire ds18x20_3(oneWirePins[2]);
+OneWire ds18x20_4(oneWirePins[3]);
+DallasTemperature sensor1(&ds18x20_1);
+DallasTemperature sensor2(&ds18x20_2);
+DallasTemperature sensor3(&ds18x20_3);
+DallasTemperature sensor4(&ds18x20_4);
+
+
+
+
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -2417,37 +2491,40 @@ void setup_pin()
 	pinMode(led_Green, OUTPUT);                           //
 	digitalWrite(led_Red, HIGH);                          //
 	digitalWrite(led_Green, LOW);                         //
-	pinMode(Chanal_A, INPUT);                                   // Выход коммутаторов блока А
-	pinMode(Chanal_B, INPUT);                                   // Выход коммутаторов блока В
-	pinMode(Rele1 , OUTPUT);                             //
-	pinMode(Rele2 , OUTPUT);                             //
-	pinMode(Rele2 , OUTPUT);                             //
-	digitalWrite(Rele1 , LOW);                         //
-	digitalWrite(Rele2 , LOW);                         //
-	digitalWrite(Rele3 , LOW);                         //
+	//pinMode(Chanal_A, INPUT);                                   // Выход коммутаторов блока А
+	//pinMode(Chanal_B, INPUT);                                   // Выход коммутаторов блока В
+	//pinMode(Rele1 , OUTPUT);                             //
+	//pinMode(Rele2 , OUTPUT);                             //
+	//pinMode(Rele2 , OUTPUT);                             //
+	//digitalWrite(Rele1 , LOW);                         //
+	//digitalWrite(Rele2 , LOW);                         //
+	//digitalWrite(Rele3 , LOW);                         //
 }
 void setup_mcp()
 {
   // Настройка расширителя портов
 
+
+
   mcp_Out1.begin(1);                               //  Адрес (1) U6 первого  расширителя портов
-  mcp_Out1.pinMode(0, OUTPUT);                     //  1A1
-  mcp_Out1.pinMode(1, OUTPUT);                     //  1B1
-  mcp_Out1.pinMode(2, OUTPUT);                     //  1C1
-  mcp_Out1.pinMode(3, OUTPUT);                     //  1D1
+  mcp_Out1.pinMode(motor_West, OUTPUT);            //  1A1 Назначение  мотор Запад
+  mcp_Out1.pinMode(motor_East, OUTPUT);            //  1B1 Назначение  мотор Восток
+  mcp_Out1.pinMode(motor_High, OUTPUT);            //  1C1 Назначение  мотор Вверх
+  mcp_Out1.pinMode(motor_Down, OUTPUT);            //  1D1 Назначение  мотор Вниз
   mcp_Out1.pinMode(4, OUTPUT);                     //  1A2
   mcp_Out1.pinMode(5, OUTPUT);                     //  1B2
   mcp_Out1.pinMode(6, OUTPUT);                     //  1C2
   mcp_Out1.pinMode(7, OUTPUT);                     //  1D2
 
-  mcp_Out1.pinMode(8, OUTPUT);                     //  1E1   U13  порты А in/out
-  mcp_Out1.pinMode(9, OUTPUT);                     //  1E2   U17  порты А in/out
-  mcp_Out1.pinMode(10, OUTPUT);                    //  1E3   U23  порты А in/out
-  mcp_Out1.pinMode(11, OUTPUT);                    //  1E4   U14  порты А GND
-  mcp_Out1.pinMode(12, OUTPUT);                    //  1E5   U19  порты А GND
-  mcp_Out1.pinMode(13, OUTPUT);                    //  1E6   U21  порты А GND
-  mcp_Out1.pinMode(14, OUTPUT);                    //  1E7   Свободен
-  mcp_Out1.pinMode(15, OUTPUT);                    //  1E8   Свободен
+
+  mcp_Out1.pinMode(SW_East, INPUT);                //  1E1   Назначение концевик Восток 
+  mcp_Out1.pinMode(SW_West, INPUT);                //  1E2  Назначение концевик Запад  
+  mcp_Out1.pinMode(SW_High, INPUT);                //  1E3   Назначение концевик Верх
+  mcp_Out1.pinMode(SW_Down, INPUT);                //  1E4   Назначение концевик Низ
+  mcp_Out1.pinMode(12, INPUT);                    //  1E5   U19  порты А GND
+  mcp_Out1.pinMode(13, INPUT);                    //  1E6   U21  порты А GND
+  mcp_Out1.pinMode(14, INPUT);                    //  1E7   Свободен
+  mcp_Out1.pinMode(15, INPUT);                    //  1E8   Свободен
 
   mcp_Out2.begin(2);                               //  Адрес (2) U9 второго  расширителя портов
   mcp_Out2.pinMode(0, OUTPUT);                     //  2A1
@@ -2467,9 +2544,13 @@ void setup_mcp()
   mcp_Out2.pinMode(13, OUTPUT);                    //  2E6   U24  порты B GND
   mcp_Out2.pinMode(14, OUTPUT);                    //  2E7   Реле №1, №2
   mcp_Out2.pinMode(15, OUTPUT);                    //  2E8   Свободен
+
+  for (int i = 0; i < 8; i++)
+  {
+	  mcp_Out1.digitalWrite(i, LOW);
+  }
   for (int i = 0; i < 16; i++)
   {
-	mcp_Out1.digitalWrite(i, HIGH);
 	mcp_Out2.digitalWrite(i, HIGH);
   }
   //mcp_Out2.digitalWrite(14, LOW);                 // Отключить реле
