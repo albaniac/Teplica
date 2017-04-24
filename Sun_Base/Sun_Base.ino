@@ -279,7 +279,6 @@ char  txt_menu5_2[]            = "=========";                                   
 char  txt_menu5_3[]            = "=========";                                                              // ================  
 char  txt_menu5_4[]            = "Bpe""\xA1\xAF"" ""\xA3""poc""\xA4""o""\xAF";                             // Время простоя
 
-char buffer[40];
 
 void serial_print_date()                           // Печать даты и времени
 {
@@ -663,23 +662,6 @@ void serialEvent3()
 {
   control_command();
 }
- 
-void reset_klav()
-{
-  myGLCD.clrScr();
-  myButtons.deleteAllButtons();
-  but1 = myButtons.addButton( 10,  20, 250,  35, txt_menu5_1);
-  but2 = myButtons.addButton( 10,  65, 250,  35, txt_menu5_2);
-  but3 = myButtons.addButton( 10, 110, 250,  35, txt_menu5_3);
-  but4 = myButtons.addButton( 10, 155, 250,  35, txt_menu5_4);
-  butX = myButtons.addButton(279, 199,  40,  40, "W", BUTTON_SYMBOL); // кнопка Часы
-  but_m1 = myButtons.addButton(  10, 199, 45,  40, "1");
-  but_m2 = myButtons.addButton(  61, 199, 45,  40, "2");
-  but_m3 = myButtons.addButton(  112, 199, 45,  40, "3");
-  but_m4 = myButtons.addButton(  163, 199, 45,  40, "4");
-  but_m5 = myButtons.addButton(  214, 199, 45,  40, "5");
-
-}
 
 void klav123() // ввод данных с цифровой клавиатуры
 {
@@ -1046,55 +1028,11 @@ void Set_Down_Buttons()
 	myGLCD.setBackColor(0, 0, 0);
 }
 
-
 void draw_Glav_Menu1()
 {
 	myGLCD.clrScr();
 	Set_Down_Buttons();
 	draw_measure();
-}
-
-
-void draw_Glav_Menu()
-{
-  myGLCD.clrScr();
-  myButtons.deleteAllButtons();
-  Set_Down_Buttons();
-  myButtons.drawButtons(); // Восстановить кнопки
-  myGLCD.setColor(VGA_BLACK);
-  myGLCD.setBackColor(VGA_WHITE);
-  myGLCD.setColor(0, 255, 0);
-  myGLCD.setBackColor(0, 0, 0);
-  myGLCD.print("                      ", CENTER, 0);
- // draw_measure();
-  if (m2 == 1)
-  {
-	  draw_measure();
-
-  }
-  switch (m2)
-  {
-	case 1:
-	  //strcpy_P(buffer, (char*)pgm_read_word(&(table_message[2])));
-	  //myGLCD.print(buffer, CENTER, 0);                               // txt_info1
-	  break;
-	case 2:
-	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[3])));
-	  myGLCD.print(buffer, CENTER, 0);   */                            // txt_info2
-	  break;
-	case 3:
-	/*  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[4])));
-	  myGLCD.print(buffer, CENTER, 0);     */                          // txt_info3
-	  break;
-	case 4:
-	 /* strcpy_P(buffer, (char*)pgm_read_word(&(table_message[5])));
-	  myGLCD.print(buffer, CENTER, 0);      */                         // txt_info4
-	  break;
-	case 5:
-	  //strcpy_P(buffer, (char*)pgm_read_word(&(table_message[6])));
-	  //myGLCD.print(buffer, CENTER, 0);                               // txt_info5
-	  break;
-  }
 }
 
 void swichMenu1()
