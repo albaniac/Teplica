@@ -1123,14 +1123,15 @@ void measure_view()
 	
 	if (m2 == 1 && m3 == 0)
 	{
+		sun_calc();
 		myGLCD.setColor(255, 255, 255);
 		myGLCD.setBackColor(0, 0, 255);
 		myGLCD.printNumF(temp_sun_in, 2, 40, 26);
 		myGLCD.printNumF(temp_sun_out, 2, 196, 26);
 		myGLCD.printNumF(temp_tube_in, 2, 40, 66);
 		myGLCD.printNumF(temp_tube_out, 2, 196, 66);
-		myGLCD.printNumF(100.00, 2, 40, 106);
-		myGLCD.printNumF(120.00, 2, 196, 106);
+		myGLCD.printNumF(azimuth, 2, 40, 106);
+		myGLCD.printNumF(altitude, 2, 196, 106);
 		myGLCD.printNumF(headingDegrees, 2, 40, 153);
 		myGLCD.printNumF(110.00, 2, 196, 153);
 		myGLCD.setBackColor(0, 0, 0);
