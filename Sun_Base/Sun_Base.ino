@@ -75,9 +75,9 @@ VisualMicro
 #define Chanal_B   A9                                    // Выход канала B блока коммутаторов
 
 
-#define Rele1       8                                    // Управление реле 1
-#define Rele2       9                                    // Управление реле 2
-#define Rele3      10                                    // Управление реле 3
+//#define Rele1       8                                    // Управление реле 1
+//#define Rele2       9                                    // Управление реле 2
+//#define Rele3      10                                    // Управление реле 3
 
 MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  4 A - Out, B - Out
 MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  6 A - Out, B - Out
@@ -95,32 +95,6 @@ MCP23017 mcp_Out2;                                       // Назначение портов ра
 #define  motor_East  1                 // Назначение  мотор Восток  Светодиод подсоединен к цифровому выводу 13 
 #define  motor_High  2                 // Назначение  мотор Вверх
 #define  motor_Down  3                 // Назначение  мотор Вниз 
-
-#define  ds1   8                        // Назначение DS1820 №1  
-#define  ds2   9                        // Назначение DS1820 №2  
-#define  ds3   10                        // Назначение DS1820 №3  
-#define  ds4   11                        // Назначение DS1820 №4  
-
-float t1 = 0.0;                         // Результат измерения датчика температуры №1
-float t2 = 0.0;                         // Результат измерения датчика температуры №2
-float t3 = 0.0;                         // Результат измерения датчика температуры №3
-float t4 = 0.0;                         // Результат измерения датчика температуры №4
-
-uint8_t oneWirePins[] = { ds1, ds2, ds3, ds4 };                      //номера датчиков температуры DS18x20. Переставляя номера можно устанавливать очередность передачи в строке.
-																	 // Сейчас первым идет внутренний датчик.
-uint8_t oneWirePinsCount = sizeof(oneWirePins) / sizeof(int);
-
-OneWire ds18x20_1(oneWirePins[0]);
-OneWire ds18x20_2(oneWirePins[1]);
-OneWire ds18x20_3(oneWirePins[2]);
-OneWire ds18x20_4(oneWirePins[3]);
-DallasTemperature sensor1(&ds18x20_1);
-DallasTemperature sensor2(&ds18x20_2);
-DallasTemperature sensor3(&ds18x20_3);
-DallasTemperature sensor4(&ds18x20_4);
-
-
-
 
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -149,7 +123,7 @@ unsigned int adr_asimut = 20;                           // адрес памяти данных д
 
 
 //********************* Настройка монитора ***********************************
-UTFT        myGLCD(ITDB32S,38,39,40,41);                // Дисплей 3.2"
+UTFT          myGLCD(ITDB32S,38,39,40,41);                // Дисплей 3.2"
 UTouch        myTouch(6, 5, 4, 3, 2);                   // Standard Arduino Mega/Due shield            : 6,5,4,3,2
 UTFT_Buttons  myButtons(&myGLCD, &myTouch);             // Finally we set up UTFT_Buttons :)
 
@@ -162,35 +136,36 @@ extern uint8_t Dingbats1_XL[];
 extern uint8_t SmallSymbolFont[];
 
 //++++++++++++++++++++++++ Параметры температуры +++++++++++++++++++++++++++++++++
-float temp_sun_in = 0.00;
-float temp_sun_out = 0.00;
-float temp_tube_in = 0.00;
-float temp_tube_out = 0.00;
-float temp_tank = 0.00;
-float temp_out = 0.00;
 
 
+float temp_sun_in = 0.00;                // Результат измерения датчика температуры №1
+float temp_sun_out = 0.00;               // Результат измерения датчика температуры №2
+float temp_tube_in = 0.00;               // Результат измерения датчика температуры №3
+float temp_tube_out = 0.00;              // Результат измерения датчика температуры №4
+//float temp_tank = 0.00;
+//float temp_out = 0.00;
 
-#define ONE_WIRE_BUS_1 44
-#define ONE_WIRE_BUS_2 45
-#define ONE_WIRE_BUS_3 46
-#define ONE_WIRE_BUS_4 47
-#define ONE_WIRE_BUS_5 48
-#define ONE_WIRE_BUS_6 49
+
+#define ONE_WIRE_BUS_1 8                // Назначение DS1820 №1  
+#define ONE_WIRE_BUS_2 9                // Назначение DS1820 №2  
+#define ONE_WIRE_BUS_3 10               // Назначение DS1820 №3  
+#define ONE_WIRE_BUS_4 11               // Назначение DS1820 №4  
+//#define ONE_WIRE_BUS_5 48
+//#define ONE_WIRE_BUS_6 49
 
 OneWire oneWire_sun_in(ONE_WIRE_BUS_1);
 OneWire oneWire_sun_out(ONE_WIRE_BUS_2);
 OneWire oneWire_tube_in(ONE_WIRE_BUS_3);
 OneWire oneWire_tube_out(ONE_WIRE_BUS_4);
-OneWire oneWire_tank(ONE_WIRE_BUS_5);
-OneWire oneWire_out(ONE_WIRE_BUS_6);
+//OneWire oneWire_tank(ONE_WIRE_BUS_5);
+//OneWire oneWire_out(ONE_WIRE_BUS_6);
 
 DallasTemperature sensor_sun_in(&oneWire_sun_in);
 DallasTemperature sensor_sun_out(&oneWire_sun_out);
 DallasTemperature sensor_tube_in(&oneWire_tube_in);
 DallasTemperature sensor_tube_out(&oneWire_tube_out);
-DallasTemperature sensor_tank(&oneWire_tank);
-DallasTemperature sensor_outhouse(&oneWire_out);
+//DallasTemperature sensor_tank(&oneWire_tank);
+//DallasTemperature sensor_outhouse(&oneWire_out);
 
 //++++++++++++++++++++++++++++++++++ compass +++++++++++++++++++++++++++++++++++++++++
 
@@ -304,146 +279,14 @@ char  txt_menu5_2[]            = "=========";                                   
 char  txt_menu5_3[]            = "=========";                                                              // ================  
 char  txt_menu5_4[]            = "Bpe""\xA1\xAF"" ""\xA3""poc""\xA4""o""\xAF";                             // Время простоя
 
-const char  txt_head_instr[]        PROGMEM  = "=========";                                                              // ================  
-const char  txt_head_disp[]         PROGMEM  = "=========";                                                              // ================  
-const char  txt_info1[]             PROGMEM  = "\x89""o""\x9F""a""\x9C""a""\xA2\x9D\xAF"" ""\x99""a""\xA4\xA7\x9D\x9F""o""\x97"; // Показания датчиков
-const char  txt_info2[]             PROGMEM  = "=========";                                                              // ================  
-const char  txt_info3[]             PROGMEM  = "Tec""\xA4"" o""\x96""y""\xA7"". ""\xA4""a""\x96\xA0\x9D\xA6""ax ";       // Тест по обуч. таблицах 
-const char  txt_info4[]             PROGMEM  = "Hac\xA4po\x9E\x9F""a c\x9D""c\xA4""e\xA1\xAB";                           // Настройка системы 
-const char  txt_info5[]             PROGMEM  = "Hac\xA4po\x9E\x9F""a c\x9D""c\xA4""e\xA1\xAB";                           // Настройка системы 
-const char  txt_MTT[]               PROGMEM  = "=========";                                                              // ================  
-const char  txt_botton_otmena[]     PROGMEM  = "O""\xA4\xA1""e""\xA2""a";                                                // "Отмена"
-const char  txt_botton_vvod[]       PROGMEM  = "B\x97o\x99 ";                                                            // Ввод
-const char  txt_botton_ret[]        PROGMEM  = "B""\xAB""x";                                                             // "Вых"
-const char  txt_system_clear3[]     PROGMEM  = " ";                                                                      //
-const char  txt9[]                  PROGMEM  = "=========";                                                              // ================  
-const char  txt10[]                 PROGMEM  = "=========";                                                              // ================  
-const char  txt_time_wait[]         PROGMEM  = "\xA1\x9D\xA2"".""\x97""pe""\xA1\xAF"" ""\xA3""poc""\xA4""o""\xAF";       //  мин. время простоя
-const char  txt_info29[]            PROGMEM  = "Stop->PUSH Disp";
-const char  txt_info30[]            PROGMEM  = " ";
-const char  txt_test_all[]          PROGMEM  = "Tec""\xA4"" ""\x97""cex pa""\x9C\xAA""e""\xA1""o""\x97";                 // Тест всех разъемов
-const char  txt_test_all_exit1[]    PROGMEM  = "\x82\xA0\xAF"" ""\x97\xAB""xo""\x99""a";                                 // Для выхода
-const char  txt_test_all_exit2[]    PROGMEM  = "\xA3""p""\x9D\x9F""oc""\xA2\x9D""c""\xAC"" ""\x9F"" ""\xAD\x9F""pa""\xA2""y";  // прикоснись к экрану
-const char  txt_test_end[]          PROGMEM  = "\x85""a""\x97""ep""\xA8\x9D\xA4\xAC";                                    // Завершить
-const char  txt_test_repeat[]       PROGMEM  = "\x89""o""\x97\xA4""op""\x9D\xA4\xAC";                                    // Повторить
-const char  txt_error_connect1[]    PROGMEM  = "O""\x8E\x86\x80""KA";                                                    // Ошибка
-const char  txt_error_connect2[]    PROGMEM  = "\xA3""o""\x99\x9F\xA0\xAE\xA7""e""\xA2\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAF"; //подключения кабеля
-const char  txt_error_connect3[]    PROGMEM  = "O""\xA8\x9D\x96""o""\x9F"" ""\xA2""e""\xA4";                             // Ошибок нет
-const char  txt_error_connect4[]    PROGMEM  = "O""\xA8\x9D\x96""o""\x9F"" -         ";                                  // Ошибок  -
-const char  txt__connect1[]         PROGMEM  = "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N1";    // Обнаружен кабель N1
-const char  txt__connect2[]         PROGMEM  = "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N2";    // Обнаружен кабель N2
-const char  txt__connect3[]         PROGMEM  = "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N3";    // Обнаружен кабель N3
-const char  txt__connect4[]         PROGMEM  = "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N4";    // Обнаружен кабель N4
-const char  txt__test_end[]         PROGMEM  = "TECT ""\x85""A""KOH""\x8D""EH";                                          // ТЕСТ ЗАКОНЧЕН
-const char  txt__panel[]            PROGMEM  = "=========";                                                              // ================  
-const char  txt__panel0[]           PROGMEM  = "                     ";                                                  //
-const char  txt__disp[]             PROGMEM  = "=========";                                                              // ================  
-const char  txt__instr[]            PROGMEM  = "=========";                                                              // ================  
-const char  txt__MTT[]              PROGMEM  = "=========";                                                              // ================  
-const char  txt__disp_connect[]     PROGMEM  = "=========";                                                              // ================  
-const char  txt__disp_disconnect[]  PROGMEM  = "=========";                                                              // ================  
-const char  txt__instr_connect[]    PROGMEM  = "=========";                                                              // ================  
-const char  txt__instr_disconnect[] PROGMEM  = "=========";                                                              // ================  
-const char  txt__mtt_disconnect[]   PROGMEM  = "=========";                                                              // ================  
-const char  txt__cont1_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N1 - O""\x9F";                                            // Конт. N1 - Ок
-const char  txt__cont2_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N2 - O""\x9F";                                            // Конт. N2 - Ок
-const char  txt__cont3_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N3 - O""\x9F";                                            // Конт. N3 - Ок
-const char  txt__cont4_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N4 - O""\x9F";                                            // Конт. N4 - Ок
-const char  txt__cont5_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N5 - O""\x9F";                                            // Конт. N5 - Ок
-const char  txt__cont6_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N6 - O""\x9F";                                            // Конт. N6 - Ок
-const char  txt__cont7_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N7 - O""\x9F";                                            // Конт. N7 - Ок
-const char  txt__cont8_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N8 - O""\x9F";                                            // Конт. N8 - Ок
-const char  txt__cont9_connect[]    PROGMEM  = "Ko""\xA2\xA4"". N9 - O""\x9F";                                            // Конт. N9 - Ок
-const char  txt__clear2[]           PROGMEM  = " ";                                                                       //
-const char  txt__cont1_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N1 - He""\xA4""!";                                        // Конт. N1 - Нет!
-const char  txt__cont2_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N2 - He""\xA4""!";                                        // Конт. N2 - Нет!
-const char  txt__cont3_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N3 - He""\xA4""!";                                        // Конт. N3 - Нет!
-const char  txt__cont4_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N4 - He""\xA4""!";                                        // Конт. N4 - Нет!
-const char  txt__cont5_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N5 - He""\xA4""!";                                        // Конт. N5 - Нет!
-const char  txt__cont6_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N6 - He""\xA4""!";                                        // Конт. N6 - Нет!
-const char  txt__cont7_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N7 - He""\xA4""!";                                        // Конт. N7 - Нет!
-const char  txt__cont8_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N8 - He""\xA4""!";                                        // Конт. N8 - Нет!
-const char  txt__cont9_disconnect[] PROGMEM  = "Ko""\xA2\xA4"". N9 - He""\xA4""!";                                        // Конт. N9 - Нет!
-const char  txt__test_cabel_soft[]  PROGMEM  = "Tec""\xA4"" ""\x9F""o""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAF""N";   // Тест копия кабеля N
-
 char buffer[40];
 
 const char* const table_message[] PROGMEM =
 {
-  txt_head_instr,          // 0 "=========";                                                                // ================  
-  txt_head_disp,           // 1 "=========";                                                                // ================  
-  txt_info1,               // 2 "Tec\xA4 ""\x9F""a\x96""e\xA0""e\x9E";                                      // Тест кабелей
-  txt_info2,               // 3 "=========";                                                                // ================  
-  txt_info3,               // 4 "Tec""\xA4"" ""\xA3""o o""\x96""y""\xA7"". ""\xA4""a""\x96\xA0\x9D\xA6""ax "; // Тест по обуч. таблицах 
-  txt_info4,               // 5 "Hac\xA4po\x9E\x9F""a c\x9D""c\xA4""e\xA1\xAB";                             // Настройка системы   
-  txt_info5,               // 6 "=========";                                                                // ================  
-  txt_MTT,                 // 7 "=========";                                                                // ================  
-  txt_botton_otmena,       // 8 " ";                                                                        //
-  txt_botton_vvod,         // 9 " ";                                                                        //
-  txt_botton_ret,          // 10 ""B""\xAB""x" ";                                                           //  Вых
-  txt_system_clear3,       // 11 " ";                                                                       //
-  txt9,                    // 12 "B\x97o\x99";                                                              // Ввод
-  txt10,                   // 13 "O""\xA4\xA1""e""\xA2""a";                                                 // "Отмена"
-  txt_time_wait,           // 14 "\xA1\x9D\xA2"".""\x97""pe""\xA1\xAF"" ""\xA3""poc""\xA4""o""\xAF";        //  мин. время простоя
-  txt_info29,              // 15 "Stop->PUSH Disp";
-  txt_info30,              // 16 " ";
-  txt_test_all,            // 17 "Tec""\xA4"" ""\x97""cex pa""\x9C\xAA""e""\xA1""o""\x97";                  // Тест всех разъемов
-  txt_test_all_exit1,      // 18 "\x82\xA0\xAF"" ""\x97\xAB""xo""\x99""a";                                  // Для выхода
-  txt_test_all_exit2,      // 19 "\xA3""p""\x9D\x9F""oc""\xA2\x9D""c""\xAC"" ""\x9F"" ""\xAD\x9F""pa""\xA2""y";  // прикоснись к экрану
-  txt_test_end,            // 20 "\x85""a""\x97""ep""\xA8\x9D\xA4\xAC";                                     // Завершить
-  txt_test_repeat,         // 21 "\x89""o""\x97\xA4""op""\x9D\xA4\xAC";                                     // Повторить
-  txt_error_connect1,      // 22 "O""\x8E\x86\x80""KA";                                                     // Ошибка
-  txt_error_connect2,      // 23 "\xA3""o""\x99\x9F\xA0\xAE\xA7""e""\xA2\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAF"; //подключения кабеля
-  txt_error_connect3,      // 24 "O""\xA8\x9D\x96""o""\x9F"" ""\xA2""e""\xA4";                              // Ошибок нет
-  txt_error_connect4,      // 25 "O""\xA8\x9D\x96""o""\x9F"" -         ";                                   // Ошибок  -
-  txt__connect1,           // 26 "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N1";     // Обнаружен кабель N1
-  txt__connect2,           // 27 "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N2";     // Обнаружен кабель N2
-  txt__connect3,           // 28 "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N3";     // Обнаружен кабель N3
-  txt__connect4,           // 29 "O""\x96\xA2""apy""\x9B""e""\xA2"" ""\x9F""a""\x96""e""\xA0\xAC"" N4";     // Обнаружен кабель N4
-  txt__test_end,           // 30 "TECT ""\x85""A""KOH""\x8D""EH";                                           // ТЕСТ ЗАКОНЧЕН
-  txt__panel,              // 31 "=========";                                                               // ================  
-  txt__panel0,             // 32 "                          ";                                              //
-  txt__disp,               // 33 "=========";                                                               // ================  
-  txt__instr,              // 34 "=========";                                                               // ================  
-  txt__MTT,                // 35 "=========";                                                               // ================  
-  txt__disp_connect,       // 36 "=========";                                                               // ================  
-  txt__disp_disconnect,    // 37 "=========";                                                               // ================  
-  txt__instr_connect,      // 38 "=========";                                                               // ================  
-  txt__instr_disconnect,   // 39 "=========";                                                               // ================  
-  txt__mtt_disconnect,     // 40 " ";                                                                       //
-  txt__cont1_connect,      // 41 "Ko""\xA2\xA4"". N1 - O""\x9F";                                            // Конт. N1 - Ок
-  txt__cont2_connect,      // 42 "Ko""\xA2\xA4"". N2 - O""\x9F";                                            // Конт. N2 - Ок
-  txt__cont3_connect,      // 43 "Ko""\xA2\xA4"". N3 - O""\x9F";                                            // Конт. N3 - Ок
-  txt__cont4_connect,      // 44 "Ko""\xA2\xA4"". N4 - O""\x9F";                                            // Конт. N4 - Ок
-  txt__cont5_connect,      // 45 "Ko""\xA2\xA4"". N5 - O""\x9F";                                            // Конт. N5 - Ок
-  txt__cont6_connect,      // 46 "Ko""\xA2\xA4"". N6 - O""\x9F";                                            // Конт. N6 - Ок
-  txt__cont7_connect,      // 47 "Ko""\xA2\xA4"". N7 - O""\x9F";                                            // Конт. N7 - Ок
-  txt__cont8_connect,      // 48 "Ko""\xA2\xA4"". N8 - O""\x9F";                                            // Конт. N8 - Ок
-  txt__cont9_connect,      // 49 "Ko""\xA2\xA4"". N9 - O""\x9F";                                            // Конт. N9 - Ок
-  txt__clear2,             // 50 " ";                                                                       //
-  txt__cont1_disconnect,   // 51 "Ko""\xA2\xA4"". N1 - He""\xA4""!";                                        // Конт. N1 - Нет!
-  txt__cont2_disconnect,   // 52 "Ko""\xA2\xA4"". N2 - He""\xA4""!";                                        // Конт. N2 - Нет!
-  txt__cont3_disconnect,   // 53 "Ko""\xA2\xA4"". N3 - He""\xA4""!";                                        // Конт. N3 - Нет!
-  txt__cont4_disconnect,   // 54 "Ko""\xA2\xA4"". N4 - He""\xA4""!";                                        // Конт. N4 - Нет!
-  txt__cont5_disconnect,   // 55 "Ko""\xA2\xA4"". N5 - He""\xA4""!";                                        // Конт. N5 - Нет!
-  txt__cont6_disconnect,   // 56 "Ko""\xA2\xA4"". N6 - He""\xA4""!";                                        // Конт. N6 - Нет!
-  txt__cont7_disconnect,   // 57 "Ko""\xA2\xA4"". N7 - He""\xA4""!";                                        // Конт. N7 - Нет!
-  txt__cont8_disconnect,   // 58 "Ko""\xA2\xA4"". N8 - He""\xA4""!";                                        // Конт. N8 - Нет!
-  txt__cont9_disconnect,   // 59 "Ko""\xA2\xA4"". N9 - He""\xA4""!";                                        // Конт. N9 - Нет!
-  txt__test_cabel_soft     // 60 "Tec""\xA4"" ""\x9F""o""\xA3\x9D\xAF"" ""\x9F""a""\x96""e""\xA0\xAF"" N";  // Тест копия кабеля N
+ 
 };
 
 byte   temp_buffer[40] ;                                                                                    // Буфер хранения временной информации
-
-const byte connektN1_default[]    PROGMEM  = { 20,
-											   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,                                             // Разъем А
-											   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-											   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-											   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,                                                        // Разъем B
-											   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1                                                         // 1- соединение есть, 0- соединения нет
-											 }; // 20 x 5 ячеек
-
-
 
 void serial_print_date()                           // Печать даты и времени
 {
@@ -1099,7 +942,7 @@ void control_command()
 	switch (test_n)
 	{
 	  case 1:
-		test_cabel_N1();             // Программа проверки кабеля №1
+	
 		break;
 	  case 2:
 	
@@ -1153,13 +996,13 @@ void control_command()
 	  case 19:
 		//
 		break;
-	  case 20:                                         //
+	  case 20:                                 
 		//
 		break;
-	  case 21:                      		 		     //
+	  case 21:                      		  
 		//
 		break;
-	  case 22:                                         //
+	  case 22:                                
 		//
 		break;
 	  case 23:
@@ -1188,7 +1031,7 @@ void control_command()
 		break;
 
 	  default:
-		regBank.set(adr_control_command, 0);       // Установить резистором №1,№2  уровень сигнала
+		regBank.set(adr_control_command, 0);       //  
 		break;
 	}
 
@@ -1272,10 +1115,10 @@ void swichMenu1()
 		measure_view();
 
     	wait_time = millis();                                      // Программа вызова часов при простое
-		if (wait_time - wait_time_Old > 6000 * 1)       // if (wait_time - wait_time_Old > 60000 * time_minute)
+		if (wait_time - wait_time_Old > 6000 * 1)                  // if (wait_time - wait_time_Old > 60000 * time_minute)
 		{
 			wait_time_Old = millis();
-			sun_calc();
+			//sun_calc();
 			// AnalogClock();
 			// myGLCD.clrScr();
 		}
@@ -1296,9 +1139,6 @@ void swichMenu1()
 					waitForIt(10, 189, 60, 239);
 					m2 = 1;
 					draw_measure();                               // Отобразить результат измерения
-
-
-
 				}
 
 				if ((x >= 70) && (x <= 120))                      //нажата кнопка "2"
@@ -1361,10 +1201,10 @@ void measure_view()
 		myGLCD.printNumF(temp_sun_out, 2, 196, 26);
 		myGLCD.printNumF(temp_tube_in, 2, 40, 66);
 		myGLCD.printNumF(temp_tube_out, 2, 196, 66);
-		myGLCD.printNumF(temp_tank, 2, 40, 106);
-		myGLCD.printNumF(temp_out, 2, 196, 106);
+		myGLCD.printNumF(100.00, 2, 40, 106);
+		myGLCD.printNumF(120.00, 2, 196, 106);
 		myGLCD.printNumF(headingDegrees, 2, 40, 153);
-		myGLCD.printNumF(temp_out, 2, 196, 153);
+		myGLCD.printNumF(110.00, 2, 196, 153);
 		myGLCD.setBackColor(0, 0, 0);
 		
 	}
@@ -1404,15 +1244,15 @@ void read_Temperatures()
 	sensor_sun_out.requestTemperatures();
 	sensor_tube_in.requestTemperatures();
 	sensor_tube_out.requestTemperatures();
-	sensor_tank.requestTemperatures();
-	sensor_outhouse.requestTemperatures();
+	//sensor_tank.requestTemperatures();
+	//sensor_outhouse.requestTemperatures();
 
 	temp_sun_in = sensor_sun_in.getTempCByIndex(0);
 	temp_sun_out = sensor_sun_out.getTempCByIndex(0);
 	temp_tube_in = sensor_tube_in.getTempCByIndex(0);
 	temp_tube_out = sensor_tube_out.getTempCByIndex(0);
-	temp_tank = sensor_tank.getTempCByIndex(0);
-	temp_out = sensor_outhouse.getTempCByIndex(0);
+	//temp_tank = sensor_tank.getTempCByIndex(0);
+	//temp_out = sensor_outhouse.getTempCByIndex(0);
 	
 	Serial.print("sensor_sun_in: ");
 	Serial.println(temp_sun_in);
@@ -1426,11 +1266,11 @@ void read_Temperatures()
 	Serial.print("sensor_tube_out: ");
 	Serial.println(temp_tube_out);
 
-	Serial.print("sensor_tank: ");
-	Serial.println(temp_tank);
+	//Serial.print("sensor_tank: ");
+	//Serial.println(temp_tank);
 
-	Serial.print("Outhouse: ");
-	Serial.println(temp_out);
+	//Serial.print("Outhouse: ");
+	//Serial.println(temp_out);
 
 }
 
@@ -1876,546 +1716,6 @@ void print_up() // Печать верхней строчки над меню
 	  break;
   }
 }
-
-void set_komm_mcp(char chanal_a_b, int chanal_n, char chanal_in_out ) // Программа включения аналового канала
-{
-  char _chanal_a_b     = chanal_a_b;                                  // Блок каналов коммутаторов  
-																	  // А - блок U13,U17,U23 - работают на вход/выход. U14,U19,U21 - подключают канал к общему проводу.
-																	  // В - блок U15,U18,U22 - работают на вход/выход. U16,U20,U24 - подключают канал к общему проводу.
-
-  int _chanal_n        = chanal_n;                                    // Выбор № канала (1- 48).
-  int _chanal_in_out   = chanal_in_out;                               // Вариант включения блока канала: 'O' - сигнальный, 'G' - подключить на общий(заземлить).
-
-  if (_chanal_a_b == 'A')                                             // Установка каналов А
-  {
-	if (_chanal_in_out == 'O')                                        // Установка  аналового канала А  на вход/выход
-	{
-	  mcp_Out1.digitalWrite(8,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E1  U13
-	  mcp_Out1.digitalWrite(9,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E2  U17
-	  mcp_Out1.digitalWrite(10, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E3  U23
-	  if (_chanal_n < 17)
-	  {
-		set_mcp_byte_1a(_chanal_n - 1);                               // Сформировать байт выбора канала (0 - 15)
-		mcp_Out1.digitalWrite(8, LOW);                                // Выбрать EN микросхемы аналового коммутатора  1E1  U13
-	  }
-	  else if (_chanal_n > 16 && _chanal_n < 33)
-	  {
-		set_mcp_byte_1a(_chanal_n - 17);                              //  Сформировать байт выбора канала (15 - 31)
-		mcp_Out1.digitalWrite(9, LOW);                                // Выбрать EN микросхемы аналового коммутатора  1E2  U17
-	  }
-	  else if (_chanal_n > 32 && _chanal_n < 49)
-	  {
-		set_mcp_byte_1a(_chanal_n - 33);                              // Сформировать байт выбора канала (32 - 48)
-		mcp_Out1.digitalWrite(10, LOW);                               // Выбрать EN микросхемы аналового коммутатора  1E3  U23
-	  }
-
-	}
-	if (_chanal_in_out == 'G')                                        // Заземлить канал А
-	{
-	  mcp_Out1.digitalWrite(11, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E4  U14
-	  mcp_Out1.digitalWrite(12, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E5  U19
-	  mcp_Out1.digitalWrite(13, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E6  U21
-	  if (_chanal_n < 17)
-	  {
-		set_mcp_byte_1b(_chanal_n - 1);                               // Сформировать байт выбора канала (0 - 15)
-		mcp_Out1.digitalWrite(11, LOW);                               // Выбрать  EN микросхемы аналового коммутатора  1E4  U14
-	  }
-	  else if (_chanal_n > 16 && _chanal_n < 33)
-	  {
-		set_mcp_byte_1b(_chanal_n - 17);                              // Сформировать байт выбора канала (16 - 31)
-		mcp_Out1.digitalWrite(12, LOW);                               // Выбрать EN микросхемы аналового коммутатора  1E5  U19
-	  }
-	  else if (_chanal_n > 32 && _chanal_n < 49)
-	  {
-		set_mcp_byte_1b(_chanal_n - 33);                              // Сформировать байт выбора канала (32 - 48)
-		mcp_Out1.digitalWrite(13, LOW);                               // Выбрать  EN микросхемы аналового коммутатора  1E6  U21
-	  }
-
-	}
-  }
-  else if (_chanal_a_b == 'B')                                        // Установка каналов В
-  {
-	if (_chanal_in_out == 'O')                                        // Установка  аналового канала А  на вход/выход
-	{
-	  mcp_Out2.digitalWrite(8,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E1  U15
-	  mcp_Out2.digitalWrite(9,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E2  U18
-	  mcp_Out2.digitalWrite(10, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E3  U22
-	  if (_chanal_n < 17)
-	  {
-		set_mcp_byte_2a(_chanal_n - 1);                               // Сформировать байт выбора канала (0 - 15)
-		mcp_Out2.digitalWrite(8, LOW);                                // Выбрать EN микросхемы аналового коммутатора  2E1  U15
-	  }
-	  else if (_chanal_n > 16 && _chanal_n < 33)
-	  {
-		set_mcp_byte_2a(_chanal_n - 17);                              // Сформировать байт выбора канала (16 - 31)
-		mcp_Out2.digitalWrite(9, LOW);                                // Выбрать EN микросхемы аналового коммутатора  2E2  U18
-	  }
-	  else if (_chanal_n > 32 && _chanal_n < 49)
-	  {
-		set_mcp_byte_2a(_chanal_n - 33);                              // Сформировать байт выбора канала (32 - 48)
-		mcp_Out2.digitalWrite(10, LOW);                               // Выбрать EN микросхемы аналового коммутатора  2E3  U22
-	  }
-
-	}
-	if (_chanal_in_out == 'G')                                        // Заземлить канал B
-	{
-	  mcp_Out2.digitalWrite(11, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E4  U16
-	  mcp_Out2.digitalWrite(12, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E5  U20
-	  mcp_Out2.digitalWrite(13, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E6  U24
-	  if (_chanal_n < 17)
-	  {
-		set_mcp_byte_2b(_chanal_n - 1);                               // Сформировать байт выбора канала (0 - 15)
-		mcp_Out2.digitalWrite(11, LOW);                               // Выбрать EN микросхемы аналового коммутатора  2E4  U16
-	  }
-	  else if (_chanal_n > 16 && _chanal_n < 33)
-	  {
-		set_mcp_byte_2b(_chanal_n - 17);                              // Сформировать байт выбора канала (16 - 31)
-		mcp_Out2.digitalWrite(12, LOW);                               // Выбрать EN микросхемы аналового коммутатора  2E5  U20
-	  }
-	  else if (_chanal_n > 32 && _chanal_n < 49)
-	  {
-		set_mcp_byte_2b(_chanal_n - 33);                              // Сформировать байт выбора канала (32 - 48)
-		mcp_Out2.digitalWrite(13, LOW);                               // Выбрать EN микросхемы аналового коммутатора  2E6  U24
-	  }
-	}
-  }
-  //delay(10);
-}
-void set_mcp_byte_1a(int set_byte)
-{
-
-  int _chanal_n = set_byte;
-
-  if (bitRead(_chanal_n, 0) == 1)     // Установить бит 0
-  {
-	mcp_Out1.digitalWrite(0, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(0, LOW);
-  }
-
-  if (bitRead(_chanal_n, 1) == 1)     // Установить бит 1
-  {
-	mcp_Out1.digitalWrite(1, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(1, LOW);
-  }
-
-  if (bitRead(_chanal_n, 2) == 1)     // Установить бит 2
-  {
-	mcp_Out1.digitalWrite(2, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(2, LOW);
-  }
-
-
-  if (bitRead(_chanal_n, 3) == 1)     // Установить бит 3
-  {
-	mcp_Out1.digitalWrite(3, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(3, LOW);
-  }
-}
-void set_mcp_byte_1b(int set_byte)
-{
-  int _chanal_n = set_byte;
-
-  if (bitRead(_chanal_n, 0) == 1)     // Установить бит 0
-  {
-	mcp_Out1.digitalWrite(4, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(4, LOW);
-  }
-
-  if (bitRead(_chanal_n, 1) == 1)     // Установить бит 1
-  {
-	mcp_Out1.digitalWrite(5, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(5, LOW);
-  }
-
-  if (bitRead(_chanal_n, 2) == 1)     // Установить бит 2
-  {
-	mcp_Out1.digitalWrite(6, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(6, LOW);
-  }
-
-
-  if (bitRead(_chanal_n, 3) == 1)     // Установить бит 3
-  {
-	mcp_Out1.digitalWrite(7, HIGH);
-  }
-  else
-  {
-	mcp_Out1.digitalWrite(7, LOW);
-  }
-}
-void set_mcp_byte_2a(int set_byte)
-{
-  int _chanal_n = set_byte;
-
-  if (bitRead(_chanal_n, 0) == 1)     // Установить бит 0
-  {
-	mcp_Out2.digitalWrite(0, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(0, LOW);
-  }
-
-  if (bitRead(_chanal_n, 1) == 1)     // Установить бит 1
-  {
-	mcp_Out2.digitalWrite(1, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(1, LOW);
-  }
-
-  if (bitRead(_chanal_n, 2) == 1)     // Установить бит 2
-  {
-	mcp_Out2.digitalWrite(2, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(2, LOW);
-  }
-
-
-  if (bitRead(_chanal_n, 3) == 1)     // Установить бит 3
-  {
-	mcp_Out2.digitalWrite(3, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(3, LOW);
-  }
-}
-void set_mcp_byte_2b(int set_byte)
-{
-  int _chanal_n = set_byte;
-
-  if (bitRead(_chanal_n, 0) == 1)     // Установить бит 0
-  {
-	mcp_Out2.digitalWrite(4, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(4, LOW);
-  }
-
-  if (bitRead(_chanal_n, 1) == 1)     // Установить бит 1
-  {
-	mcp_Out2.digitalWrite(5, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(5, LOW);
-  }
-
-  if (bitRead(_chanal_n, 2) == 1)     // Установить бит 2
-  {
-	mcp_Out2.digitalWrite(6, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(6, LOW);
-  }
-
-
-  if (bitRead(_chanal_n, 3) == 1)     // Установить бит 3
-  {
-	mcp_Out2.digitalWrite(7, HIGH);
-  }
-  else
-  {
-	mcp_Out2.digitalWrite(7, LOW);
-  }
-}
-
-void test_cabel_N1()
-{
-  myGLCD.clrScr();
-  myGLCD.print(txt_menu1_1, CENTER, 1);                                      // "Тест кабель N 1"
-  myGLCD.setColor(255, 255, 255);                                            // Белая окантовка
-  myGLCD.drawRoundRect (5, 200, 155, 239);
-  myGLCD.drawRoundRect (160, 200, 315, 239);
-  myGLCD.drawLine( 10, 60, 310, 60);
-  myGLCD.setColor(0, 0, 255);
-  myGLCD.fillRoundRect (6, 201, 154, 238);
-  myGLCD.fillRoundRect (161, 201, 314, 238);
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.setBackColor( 0, 0, 255);
-  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[21])));
-  myGLCD.print(buffer, 10, 210);                                             //txt_test_repeat  Повторить
-  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[20])));
-  myGLCD.print(buffer, 168, 210);                                            //txt_test_end Завершить
-  myGLCD.setBackColor( 0, 0, 0);                                             //
-  mcp_Out2.digitalWrite(14, LOW);                                            // Отключить реле +12v
- // if (search_cabel(40) == 1)                                                 // Найден кабель №1
- // {
-	//test_cabel_N1_run();                                                   // Выполнить проверку
-	//while (true)                                                           // Ожидание очередных комманд
-	//{
-
-	//  if (myTouch.dataAvailable())
-	//  {
-	//	myTouch.read();
-	//	x = myTouch.getX();
-	//	y = myTouch.getY();
-
-	//	if (((y >= 200) && (y <= 239)) && ((x >= 5) && (x <= 155)))   //нажата кнопка "Повторить проверку"
-	//	{
-	//	  waitForIt(5, 200, 155, 239);
-	//	  myGLCD.setFont(BigFont);
-	//	  test_cabel_N1_run();                                  // Выполнить программу проверки
-	//	}
-	//	if (((y >= 200) && (y <= 239)) && ((x >= 160) && (x <= 315))) //нажата кнопка "Завершить  проверку"
-	//	{
-	//	  waitForIt(160, 200, 315, 239);
-	//	  myGLCD.setFont(BigFont);
-	//	  break;                                                // Выход из программы
-	//	}
-	//  }
-
-	//}
- // }
- // else
- // {
-	//myGLCD.setColor(VGA_RED);
-	//strcpy_P(buffer, (char*)pgm_read_word(&(table_message[22])));
-	//myGLCD.print(buffer, CENTER, 80);                                       // txt_error_connect1 "Ошибка"
-	//strcpy_P(buffer, (char*)pgm_read_word(&(table_message[23])));
-	//myGLCD.print(buffer, CENTER, 110);                                      // txt_error_connect2 "подключения кабеля"
-	//myGLCD.setColor(255, 255, 255);
-	//delay(1000);
- // }
-}
-void test_cabel_N1_run()
-{
-
-  byte  _size_block = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1);        // Получить количество выводов проверяемого разъема
-  pinMode(Chanal_A, OUTPUT);                                                   // Установить на выход выход коммутаторов U13,U17,U23 (разъемы серии В на задней панели)
-  pinMode(Chanal_B, INPUT);                                                    // Установить на вход  выход коммутаторов U15,U18,U22 (разъемы серии А на передней панели)
-  digitalWrite(Chanal_B, HIGH);                                                // Установить высокий уровень на выводе Chanal_B
-  myGLCD.print("                    ", 1, 40);                                 // Очистить строчку результатов проверки
-  byte canal_N     = 0;                                                        // Переменная хранения № канала в памяти
-  unsigned int x_A = 1;                                                        // Переменная установления канала А
-  unsigned int x_B = 1;                                                        // Переменная установления канала В
-  int x_p          = 1;                                                        // Определить начало вывода ошибок по Х
-  int y_p          = 82;                                                       // Определить начало вывода ошибок по У
-  int count_error  = 0;                                                        // Счетчик количества ошибок
-  int ware_on      = 0;                                                        // Проверка должно ли быть сединение
- 
-  myGLCD.setColor(0, 0, 0);
-  myGLCD.fillRoundRect(1, 82, 319, 199);
-  myGLCD.setColor(255, 255, 255);
-														  
-  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[24])));
-  myGLCD.print(buffer, 50, 65);                                                // txt_error_connect3 "Ошибок нет"
- // if (search_cabel(40) == 1)                                                   // Проверить корректность подключения кабеля №1
- // {
-	//digitalWrite(Chanal_A, LOW);                                                     // Установить контрольный уровень на коммутаторах U13,U17,U23
-	//delay(10);                                                                 // Время на переключение вывода Chanal_A
-	//for (x_A = 1; x_A < _size_block + 1; x_A++)                                // Последовательное чтение контактов разьемов.
-	//{
-	//  canal_N = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1 + x_A);        // Получить № канала из EEPROM
-	//  ware_on = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1 + x_A + (_size_block * 4)); // Получить из таблицы признак соединения.
-	//  if (canal_N == 1)                                                        // 40 канал для проверки номера проверяемого разъема
-	//  {
-	//	set_komm_mcp('A', 40, 'O');                                            // Установить вход коммутатора на контрольный 40 выход
-	//  }
-	//  else
-	//  {
-	//	set_komm_mcp('A', canal_N, 'O');                                 // Установить текущий вход коммутатора
-	//  }
-	//  // Последовательно проверить все вывода разьема "В"
-	//  // Проверяем все выхода разьема "В"
-	//  for (x_B = 1; x_B < _size_block + 1; x_B++)                          // Последовательное чтение контактов разьемов "В" .
-	//  {
-	//	canal_N = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1 + x_B + _size_block); // Получить из таблицы номер входа коммутатора.
-
-	//	if (canal_N == 1)                                                // 40 канал для проверки номера проверяемого разъема
-	//	{
-	//	  set_komm_mcp('B', 40, 'O');                                     // Установить контрольный вход коммутатора
-	//	}
-	//	else
-	//	{
-	//	  set_komm_mcp('B', canal_N, 'O');                                // Установить текущий вход коммутатора
-	//	}
-	//	// ++++++++++++++++++++++++ Проверка на соединение А - В +++++++++++++++++++++++++++++++++++
-	//	if (x_A == x_B)
-	//	{
-	//	  myGLCD.printNumI(x_A, 30, 40);
-	//	  if (ware_on == 1)myGLCD.print("<->", 66, 40);
-	//	  else myGLCD.print("<X>", 66, 40);
-	//	  myGLCD.print("  ",130, 40);
-	//	  myGLCD.printNumI(canal_N, 130, 40);
-	//	  if (digitalRead(Chanal_B) == LOW && ware_on == 1)
-	//	  {
-	//		myGLCD.print(" - Pass", 170, 40);
-	//	  }
-	//	  else
-	//	  {
-	//		if (digitalRead(Chanal_B) != LOW && ware_on == 0)                  // Должен быть соединен
-	//		{
-	//		  myGLCD.print(" - Pass", 170, 40);
-	//		}
-	//		else
-	//		{
-	//		  count_error++;
-	//		  strcpy_P(buffer, (char*)pgm_read_word(&(table_message[25])));
-	//		  myGLCD.print(buffer, 50, 65);                            // txt_error_connect4
-	//		  myGLCD.printNumI(count_error, 190, 65);
-
-	//		  if ( ware_on == 1)
-	//		  {
-	//			if (x_A < 10)
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p + 13, y_p);            // Перечисление ошибочных контактов
-	//			  myGLCD.print("-", x_p + 29, y_p);
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p, y_p);                 // Перечисление ошибочных контактов
-	//			  myGLCD.print("-", x_p + 29, y_p);
-	//			}
-	//			if (canal_N < 10)
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 26, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 10, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//		  }
-	//		  else
-	//		  {
-	//			if (x_A < 10)
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p + 13, y_p);            // Перечисление ошибочных контактов
-	//			  myGLCD.print("+", x_p + 29, y_p);
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p, y_p);                 // Перечисление ошибочных контактов
-	//			  myGLCD.print("+", x_p + 29, y_p);
-	//			}
-	//			if (canal_N < 10)
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 26, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 10, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//		  }
-	//		  y_p += 19;
-	//		  if ( y_p > 190)                                          // Вывод на экран таблицы ошибок
-	//		  {
-	//			myGLCD.drawLine( x_p + 75, 85, x_p + 75, 190);
-	//			x_p += 80;
-	//			y_p = 82;
-	//		  }
-	//		}
-	//	  }
-	//	}
-
-	//	//------------------------ Конец проверки на соединение ---------------------------------------
-
-	//	//++++++++++++++++++++++++ Проверка остальных проводов на замыкание ---------------------------
-	//	if (x_A != x_B)                                                      //Проверяемые провода не не должны быть соеденены
-	//	{
-	//	  if (digitalRead(Chanal_B) == LOW)                                      // Все таки замкнуты
-	//	  {
-	//		// Проверим дополнительную 3 таблицу, возможно должны иметь соединение
-	//		int canal_N_err = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1 + x_A + (_size_block * 2)); // Получить из таблицы номер входа коммутатора.
-	//		if (x_B != canal_N_err)                                      // Проверяемое соединение не записано в таблицу
-	//		{
-	//		  // Проверим дополнительную 4 таблицу
-	//		  int canal_N_err = i2c_eeprom_read_byte(deviceaddress, adr_memN1_1 + x_A + (_size_block * 3)); // Получить из таблицы номер входа коммутатора.
-	//		  if (x_B != canal_N_err)                                  // Проверяемое соединение не записано в таблицу
-	//		  {
-	//			count_error++;
-	//			strcpy_P(buffer, (char*)pgm_read_word(&(table_message[25])));
-	//			myGLCD.print(buffer, 50, 65);                        // txt_error_connect4
-	//			myGLCD.printNumI(count_error, 190, 65);
-	//			if (x_A < 10)
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p + 13, y_p);            // Перечисление ошибочных контактов
-	//			  myGLCD.print("+", x_p + 29, y_p);
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(x_A, x_p, y_p);                 // Перечисление ошибочных контактов
-	//			  myGLCD.print("+", x_p + 29, y_p);
-	//			}
-	//			if (canal_N < 10)
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 26, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//			else
-	//			{
-	//			  myGLCD.printNumI(canal_N, x_p + 32 + 10, y_p);   // Перечисление ошибочных контактов
-	//			}
-	//			y_p += 19;
-	//			if ( y_p > 190)                                      // Вывод на экран таблицы ошибок
-	//			{
-	//			  myGLCD.drawLine( x_p + 75, 85, x_p + 75, 190);
-	//			  x_p += 80;
-	//			  y_p = 82;
-	//			}
-	//		  }
-	//		}
-	//	  }
-	//	} 	//----------------------- Конец проверки на замыкание -----------------------------------------
-	//  }
-	//}
-	//strcpy_P(buffer, (char*)pgm_read_word(&(table_message[30])));
-	//if (count_error == 0) myGLCD.print(buffer, CENTER, 120);               // txt__test_end
- // }
- // else
- // {
-	//myGLCD.setColor(VGA_RED);
-	//strcpy_P(buffer, (char*)pgm_read_word(&(table_message[22])));
-	//myGLCD.print(buffer, CENTER, 82 + 19);                                // txt_error_connect1 Сообщить что кабель не обнаружен
-	//strcpy_P(buffer, (char*)pgm_read_word(&(table_message[23])));
-	//myGLCD.print(buffer, CENTER, 82 + 38);                                // txt_error_connect2
-	//myGLCD.setColor(255, 255, 255);                                       // Восстановить белый шрифт
-	//delay(2000);
- // }
-}
-void kommut_off()
-{
-  mcp_Out1.digitalWrite(8,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E1  U13
-  mcp_Out1.digitalWrite(9,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E2  U17
-  mcp_Out1.digitalWrite(10, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E3  U23
-  mcp_Out1.digitalWrite(11, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E4  U14
-  mcp_Out1.digitalWrite(12, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E5  U19
-  mcp_Out1.digitalWrite(13, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  1E6  U21
-
-  mcp_Out2.digitalWrite(8,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E1  U15
-  mcp_Out2.digitalWrite(9,  HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E2  U18
-  mcp_Out2.digitalWrite(10, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E3  U22
-  mcp_Out2.digitalWrite(11, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E4  U16
-  mcp_Out2.digitalWrite(12, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E5  U20
-  mcp_Out2.digitalWrite(13, HIGH);                                // Сброс выбора EN микросхемы аналового коммутатора  2E6  U24
-}
-
 void draw_measure()
 {
 	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
@@ -2672,7 +1972,7 @@ void setup()
   myButtons.setTextFont(BigFont);
   myButtons.setSymbolFont(Dingbats1_XL);
   Serial.begin(9600);                                    // Подключение к USB ПК
-  Serial1.begin(115200);                                 // Подключение к
+  //Serial1.begin(115200);                                 // Подключение к
   slave.setSerial(3, 57600);                             // Подключение к протоколу MODBUS компьютера Serial3
   Serial2.begin(115200);                                 // Подключение к
   setup_pin();
@@ -2690,8 +1990,7 @@ void setup()
   //set_time();
   serial_print_date();
   setup_mcp();                                          // Настроить порты расширения
-  //mcp_Out2.digitalWrite(15, LOW);                     // Выключить реле подключения "земли" от блока проверки//
-  //mcp_Out2.digitalWrite(14, LOW);                     // Отключить реле питания +12в. от блока проверки
+ 
   MsTimer2::set(1000, flash_time);                       // 300ms период таймера прерывани
 
   setup_regModbus();
@@ -2706,8 +2005,7 @@ void setup()
   sensor_sun_out.begin();
   sensor_tube_in.begin();
   sensor_tube_out.begin();
-  sensor_tank.begin();
-  sensor_outhouse.begin();
+ 
 
   read_Temperatures();
 
@@ -2752,10 +2050,8 @@ void setup()
 
 void loop()
 {
-
     draw_Glav_Menu1();
     swichMenu1();
-
 }
 
 //THIS CODE TURNS THE MONTH INTO THE NUMBER OF day3S SINCE JANUARY 1ST.
