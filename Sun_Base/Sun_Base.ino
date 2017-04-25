@@ -182,11 +182,19 @@ int maxY = 0;
 int offX = 0;
 int offY = 0;
 
-int kompassCenterX = 215;
+int kompassCenterX = 220;
 int kompassCenterY = 75;
+int headingCenterX = 100;
+int headingCenterY = 95;
+int poz_min = 50;
+int poz_max = 280;
+int upr_head = 0;
+
+
 
 float x1_temp, y1_temp, x2_temp, y2_temp, x3_temp, y3_temp, x4_temp, y4_temp;
-
+float x1_tempH, y1_tempH, x2_tempH, y2_tempH, x3_tempH, y3_tempH, x4_tempH, y4_tempH;
+float x1_tempC, y1_tempC, x2_tempC, y2_tempC, x3_tempC, y3_tempC, x4_tempC, y4_tempC;
 int upr_motor = 0;              // Направление управления моторами
 
 //+++++++++++++++++++++++++ Расчет положения солнца ++++++++++++++++++++++++++
@@ -892,30 +900,37 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 	drawKompass0();
 	while (myTouch.dataAvailable())
 	{
-		myGLCD.printNumI(upr_motor, 70, 15);
-		if (upr_motor >= 280) upr_motor = 280;
-		if (upr_motor <= 50) upr_motor = 50;
+		myGLCD.printNumI(upr_motor, 70, 130);
+	
 		switch (upr)
 		{
 		case 1:
-			upr_motor++;
+			upr_head++;
 			break;
 		case 2:
-			upr_motor--;
+			upr_head--;
 			break;
 		case 3:
 			upr_motor++;
 			break;
 		case 4:
+		
 			upr_motor--;
 			break;
 		}
 
 		delay(25);
 		headingDegrees = upr_motor;
+		if (headingDegrees >= poz_max) headingDegrees = poz_max;
+		if (headingDegrees <= poz_min) headingDegrees = poz_min;
+
 		drawKompass(headingDegrees);
+		draw_azimuth(azimuth);
+		draw_header(upr_head);
+		draw_headerCalc(altitude);
 	}
-	myGLCD.printNumI(upr_motor, 70, 15);
+	myGLCD.printNumI(upr_head, 70, 5);
+	myGLCD.printNumI(altitude, 70, 20);
 	myTouch.read();
 	myGLCD.drawRoundRect(x1, y1, x2, y2);
 }
@@ -1240,14 +1255,19 @@ void view_menuN2()
 	//myGLCD.drawRoundRect(8, 145, 156, 175);
 	//myGLCD.drawRoundRect(164, 145, 312, 175);
 
-	for (int i = 0; i < 3; i++)
-	{
-		myGLCD.drawCircle(kompassCenterX, kompassCenterY, 65 - i);
+	for (int i = 0; i < 3; i++)                                      // Внешний круг компаса
+	{    
+		myGLCD.drawCircle(kompassCenterX, kompassCenterY, 65 - i);   
 	}
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++)                                        // Центр компаса
 	{
 		myGLCD.drawCircle(kompassCenterX, kompassCenterY, i);
+	}
+
+	for (int i = 0; i < 5; i++)                                        // центр вертикального положения
+	{
+		myGLCD.drawCircle(headingCenterX, headingCenterY, i);
 	}
 
 	myGLCD.setColor(192, 192, 255);
@@ -1256,12 +1276,13 @@ void view_menuN2()
 	myGLCD.print("270", kompassCenterX - 109, kompassCenterY - 8);
 	myGLCD.print("0", kompassCenterX - 6, kompassCenterY - 74);
 
-	drawMaxMin(50,280);
+	drawMaxMin(poz_min, poz_max);
 	
 	drawKompass(headingDegrees);
 	//drawKompass(180);
 	draw_azimuth(azimuth);
-
+	draw_header(headingDegrees);
+	draw_headerCalc(altitude);
 
 	myGLCD.setColor(0, 0, 255);
 
@@ -1431,7 +1452,7 @@ void drawMaxMin(int min, int max)
 	float x1, y1, x2, y2, x3, y3, x4, y4;
 
 	myGLCD.setColor(255, 0, 0);
-	min = min + 270;
+	min = min + 270-2;
 
 	x1 = 60 * cos(min * 0.0175);
 	y1 = 60 * sin(min * 0.0175);
@@ -1447,7 +1468,7 @@ void drawMaxMin(int min, int max)
 	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
 	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
 
-	max = max + 270;
+	max = max + 270+2;
 
 	x1 = 60 * cos(max * 0.0175);
 	y1 = 60 * sin(max * 0.0175);
@@ -1465,8 +1486,105 @@ void drawMaxMin(int min, int max)
 
 
 }
+void draw_header(int m)
+{
+	float x1, y1, x2, y2, x3, y3, x4, y4;
+	m = -m;
+	m = m + 360;
+
+	myGLCD.setColor(0, 0, 0);
+	x1 = x1_tempH;
+	y1 = y1_tempH;
+	x2 = x2_tempH;
+	y2 = y2_tempH;
+	x3 = x3_tempH;
+	y3 = y3_tempH;
+	x4 = x4_tempH;
+	y4 = y4_tempH;
+
+	myGLCD.drawLine(x1 + headingCenterX, y1 + headingCenterY, x3 + headingCenterX, y3 + headingCenterY);
+	myGLCD.drawLine(x3 + headingCenterX, y3 + headingCenterY, x2 + headingCenterX, y2 + headingCenterY);
+	myGLCD.drawLine(x2 + headingCenterX, y2 + headingCenterY, x4 + headingCenterX, y4 + headingCenterY);
+	myGLCD.drawLine(x4 + headingCenterX, y4 + headingCenterY, x1 + headingCenterX, y1 + headingCenterY);
 
 
+	myGLCD.setColor(0, 255, 0);
+	m = m + 270;
+
+	x1 = 58 * cos(m * 0.0175);
+	y1 = 58 * sin(m * 0.0175);
+	x2 = 5 * cos(m * 0.0175);
+	y2 = 5 * sin(m * 0.0175);
+	x3 = 20 * cos((m + 4) * 0.0175);
+	y3 = 20 * sin((m + 4) * 0.0175);
+	x4 = 20 * cos((m - 4) * 0.0175);
+	y4 = 20 * sin((m - 4) * 0.0175);
+
+	myGLCD.drawLine(x1 + headingCenterX, y1 + headingCenterY, x3 + headingCenterX, y3 + headingCenterY);
+	myGLCD.drawLine(x3 + headingCenterX, y3 + headingCenterY, x2 + headingCenterX, y2 + headingCenterY);
+	myGLCD.drawLine(x2 + headingCenterX, y2 + headingCenterY, x4 + headingCenterX, y4 + headingCenterY);
+	myGLCD.drawLine(x4 + headingCenterX, y4 + headingCenterY, x1 + headingCenterX, y1 + headingCenterY);
+
+
+	x1_tempH = x1;
+	y1_tempH = y1;
+	x2_tempH = x2;
+	y2_tempH = y2;
+	x3_tempH = x3;
+	y3_tempH = y3;
+	x4_tempH = x4;
+	y4_tempH = y4;
+
+}
+void draw_headerCalc(int m)
+{
+	float x1, y1, x2, y2, x3, y3, x4, y4;
+	m = -m;
+	m = m + 360;
+	myGLCD.setColor(0, 0, 0);
+	x1 = x1_tempC;
+	y1 = y1_tempC;
+	x2 = x2_tempC;
+	y2 = y2_tempC;
+	x3 = x3_tempC;
+	y3 = y3_tempC;
+	x4 = x4_tempC;
+	y4 = y4_tempC;
+
+	myGLCD.drawLine(x1 + headingCenterX, y1 + headingCenterY, x3 + headingCenterX, y3 + headingCenterY);
+	myGLCD.drawLine(x3 + headingCenterX, y3 + headingCenterY, x2 + headingCenterX, y2 + headingCenterY);
+	myGLCD.drawLine(x2 + headingCenterX, y2 + headingCenterY, x4 + headingCenterX, y4 + headingCenterY);
+	myGLCD.drawLine(x4 + headingCenterX, y4 + headingCenterY, x1 + headingCenterX, y1 + headingCenterY);
+
+
+	myGLCD.setColor(255, 255, 0);
+	m = m + 270;
+
+	x1 = 58 * cos(m * 0.0175);
+	y1 = 58 * sin(m * 0.0175);
+	x2 = 5 * cos(m * 0.0175);
+	y2 = 5 * sin(m * 0.0175);
+	x3 = 20 * cos((m + 4) * 0.0175);
+	y3 = 20 * sin((m + 4) * 0.0175);
+	x4 = 20 * cos((m - 4) * 0.0175);
+	y4 = 20 * sin((m - 4) * 0.0175);
+
+	myGLCD.drawLine(x1 + headingCenterX, y1 + headingCenterY, x3 + headingCenterX, y3 + headingCenterY);
+	myGLCD.drawLine(x3 + headingCenterX, y3 + headingCenterY, x2 + headingCenterX, y2 + headingCenterY);
+	myGLCD.drawLine(x2 + headingCenterX, y2 + headingCenterY, x4 + headingCenterX, y4 + headingCenterY);
+	myGLCD.drawLine(x4 + headingCenterX, y4 + headingCenterY, x1 + headingCenterX, y1 + headingCenterY);
+
+
+	x1_tempC = x1;
+	y1_tempC = y1;
+	x2_tempC = x2;
+	y2_tempC = y2;
+	x3_tempC = x3;
+	y3_tempC = y3;
+	x4_tempC = x4;
+	y4_tempC = y4;
+
+}
 void view_menuN3()
 {
 
