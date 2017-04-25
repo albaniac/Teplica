@@ -1141,6 +1141,8 @@ void swichMenu()
 				{
 					waitForIt(10, 189, 60, 239);
 					m2 = 1;
+					myGLCD.clrScr();
+					Set_Down_Buttons();
 					draw_measure();                               // Отобразить результат измерения
 				}
 
