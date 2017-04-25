@@ -188,6 +188,10 @@ int headingCenterX = 100;
 int headingCenterY = 95;
 int poz_min = 50;
 int poz_max = 280;
+int head_min = 14;
+int head_max = 57;
+
+
 int upr_head = 0;
 
 
@@ -923,14 +927,19 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 		headingDegrees = upr_motor;
 		if (headingDegrees >= poz_max) headingDegrees = poz_max;
 		if (headingDegrees <= poz_min) headingDegrees = poz_min;
+		if (upr_head >= head_max) upr_head = head_max;
+		if (upr_head <= head_min) upr_head = head_min;
 
-		drawKompass(headingDegrees);
-		draw_azimuth(azimuth);
-		draw_header(upr_head);
-		draw_headerCalc(altitude);
+
+		drawKompass(headingDegrees);                          // Показания компаса
+		draw_azimuth(azimuth);                                // Расчетное положение по горизонтали
+		draw_header(upr_head);                                // Положение по вертикали
+		draw_headerCalc(altitude);                            // Расчетное положение по вертикали
+
+		myGLCD.printNumI(upr_head, 70, 5);
+		myGLCD.printNumI(altitude, 70, 20);
+
 	}
-	myGLCD.printNumI(upr_head, 70, 5);
-	myGLCD.printNumI(altitude, 70, 20);
 	myTouch.read();
 	myGLCD.drawRoundRect(x1, y1, x2, y2);
 }
@@ -1249,11 +1258,6 @@ void view_menuN2()
 	myGLCD.drawRoundRect(10, 100, 50, 180);                             // Кнопка "Вниз"
 	myGLCD.drawRoundRect(130, 150, 210, 180);
 	myGLCD.drawRoundRect(220, 150, 300, 180);
-	//myGLCD.drawRoundRect(8, 100, 156, 130);
-	//myGLCD.drawRoundRect(164, 100, 312, 130);
-
-	//myGLCD.drawRoundRect(8, 145, 156, 175);
-	//myGLCD.drawRoundRect(164, 145, 312, 175);
 
 	for (int i = 0; i < 3; i++)                                      // Внешний круг компаса
 	{    
@@ -1279,7 +1283,6 @@ void view_menuN2()
 	drawMaxMin(poz_min, poz_max);
 	
 	drawKompass(headingDegrees);
-	//drawKompass(180);
 	draw_azimuth(azimuth);
 	draw_header(headingDegrees);
 	draw_headerCalc(altitude);
@@ -1290,13 +1293,16 @@ void view_menuN2()
 	myGLCD.fillRoundRect(11, 101, 49, 179);
 	myGLCD.fillRoundRect(131, 151, 209, 179);
 	myGLCD.fillRoundRect(221, 151, 299, 179);
-	//myGLCD.fillRoundRect(9, 101, 155, 129);
-	//myGLCD.fillRoundRect(165, 101, 311, 129);
-
-	//myGLCD.fillRoundRect(9, 146, 155, 174);
-	//myGLCD.fillRoundRect(165, 146, 311, 174);
-
+	
 	myGLCD.setColor(255, 255, 255);
+	myGLCD.setBackColor(0, 0, 255);
+
+	myGLCD.print("East", 140, 157);
+	myGLCD.print("West", 227, 157);
+	
+	myGLCD.print("Up", 40, 36,90);
+	myGLCD.print("Down", 40, 110,90);
+
 	myGLCD.setBackColor(0, 0, 0);
 
 
@@ -2024,7 +2030,7 @@ void setup()
  
 
   read_Temperatures();
-
+  upr_motor = poz_min;
 
   // Initialize Initialize HMC5883L
   Serial.println("Initialize HMC5883L");
