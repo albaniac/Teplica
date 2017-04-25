@@ -183,8 +183,11 @@ int offX = 0;
 int offY = 0;
 
 int kompassCenterX = 215;
-int kompassCenterY = 70;
+int kompassCenterY = 75;
 
+float x1_temp, y1_temp, x2_temp, y2_temp, x3_temp, y3_temp, x4_temp, y4_temp;
+
+int upr_motor = 0;              // Направление управления моторами
 
 //+++++++++++++++++++++++++ Расчет положения солнца ++++++++++++++++++++++++++
 
@@ -629,14 +632,23 @@ void AnalogClock()
 
 	  if (((y >= 200) && (y <= 239)) && ((x >= 1) && (x <= 250))) //Возврат 
 	  {
-		//myGLCD.clrScr();
+		myGLCD.clrScr();
 		myGLCD.setFont(BigFont);
+		if (m2 == 2)
+		{
+			view_menuN2();
+		}
+
 		break;
 	  }
 	  if (((y >= 1) && (y <= 199)) && ((x >= 1) && (x <= 319))) //Возврат
 	  {
-		//myGLCD.clrScr();
+		myGLCD.clrScr();
 		myGLCD.setFont(BigFont);
+		if (m2 == 2)
+		{
+			view_menuN2();
+		}
 		break;
 	  }
 	}
@@ -871,7 +883,42 @@ void waitForIt(int x1, int y1, int x2, int y2)
   myGLCD.setColor(255, 255, 255);
   myGLCD.drawRoundRect (x1, y1, x2, y2);
 }
+void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
+{
+	myGLCD.setColor(255, 0, 0);
+	myGLCD.drawRoundRect(x1, y1, x2, y2);
+	myGLCD.setColor(255, 255, 255);
+  
+	drawKompass0();
+	while (myTouch.dataAvailable())
+	{
+		myGLCD.printNumI(upr_motor, 70, 15);
+		if (upr_motor >= 280) upr_motor = 280;
+		if (upr_motor <= 50) upr_motor = 50;
+		switch (upr)
+		{
+		case 1:
+			upr_motor++;
+			break;
+		case 2:
+			upr_motor--;
+			break;
+		case 3:
+			upr_motor++;
+			break;
+		case 4:
+			upr_motor--;
+			break;
+		}
 
+		delay(25);
+		headingDegrees = upr_motor;
+		drawKompass(headingDegrees);
+	}
+	myGLCD.printNumI(upr_motor, 70, 15);
+	myTouch.read();
+	myGLCD.drawRoundRect(x1, y1, x2, y2);
+}
 void control_command()
 {
   /*
@@ -1079,8 +1126,7 @@ void swichMenu()
 					m2 = 2;
 					clear_display();                             // Очистить экран
 					view_menuN2();
-
-
+					//myGLCD.clrScr();
 				}
 
 				if ((x >= 130) && (x <= 180))                     //нажата кнопка "3"
@@ -1108,12 +1154,49 @@ void swichMenu()
 					waitForIt(250, 189, 300, 239);
 					m3 = 1;
 					AnalogClock();
-					myGLCD.clrScr();
+				//	myGLCD.clrScr();
 					Set_Down_Buttons();
 					m3 = 0;
 					if (m2 == 1)
 					{
 						draw_measure();                          // Отобразить результат измерения
+
+					}
+				}
+			}
+
+			if (m2 == 2)
+			{
+
+				if ((x >= 10) && (x <= 50))                          //нажата кнопка 
+				{
+					myGLCD.setFont(BigFont);
+
+					if ((y >= 10) && (y <= 90))                       //нажата кнопка "Верх"
+					{
+						waitForIt_Upr(10, 10, 50, 90,1);
+
+					}
+
+					if ((y >= 100) && (y <= 180))                      //нажата кнопка "Вниз"
+					{
+						waitForIt_Upr(10, 100, 50, 180,2);
+					}
+
+				}
+				if ((y >= 150) && (y <= 180))                          //нажата кнопка 
+				{
+					myGLCD.setFont(BigFont);
+
+					if ((x >= 130) && (x <= 210))                       //нажата кнопка "Восток"
+					{
+						waitForIt_Upr(130, 150, 210, 180,4);
+
+					}
+
+					if ((x >= 220) && (x <= 300))                      //нажата кнопка "Запад"
+					{
+						waitForIt_Upr(220, 150, 300, 180,3);
 
 					}
 				}
@@ -1124,8 +1207,7 @@ void swichMenu()
 
 void view_menuN1()
 {
-	
-	if (m2 == 1 && m3 == 0)
+		if (m2 == 1 && m3 == 0)
 	{
 		sun_calc();
 		myGLCD.setColor(255, 255, 255);
@@ -1147,7 +1229,7 @@ void view_menuN2()
 	//myGLCD.clrScr();
 
 	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
-
+	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.drawRoundRect(10, 10, 50, 90);                              // Кнопка "Вверх"
 	myGLCD.drawRoundRect(10, 100, 50, 180);                             // Кнопка "Вниз"
 	myGLCD.drawRoundRect(130, 150, 210, 180);
@@ -1169,10 +1251,10 @@ void view_menuN2()
 	}
 
 	myGLCD.setColor(192, 192, 255);
-	myGLCD.print("90", kompassCenterX + 48, kompassCenterY - 8);
-	myGLCD.print("180", kompassCenterX - 20, kompassCenterY + 53);
-	myGLCD.print("270", kompassCenterX - 88, kompassCenterY - 8);
-	myGLCD.print("0", kompassCenterX - 6, kompassCenterY - 69);
+	myGLCD.print("90", kompassCenterX + 60, kompassCenterY - 8);
+	myGLCD.print("180", kompassCenterX - 20, kompassCenterY + 58);
+	myGLCD.print("270", kompassCenterX - 109, kompassCenterY - 8);
+	myGLCD.print("0", kompassCenterX - 6, kompassCenterY - 74);
 
 	drawMaxMin(50,280);
 	
@@ -1214,43 +1296,36 @@ void view_menuN2()
 	//	myGLCD.setBackColor(0, 0, 0);
 
 	//}
+
+	
 }
+
 
 void drawKompass(int m)
 {
 	myGLCD.setColor(0, 255, 0);
-//	myGLCD.printNumI(m, RIGHT - 220, 150);
-	myGLCD.printNumI(m, 70, 150);
-	m = m/6;
+	myGLCD.print("   ", 70, 150);
+	if (m < 10)
+	{
+		myGLCD.printNumI(m, 70+24, 150);
+	}
+	else if (m < 100 && m > 9)
+	{
+		myGLCD.printNumI(m, 70+12, 150);
+	}
+	else if(m > 99)
+	{
+		myGLCD.printNumI(m, 70, 150);
+
+	}
+
+	drawKompass0();
 	float x1, y1, x2, y2, x3, y3, x4, y4;
-	int pm = m - 1;
-
-	myGLCD.setColor(0, 0, 0);
-	if (pm == -1)
-		pm = 59;
-	pm = pm * 6;
-	pm = pm + 270;
-
-	x1 = 60 * cos(pm * 0.0175);
-	y1 = 60 * sin(pm * 0.0175);
-	x2 = 5 * cos(pm * 0.0175);
-	y2 = 5 * sin(pm * 0.0175);
-	x3 = 20 * cos((pm + 4) * 0.0175);
-	y3 = 20 * sin((pm + 4) * 0.0175);
-	x4 = 20 * cos((pm - 4) * 0.0175);
-	y4 = 20 * sin((pm - 4) * 0.0175);
-
-	myGLCD.drawLine(x1 + kompassCenterX, y1 + kompassCenterY, x3 + kompassCenterX, y3 + kompassCenterY);
-	myGLCD.drawLine(x3 + kompassCenterX, y3 + kompassCenterY, x2 + kompassCenterX, y2 + kompassCenterY);
-	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
-	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
-
 	myGLCD.setColor(0, 255, 0);
-	m = m * 6;
 	m = m + 270;
 
-	x1 = 60 * cos(m * 0.0175);
-	y1 = 60 * sin(m * 0.0175);
+	x1 = 58 * cos(m * 0.0175);
+	y1 = 58 * sin(m * 0.0175);
 	x2 = 5 * cos(m * 0.0175);
 	y2 = 5 * sin(m * 0.0175);
 	x3 = 20 * cos((m + 4) * 0.0175);
@@ -1262,13 +1337,53 @@ void drawKompass(int m)
 	myGLCD.drawLine(x3 + kompassCenterX, y3 + kompassCenterY, x2 + kompassCenterX, y2 + kompassCenterY);
 	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
 	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
-}
 
+
+	x1_temp = x1;
+	y1_temp = y1;
+	x2_temp = x2;
+	y2_temp = y2;
+	x3_temp = x3;
+	y3_temp = y3;
+	x4_temp = x4;
+	y4_temp = y4;
+}
+void drawKompass0()
+{
+	float x1, y1, x2, y2, x3, y3, x4, y4;
+	myGLCD.setColor(0, 0, 0);
+	x1 = x1_temp;
+	y1 = y1_temp;
+	x2 = x2_temp;
+	y2 = y2_temp;
+	x3 = x3_temp;
+	y3 = y3_temp;
+	x4 = x4_temp;
+	y4 = y4_temp;
+
+	myGLCD.drawLine(x1 + kompassCenterX, y1 + kompassCenterY, x3 + kompassCenterX, y3 + kompassCenterY);
+	myGLCD.drawLine(x3 + kompassCenterX, y3 + kompassCenterY, x2 + kompassCenterX, y2 + kompassCenterY);
+	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
+	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
+}
 void draw_azimuth(int m)
 {
 	myGLCD.setColor(255, 255, 0);
-	//myGLCD.printNumI(m, RIGHT-220, 165);
-	myGLCD.printNumI(m, 70, 165);
+	myGLCD.print("   ", 70, 165);
+	if (m < 10)
+	{
+		myGLCD.printNumI(m, 70 + 24, 165);
+	}
+	else if (m < 100 && m > 9)
+	{
+		myGLCD.printNumI(m, 70 + 12, 165);
+	}
+	else if (m > 99)
+	{
+		myGLCD.printNumI(m, 70, 165);
+
+	}
+
 	m = m/6;
 	float x1, y1, x2, y2, x3, y3, x4, y4;
 	int pm = m - 1;
@@ -1279,8 +1394,8 @@ void draw_azimuth(int m)
 	pm = pm * 6;
 	pm = pm + 270;
 
-	x1 = 60 * cos(pm * 0.0175);
-	y1 = 60 * sin(pm * 0.0175);
+	x1 = 58 * cos(pm * 0.0175);
+	y1 = 58 * sin(pm * 0.0175);
 	x2 = 5 * cos(pm * 0.0175);
 	y2 = 5 * sin(pm * 0.0175);
 	x3 = 20 * cos((pm + 4) * 0.0175);
@@ -1297,8 +1412,8 @@ void draw_azimuth(int m)
 	m = m * 6;
 	m = m + 270;
 
-	x1 = 60 * cos(m * 0.0175);
-	y1 = 60 * sin(m * 0.0175);
+	x1 = 58 * cos(m * 0.0175);
+	y1 = 58 * sin(m * 0.0175);
 	x2 = 5 * cos(m * 0.0175);
 	y2 = 5 * sin(m * 0.0175);
 	x3 = 20 * cos((m + 4) * 0.0175);
@@ -1360,6 +1475,7 @@ void view_menuN4()
 {
 
 }
+
 
 int read_int_eeprom(unsigned int adr)
 {
