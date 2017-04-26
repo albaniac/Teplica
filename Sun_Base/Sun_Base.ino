@@ -95,10 +95,15 @@ MCP23017 mcp_Out2;                                       // Назначение портов ра
 #define  motor_Down  3                 // Назначение  мотор Вниз 
 
 
-bool  SW_WestK = false;                // Назначение концевик Запад  
-bool  SW_EastK = false;                // Назначение концевик Восток 
-bool  SW_HighK = false;                // Назначение концевик Верх
-bool  SW_DownK = false;                // Назначение концевик Низ
+bool  SW_WestK = true;                 // Назначение концевик Запад  
+bool  SW_EastK = true;                 // Назначение концевик Восток 
+bool  SW_HighK = true;                 // Назначение концевик Верх
+bool  SW_DownK = true;                 // Назначение концевик Низ
+bool  run_horison = true;              // Блокировка вращения по горизонтали
+bool  run_elevation = true;            // Блокировка вращения по вертикали
+
+
+int delta_motor = 10;                  // Дельта управления моторами
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1165,10 +1170,13 @@ void swichMenu()
 			Serial.println();
 			sun_calc();                                           // Обновить информацию по расчетному положению установки
 
+
 			switch (m2)
 			{
 			case 1:
 				view_menuN1();                                   // Обновить информацию измерения
+				run_uprav_horizon(azimuth, headingDegrees);      // Обеспечить последовательность управления
+				run_uprav_elevation(altitude, kalAngleX);        // Обеспечить последовательность управления
 				break;
 			case 2:
 				drawMaxMin(poz_min, poz_max);                    // Нарисовать границы ограничения
@@ -1310,22 +1318,22 @@ void view_menuN2()
 
 	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
 	myGLCD.setBackColor(0, 0, 0);
-	myGLCD.drawRoundRect(10, 10, 50, 90);                              // Кнопка "Вверх"
-	myGLCD.drawRoundRect(10, 100, 50, 180);                             // Кнопка "Вниз"
+	myGLCD.drawRoundRect(10, 10, 50, 90);                                       // Кнопка "Вверх"
+	myGLCD.drawRoundRect(10, 100, 50, 180);                                     // Кнопка "Вниз"
 	myGLCD.drawRoundRect(130, 150, 210, 180);
 	myGLCD.drawRoundRect(220, 150, 300, 180);
 
-	for (int i = 0; i < 3; i++)                                      // Внешний круг компаса
+	for (int i = 0; i < 3; i++)                                                // Внешний круг компаса
 	{    
 		myGLCD.drawCircle(kompassCenterX, kompassCenterY, 65 - i);   
 	}
 
-	for (int i = 0; i < 5; i++)                                        // Центр компаса
+	for (int i = 0; i < 5; i++)                                                // Центр компаса
 	{
 		myGLCD.drawCircle(kompassCenterX, kompassCenterY, i);
 	}
 
-	for (int i = 0; i < 5; i++)                                        // центр вертикального положения
+	for (int i = 0; i < 5; i++)                                               // центр вертикального положения
 	{
 		myGLCD.drawCircle(headingCenterX, headingCenterY, i);
 	}
@@ -1642,7 +1650,11 @@ void draw_headerCalc(int m)                                  // Нарисовать расче
 	x4_tempC = x4;
 	y4_tempC = y4;
 
-	myGLCD.printNumI(altitude, 70, 20);
+	myGLCD.printNumI(altitude, 70, 20); 
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.printNumI(hour, 112, 5);
+	myGLCD.print(":", 140, 5);
+	myGLCD.printNumI(minute, 153, 5);
 }
 
 
@@ -1662,50 +1674,58 @@ void run_motor(int upr)
 		switch (upr)
 		{
 		case 1:
-			if(SW_HighK)
+			if(SW_HighK && run_horison)
 			{
 				mcp_Out1.digitalWrite(motor_High, HIGH);    // Мотор движение вверх
+				run_elevation = false;                      // Блокировка вращения по вертикали
 				Serial.println(upr);                        // Мотор движение вверх
 			}
 			else
 			{
 				mcp_Out1.digitalWrite(motor_High, LOW);     // Мотор движение стоп
+				run_elevation = true;                       // Блокировка вращения по вертикали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
 			break;
 		case 2:
-			if(SW_DownK)
+			if(SW_DownK && run_horison)
 			{
 				mcp_Out1.digitalWrite(motor_Down, HIGH);     // Мотор движение вниз
+				run_elevation = false;                       // Блокировка вращения по вертикали
 				Serial.println(upr);  // Мотор движение  
 			}
 			else
 			{
 				mcp_Out1.digitalWrite(motor_Down, LOW);     // Мотор движение стоп
+				run_elevation = true;                       // Блокировка вращения по вертикали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
 			break;
 		case 3:
-			if (SW_WestK)
+			if (SW_WestK && run_elevation)
 			{
 				mcp_Out1.digitalWrite(motor_West, HIGH);    // Мотор движение запад
+				run_horison = false;                        // Блокировка вращения по горизонтали
 				Serial.println(upr);                        // Мотор движение  
 			}
 			else
 			{
 				mcp_Out1.digitalWrite(motor_West, LOW);    // Мотор движение стоп
+				run_horison = true;              // Блокировка вращения по горизонтали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
 			break;
 		case 4:
-			if (SW_EastK)
+			if (SW_EastK && run_elevation)
 			{
 				mcp_Out1.digitalWrite(motor_East, HIGH);    // Мотор движение восток
+				run_horison = false;              // Блокировка вращения по горизонтали
 				Serial.println(upr);                        // Мотор движение  
 			}
 			else
 			{
 				mcp_Out1.digitalWrite(motor_East, LOW);    // Мотор движение стоп
+				run_horison = true;              // Блокировка вращения по горизонтали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
 			break;
@@ -1923,6 +1943,117 @@ void sun_calc()
 	Serial.print("Azimuth \t");
 	Serial.println(azimuth);
 }
+void run_uprav_horizon(float azimuth, float headingDegrees)
+{
+	// azimuth - расчетная величина
+	// headingDegrees показания компаса
+	// Время восход 05.10 ()56.2 град,  закат 19.50 (282.5 град)
+ 
+	if (headingDegrees > poz_min && headingDegrees < poz_max)
+	{
+		if (headingDegrees < azimuth)                 // Установка восточнее расчетной величины
+		{
+			if ((azimuth - headingDegrees) > delta_motor)
+			{
+				if (SW_WestK)        // Не достигнут конец разворота
+				{
+					digitalWrite(motor_West, HIGH);                          //  
+					Serial.println("PLUS horizon");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_West, LOW);                          //  
+				Serial.println("PLUS horizon Stop");             // Применить для расчета положения установки
+			}
+		}
+
+		if (headingDegrees > azimuth)               // Установка западние расчетной величины
+		{
+			if ((headingDegrees - azimuth) > delta_motor)
+			{
+				if (SW_EastK)
+				{
+					digitalWrite(motor_East, HIGH);                          //  
+
+					Serial.println("MINUS horizon");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_East, LOW);                          //  
+
+				Serial.println("MINUS horizon Stop");             // Применить для расчета положения установки
+
+			}
+		}
+
+	}
+	else
+	{
+		Serial.println("No SUN");             // Применить для расчета положения установки
+
+	}
+
+}
+void run_uprav_elevation(float altitude, float kalAngleX)
+{
+	// Все переделать
+	// azimuth - расчетная величина
+	// headingDegrees показания компаса
+	// Время восход 05.10 ()56.2 град,  закат 19.50 (282.5 град)
+	 
+	if (kalAngleX > head_min && kalAngleX < head_max)
+	{
+		if (kalAngleX < altitude)                 // Установка восточнее расчетной величины
+		{
+			if ((altitude - kalAngleX) > delta_motor)
+			{
+				if (SW_HighK)        // Не достигнут конец разворота
+				{
+					digitalWrite(motor_West, HIGH);                          //  
+					Serial.println("PLUS elevation");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_West, LOW);                          //  
+				Serial.println("PLUS elevation Stop");             // Применить для расчета положения установки
+			}
+		}
+
+		if (kalAngleX > altitude)               // Установка западние расчетной величины
+		{
+			if ((kalAngleX - altitude) > delta_motor)
+			{
+				if (SW_DownK)
+				{
+					digitalWrite(motor_East, HIGH);                          //  
+
+					Serial.println("MINUS elevation");             // Применить для расчета положения установки
+				}
+			}
+			else
+			{
+				digitalWrite(motor_East, LOW);                          //  
+
+				Serial.println("MINUS elevation Stop");             // Применить для расчета положения установки
+
+			}
+		}
+
+	}
+	else
+	{
+		Serial.println("No SUN");             // Применить для расчета положения установки
+
+	}
+
+}
+
+
+
+
 
 void clear_display()
 {
@@ -2222,7 +2353,7 @@ void setup()
 	{
 		Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
 		compass_enable = false;
-		headingDegrees = 110;
+		headingDegrees = 140;
 		upr_motor = headingDegrees;
 	}
 	else
