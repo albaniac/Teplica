@@ -85,17 +85,20 @@ MCP23017 mcp_Out2;                                       // Назначение портов ра
 
 
 
-#define  SW_West   9                    // Назначение концевик Запад  
-#define  SW_East   8                    // Назначение концевик Восток 
-#define  SW_High   10                    // Назначение концевик Верх
-#define  SW_Down   11                    // Назначение концевик Низ
-//#define  Rele1    10                    // Назначение Реле 1
-//#define  Rele2    11                    // Назначение Реле 2  
+#define  SW_West   9                   // Назначение концевик Запад  
+#define  SW_East   8                   // Назначение концевик Восток 
+#define  SW_High   10                  // Назначение концевик Верх
+#define  SW_Down   11                  // Назначение концевик Низ
 #define  motor_West  0                 // Назначение  мотор Запад
 #define  motor_East  1                 // Назначение  мотор Восток  Светодиод подсоединен к цифровому выводу 13 
 #define  motor_High  2                 // Назначение  мотор Вверх
 #define  motor_Down  3                 // Назначение  мотор Вниз 
 
+
+bool  SW_WestK = false;                // Назначение концевик Запад  
+bool  SW_EastK = false;                // Назначение концевик Восток 
+bool  SW_HighK = false;                // Назначение концевик Верх
+bool  SW_DownK = false;                // Назначение концевик Низ
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -167,8 +170,7 @@ DallasTemperature sensor_tube_out(&oneWire_tube_out);
 //DallasTemperature sensor_tank(&oneWire_tank);
 //DallasTemperature sensor_outhouse(&oneWire_out);
 
-//++++++++++++++++++++++++++++++++++ compass +++++++++++++++++++++++++++++++++++++++++
-
+//++++++++++++++++++++++++++++++++++ compass Измерение положения установки по горизонтали+++++++++++++++++++++++++++++++++++++++++
 
 HMC5883L compass;
 float headingDegrees = 0.00;
@@ -194,14 +196,41 @@ int head_max = 57;
 
 int upr_head = 0;
 
-
-
 float x1_temp, y1_temp, x2_temp, y2_temp, x3_temp, y3_temp, x4_temp, y4_temp;
 float x1_tempH, y1_tempH, x2_tempH, y2_tempH, x3_tempH, y3_tempH, x4_tempH, y4_tempH;
 float x1_tempC, y1_tempC, x2_tempC, y2_tempC, x3_tempC, y3_tempC, x4_tempC, y4_tempC;
 int upr_motor = 0;              // Направление управления моторами
 
-//+++++++++++++++++++++++++ Расчет положения солнца ++++++++++++++++++++++++++
+//+++++++++++++++++++++++++ Измерение положения установки по вертикали +++++++++++++++++++++++++++++++++++++++++
+
+Kalman kalmanX;
+Kalman kalmanY;
+
+uint8_t IMUAddress = 0x68;
+
+/* IMU Data */
+int16_t accX;
+int16_t accY;
+int16_t accZ;
+int16_t tempRaw;
+int16_t gyroX;
+int16_t gyroY;
+int16_t gyroZ;
+
+double accXangle; // Angle calculate using the accelerometer
+double accYangle;
+double temp;
+double gyroXangle = 180; // Angle calculate using the gyro
+double gyroYangle = 180;
+double compAngleX = 180; // Calculate the angle using a Kalman filter
+double compAngleY = 180;
+double kalAngleX; // Calculate the angle using a Kalman filter
+double kalAngleY;
+
+bool header_enable = false;
+uint32_t timer;
+
+//+++++++++++++++++++++++++ Расчет положения солнца по горизонтали и вертикали ++++++++++++++++++++++++++
 
 
 //////////////////////////////////////////////////  
@@ -908,38 +937,44 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 		{
 		case 1:
 			upr_head++;       // Заменить на команды управления
+			if (upr_head > head_max) upr_head = head_max;
 			break;
 		case 2:
 			upr_head--;       // Заменить на команды управления
+			if (upr_head < head_min) upr_head = head_min;
 			break;
 		case 3:
 			upr_motor++;      // Заменить на команды управления
+			if (upr_motor > poz_max) upr_motor = poz_max;
 			break;
 		case 4:
-		
 			upr_motor--;       // Заменить на команды управления
+			if (upr_motor < poz_min) upr_motor = poz_min;
 			break;
 		}
 
 		delay(25);
 		headingDegrees = upr_motor;
+		kalAngleX = upr_head;
 		if (headingDegrees >= poz_max) headingDegrees = poz_max;
 		if (headingDegrees <= poz_min) headingDegrees = poz_min;
-		if (upr_head >= head_max) upr_head = head_max;
-		if (upr_head <= head_min) upr_head = head_min;
-
+		if (kalAngleX >= head_max) kalAngleX = head_max;
+		if (kalAngleX <= head_min) kalAngleX = head_min;
 
 		drawKompass(headingDegrees);                          // Показания компаса,положение установки по горизонтали
 		draw_azimuthCalc(azimuth);                            // Расчетное положение по горизонтали
-		draw_header(upr_head);                                // Положение по вертикали
+		draw_header(kalAngleX);                               // Положение по вертикали
 		draw_headerCalc(altitude);                            // Расчетное положение по вертикали
 	
+	
 		myGLCD.setColor(0, 255, 0);
-		myGLCD.printNumI(upr_head, 70, 5);
+		myGLCD.printNumI(kalAngleX, 70, 5);
 		myGLCD.setColor(255, 255, 0);
 		myGLCD.printNumI(altitude, 70, 20);
-
+		run_motor(upr);
 	}
+
+	run_motor(0);
 	myTouch.read();
 	myGLCD.drawRoundRect(x1, y1, x2, y2);
 }
@@ -1186,8 +1221,6 @@ void swichMenu()
 					m2 = 3;
 					clear_display();                             // Очистить экран
 					view_menuN3();
-
-
 				}
 
 				if ((x >= 190) && (x <= 240))                    //нажата кнопка "4"
@@ -1196,8 +1229,6 @@ void swichMenu()
 					m2 = 4;
 					clear_display();                             // Очистить экран
 					view_menuN4();
-
-
 				}
 
 				if ((x >= 250) && (x <= 300))                    //нажата кнопка "5"
@@ -1205,13 +1236,11 @@ void swichMenu()
 					waitForIt(250, 189, 300, 239);
 					m3 = 1;
 					AnalogClock();
-				//	myGLCD.clrScr();
 					Set_Down_Buttons();
 					m3 = 0;
 					if (m2 == 1)
 					{
-						//draw_measure();                          // Отобразить результат измерения
-
+						draw_display1();                          // Отобразить результат измерения
 					}
 				}
 			}
@@ -1270,7 +1299,7 @@ void view_menuN1()
 		myGLCD.printNumF(azimuth, 2, 40, 106);
 		myGLCD.printNumF(altitude, 2, 196, 106);
 		myGLCD.printNumF(headingDegrees, 2, 40, 153);
-		myGLCD.printNumF(10.00, 2, 196, 153);
+		myGLCD.printNumF(kalAngleX, 2, 196, 153);
 		myGLCD.setBackColor(0, 0, 0);
 		
 	}
@@ -1563,7 +1592,7 @@ void draw_header(int m)       //   Нарисовать высоту положение установки
 	x4_tempH = x4;
 	y4_tempH = y4;
 
-	myGLCD.printNumI(upr_head, 70, 5);
+	myGLCD.printNumI(kalAngleX, 70, 5);
 }
 void draw_headerCalc(int m)                                  // Нарисовать расчетное положение установки
 {
@@ -1624,6 +1653,72 @@ void view_menuN3()
 void view_menuN4()
 {
 
+}
+
+void run_motor(int upr)
+{
+	if (upr > 0)
+	{
+		switch (upr)
+		{
+		case 1:
+			if(SW_HighK)
+			{
+				mcp_Out1.digitalWrite(motor_High, HIGH);    // Мотор движение вверх
+				Serial.println(upr);                        // Мотор движение вверх
+			}
+			else
+			{
+				mcp_Out1.digitalWrite(motor_High, LOW);     // Мотор движение стоп
+				Serial.println("Stop");                     // Мотор движение стоп
+			}
+			break;
+		case 2:
+			if(SW_DownK)
+			{
+				mcp_Out1.digitalWrite(motor_Down, HIGH);     // Мотор движение вниз
+				Serial.println(upr);  // Мотор движение  
+			}
+			else
+			{
+				mcp_Out1.digitalWrite(motor_Down, LOW);     // Мотор движение стоп
+				Serial.println("Stop");                     // Мотор движение стоп
+			}
+			break;
+		case 3:
+			if (SW_WestK)
+			{
+				mcp_Out1.digitalWrite(motor_West, HIGH);    // Мотор движение запад
+				Serial.println(upr);                        // Мотор движение  
+			}
+			else
+			{
+				mcp_Out1.digitalWrite(motor_West, LOW);    // Мотор движение стоп
+				Serial.println("Stop");                     // Мотор движение стоп
+			}
+			break;
+		case 4:
+			if (SW_EastK)
+			{
+				mcp_Out1.digitalWrite(motor_East, HIGH);    // Мотор движение восток
+				Serial.println(upr);                        // Мотор движение  
+			}
+			else
+			{
+				mcp_Out1.digitalWrite(motor_East, LOW);    // Мотор движение стоп
+				Serial.println("Stop");                     // Мотор движение стоп
+			}
+			break;
+		}
+	}
+	else
+	{
+		mcp_Out1.digitalWrite(motor_West, LOW);            //  1A1 Назначение  мотор Запад
+		mcp_Out1.digitalWrite(motor_East, LOW);            //  1B1 Назначение  мотор Восток
+		mcp_Out1.digitalWrite(motor_High, LOW);            //  1C1 Назначение  мотор Вверх
+		mcp_Out1.digitalWrite(motor_Down, LOW);            //  1D1 Назначение  мотор Вниз
+		Serial.println(upr);  // Мотор движение стоп
+	}
 }
 
 
@@ -1725,6 +1820,69 @@ void read_compass()
 		Serial.print(" Degress = \t");
 		Serial.print(headingDegrees);
 		Serial.println();
+	}
+}
+void read_head()
+{
+	if (header_enable)
+	{
+		/* Update all the values */
+		uint8_t* data = i2cRead(0x3B, 14);
+		accX = ((data[0] << 8) | data[1]);
+		accY = ((data[2] << 8) | data[3]);
+		accZ = ((data[4] << 8) | data[5]);
+		tempRaw = ((data[6] << 8) | data[7]);
+		gyroX = ((data[8] << 8) | data[9]);
+		gyroY = ((data[10] << 8) | data[11]);
+		gyroZ = ((data[12] << 8) | data[13]);
+
+		/* Calculate the angls based on the different sensors and algorithm */
+		accYangle = (atan2(accX, accZ) + PI)*RAD_TO_DEG;
+		accXangle = (atan2(accY, accZ) + PI)*RAD_TO_DEG;
+
+		double gyroXrate = (double)gyroX / 131.0;
+		double gyroYrate = -((double)gyroY / 131.0);
+		gyroXangle += gyroXrate*((double)(micros() - timer) / 1000000); // Calculate gyro angle without any filter  
+		gyroYangle += gyroYrate*((double)(micros() - timer) / 1000000);
+		//gyroXangle += kalmanX.getRate()*((double)(micros()-timer)/1000000); // Calculate gyro angle using the unbiased rate
+		//gyroYangle += kalmanY.getRate()*((double)(micros()-timer)/1000000);
+
+		compAngleX = (0.93*(compAngleX + (gyroXrate*(double)(micros() - timer) / 1000000))) + (0.07*accXangle); // Calculate the angle using a Complimentary filter
+		compAngleY = (0.93*(compAngleY + (gyroYrate*(double)(micros() - timer) / 1000000))) + (0.07*accYangle);
+
+		kalAngleX = kalmanX.getAngle(accXangle, gyroXrate, (double)(micros() - timer) / 1000000); // Calculate the angle using a Kalman filter
+		kalAngleY = kalmanY.getAngle(accYangle, gyroYrate, (double)(micros() - timer) / 1000000);
+		timer = micros();
+
+		temp = ((double)tempRaw + 12412.0) / 340.0;
+
+		/* Print Data */
+		/*
+		Serial.print(accX);Serial.print("\t");
+		Serial.print(accY);Serial.print("\t");
+		Serial.print(accZ);Serial.print("\t");
+
+		Serial.print(gyroX);Serial.print("\t");
+		Serial.print(gyroY); Serial.print("\t");
+		Serial.print(gyroZ);Serial.print("\t");
+		*/
+		Serial.print(accXangle); Serial.print("\t");
+		// Serial.print(accYangle);Serial.print("\t"); 
+
+		//  Serial.print(gyroXangle);Serial.print("\t");
+		//  Serial.print(gyroYangle);Serial.print("\t");
+		//  
+		//  Serial.print(compAngleX);Serial.print("\t");
+		//  Serial.print(compAngleY); Serial.print("\t");
+
+		Serial.print(kalAngleX); Serial.print("\t");
+		// Serial.print(kalAngleY);Serial.print("\t");
+
+		//Serial.print(temp);Serial.print("\t");
+
+		Serial.print("\n");
+
+		delay(300); // The accelerometer's maximum samples rate is 1kHz
 	}
 }
 void sun_calc()
@@ -1895,6 +2053,7 @@ void setup_mcp()
   for (int i = 0; i < 8; i++)
   {
 	  mcp_Out1.digitalWrite(i, LOW);
+
   }
   for (int i = 0; i < 16; i++)
   {
@@ -2008,88 +2167,106 @@ void setup_regModbus()
 
 void setup()
 {
-  myGLCD.InitLCD();
-  myGLCD.clrScr();
-  myGLCD.setFont(BigFont);
-  myTouch.InitTouch();
-  delay(1000);
-  //myTouch.setPrecision(PREC_MEDIUM);
-  myTouch.setPrecision(PREC_HI);
-  //myTouch.setPrecision(PREC_EXTREME);
-  myButtons.setTextFont(BigFont);
-  myButtons.setSymbolFont(Dingbats1_XL);
-  Serial.begin(9600);                                    // Подключение к USB ПК
-  //Serial1.begin(115200);                                 // Подключение к
-  slave.setSerial(3, 57600);                             // Подключение к протоколу MODBUS компьютера Serial3
-  Serial2.begin(115200);                                 // Подключение к
-  setup_pin();
-  Wire.begin();
-  if (!RTC.begin())                                      // Настройка часов
-  {
-	Serial.println(F("RTC failed"));
-	while (1);
-  };
-  //DateTime set_time = DateTime(16, 3, 15, 10, 19, 0);  // Занести данные о времени в строку "set_time" год, месяц, число, время...
-  //RTC.adjust(set_time);                                // Записать дату
-  Serial.println(" ");
-  Serial.println(F(" ***** Start system  *****"));
-  Serial.println(" ");
-  //set_time();
-  serial_print_date();
-  setup_mcp();                                          // Настроить порты расширения
- 
-  MsTimer2::set(1000, flash_time);                       // 300ms период таймера прерывани
+	myGLCD.InitLCD();
+	myGLCD.clrScr();
+	myGLCD.setFont(BigFont);
+	myTouch.InitTouch();
+	delay(1000);
+	//myTouch.setPrecision(PREC_MEDIUM);
+	myTouch.setPrecision(PREC_HI);
+	//myTouch.setPrecision(PREC_EXTREME);
+	myButtons.setTextFont(BigFont);
+	myButtons.setSymbolFont(Dingbats1_XL);
+	Serial.begin(9600);                                    // Подключение к USB ПК
+	//Serial1.begin(115200);                                 // Подключение к
+	slave.setSerial(3, 57600);                             // Подключение к протоколу MODBUS компьютера Serial3
+	Serial2.begin(115200);                                 // Подключение к
+	setup_pin();
+	Wire.begin();
+	if (!RTC.begin())                                      // Настройка часов
+	{
+		Serial.println(F("RTC failed"));
+		while (1);
+	};
+	//DateTime set_time = DateTime(16, 3, 15, 10, 19, 0);  // Занести данные о времени в строку "set_time" год, месяц, число, время...
+	//RTC.adjust(set_time);                                // Записать дату
+	Serial.println(" ");
+	Serial.println(F(" ***** Start system  *****"));
+	Serial.println(" ");
+	//set_time();
+	serial_print_date();
+	setup_mcp();                                          // Настроить порты расширения
 
-  setup_regModbus();
+	MsTimer2::set(1000, flash_time);                       // 300ms период таймера прерывани
 
-  Serial.print(F("FreeRam: "));
-  Serial.println(FreeRam());
-  wait_time_Old =  millis();
-  digitalWrite(led_Green, HIGH);                          
-  digitalWrite(led_Red, LOW);      
+	setup_regModbus();
 
-  sensor_sun_in.begin();
-  sensor_sun_out.begin();
-  sensor_tube_in.begin();
-  sensor_tube_out.begin();
- 
+	Serial.print(F("FreeRam: "));
+	Serial.println(FreeRam());
+	wait_time_Old = millis();
+	digitalWrite(led_Green, HIGH);
+	digitalWrite(led_Red, LOW);
 
-  read_Temperatures();
-  upr_motor = poz_min;
+	sensor_sun_in.begin();
+	sensor_sun_out.begin();
+	sensor_tube_in.begin();
+	sensor_tube_out.begin();
 
-  // Initialize Initialize HMC5883L
-  Serial.println("Initialize HMC5883L");
+	upr_motor = poz_min;
 
- 
-  if (!compass.begin())
-  {
-	  Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
-	  compass_enable = false;
-  }
-  else
-  {
-	  // Set measurement range
-	  compass.setRange(HMC5883L_RANGE_1_3GA);
+	// Initialize Initialize HMC5883L
+	Serial.println("Initialize HMC5883L");
 
-	  // Set measurement mode
-	  compass.setMeasurementMode(HMC5883L_CONTINOUS);
 
-	  // Set data rate
-	  compass.setDataRate(HMC5883L_DATARATE_30HZ);
+	if (!compass.begin())
+	{
+		Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
+		compass_enable = false;
+		headingDegrees = 110;
+		upr_motor = headingDegrees;
+	}
+	else
+	{
+		// Set measurement range
+		compass.setRange(HMC5883L_RANGE_1_3GA);
 
-	  // Set number of samples averaged
-	  compass.setSamples(HMC5883L_SAMPLES_8);
+		// Set measurement mode
+		compass.setMeasurementMode(HMC5883L_CONTINOUS);
 
-	  // Set calibration offset. See HMC5883L_calibration.ino
-	  compass.setOffset(0, 0);
+		// Set data rate
+		compass.setDataRate(HMC5883L_DATARATE_30HZ);
 
-	  //read_compass();
-	  compass_enable = true;
-  }
+		// Set number of samples averaged
+		compass.setSamples(HMC5883L_SAMPLES_8);
 
-  /*lightMeter.begin(BH1750_CONTINUOUS_HIGH_RES_MODE);
-  Serial.println(F("BH1750 Test"));*/
-  latitude = latitude * pi / 180;
+		// Set calibration offset. See HMC5883L_calibration.ino
+		compass.setOffset(0, 0);
+
+		//read_compass();
+		compass_enable = true;
+	}
+
+	/*lightMeter.begin(BH1750_CONTINUOUS_HIGH_RES_MODE);
+	Serial.println(F("BH1750 Test"));*/
+	latitude = latitude * pi / 180;
+
+	i2cWrite(0x6B, 0x00); // Disable sleep mode  
+
+	if (i2cRead(0x75, 1)[0] != 0x68) { // Read "WHO_AM_I" register
+		Serial.print(F("MPU-6050 with address 0x"));
+		Serial.print(IMUAddress, HEX);
+		Serial.println(F(" is not connected"));
+		header_enable = false;
+		kalAngleX = 30;
+		upr_head = kalAngleX;
+		// while (1);
+	}
+	else
+	{
+		header_enable = true;
+		kalmanX.setAngle(180); // Set starting angle
+		kalmanY.setAngle(180);
+	}
 
   //MsTimer2::start();
 
@@ -2219,3 +2396,19 @@ float FindH(int day3, int month) {
 	return h;
 }
 /////////////////////////////////////////////////////////////
+void i2cWrite(uint8_t registerAddress, uint8_t data) {
+	Wire.beginTransmission(IMUAddress);
+	Wire.write(registerAddress);
+	Wire.write(data);
+	Wire.endTransmission(); // Send stop
+}
+uint8_t* i2cRead(uint8_t registerAddress, uint8_t nbytes) {
+	uint8_t data[nbytes];
+	Wire.beginTransmission(IMUAddress);
+	Wire.write(registerAddress);
+	Wire.endTransmission(false); // Don't release the bus
+	Wire.requestFrom(IMUAddress, nbytes); // Send a repeated start and then release the bus after reading
+	for (uint8_t i = 0; i < nbytes; i++)
+		data[i] = Wire.read();
+	return data;
+}
