@@ -64,7 +64,7 @@ VisualMicro
 #include <HMC5883L.h>
 #include <DallasTemperature.h>
 #include <BH1750.h>
-
+#include "Kalman.h"
 
 
 
