@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
+    <ProjectGuid>{DC8EA7BB-D856-4CD3-A360-66F58905950A}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
     <ProjectName>Sun_Base</ProjectName>

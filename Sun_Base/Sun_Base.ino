@@ -172,7 +172,7 @@ DallasTemperature sensor_tube_out(&oneWire_tube_out);
 
 HMC5883L compass;
 float headingDegrees = 0.00;
-bool compass_enable1 = false;
+bool compass_enable = false;
 
 
 int minX = 0;
@@ -251,7 +251,7 @@ const char* str1[]             = {"Sunday", "Monday", "Tuesday", "Wednesday", "T
 const char* str_mon[]          = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 unsigned long wait_time        = 0;                               // Время простоя прибора
 unsigned long wait_time_Old    = 0;                               // Время простоя прибора
-int time_minute                = 5;                               // Время простоя прибора
+int time_period_measure        = 2;                               // Период обновления информации
 int pin_cable                  = 0;                               // Количество выводов кабеля
 //------------------------------------------------------------------------------
 
@@ -904,22 +904,20 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 	drawKompass0();
 	while (myTouch.dataAvailable())
 	{
-		myGLCD.printNumI(upr_motor, 70, 130);
-	
 		switch (upr)
 		{
 		case 1:
-			upr_head++;
+			upr_head++;       // Заменить на команды управления
 			break;
 		case 2:
-			upr_head--;
+			upr_head--;       // Заменить на команды управления
 			break;
 		case 3:
-			upr_motor++;
+			upr_motor++;      // Заменить на команды управления
 			break;
 		case 4:
 		
-			upr_motor--;
+			upr_motor--;       // Заменить на команды управления
 			break;
 		}
 
@@ -931,12 +929,14 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 		if (upr_head <= head_min) upr_head = head_min;
 
 
-		drawKompass(headingDegrees);                          // Показания компаса
-		draw_azimuth(azimuth);                                // Расчетное положение по горизонтали
+		drawKompass(headingDegrees);                          // Показания компаса,положение установки по горизонтали
+		draw_azimuthCalc(azimuth);                            // Расчетное положение по горизонтали
 		draw_header(upr_head);                                // Положение по вертикали
 		draw_headerCalc(altitude);                            // Расчетное положение по вертикали
-
+	
+		myGLCD.setColor(0, 255, 0);
 		myGLCD.printNumI(upr_head, 70, 5);
+		myGLCD.setColor(255, 255, 0);
 		myGLCD.printNumI(altitude, 70, 20);
 
 	}
@@ -1108,22 +1108,47 @@ void draw_Glav_Menu()
 {
 	myGLCD.clrScr();
 	Set_Down_Buttons();
-	draw_measure();
+	draw_display1();
 }
 void swichMenu()
 {
 	m2 = 1;
 	while (1)
 	{
-		view_menuN1();
-
-    	wait_time = millis();                                      // Программа вызова часов при простое
-		if (wait_time - wait_time_Old > 6000 * 1)                  // if (wait_time - wait_time_Old > 60000 * time_minute)
+		//view_menuN1();
+		
+    	wait_time = millis();                                      // Программа обновления информации
+		if (wait_time - wait_time_Old > 1000 * time_period_measure)                 
 		{
 			wait_time_Old = millis();
-			//sun_calc();
-			// AnalogClock();
-			// myGLCD.clrScr();
+			Serial.println();
+			Serial.println("====================================");
+
+			read_Temperatures();                                  // Обновить информацию по температуре
+			Serial.println();
+			read_compass();                                       // Обновить информацию по положению установки.    
+			Serial.println();
+			sun_calc();                                           // Обновить информацию по расчетному положению установки
+
+			switch (m2)
+			{
+			case 1:
+				view_menuN1();                                   // Обновить информацию измерения
+				break;
+			case 2:
+				drawMaxMin(poz_min, poz_max);                    // Нарисовать границы ограничения
+				drawKompass(headingDegrees);                     // Нарисовать положение установки
+				draw_azimuthCalc(azimuth);                       // Нарисовать расчетное положение установки по горизонтали
+				draw_header(upr_head);                           // Нарисовать высоту положение установки           
+				draw_headerCalc(altitude);                       // Нарисовать расчетное положение установки по высоте
+				break;
+			case 3:
+
+				break;
+			case 4:
+
+				break;
+			}
 		}
 
 		if (myTouch.dataAvailable() == true)                       // Проверить нажатие кнопок
@@ -1143,7 +1168,7 @@ void swichMenu()
 					m2 = 1;
 					myGLCD.clrScr();
 					Set_Down_Buttons();
-					draw_measure();                               // Отобразить результат измерения
+					draw_display1();
 				}
 
 				if ((x >= 70) && (x <= 120))                      //нажата кнопка "2"
@@ -1185,7 +1210,7 @@ void swichMenu()
 					m3 = 0;
 					if (m2 == 1)
 					{
-						draw_measure();                          // Отобразить результат измерения
+						//draw_measure();                          // Отобразить результат измерения
 
 					}
 				}
@@ -1233,9 +1258,9 @@ void swichMenu()
 
 void view_menuN1()
 {
-		if (m2 == 1 && m3 == 0)
+	if (m2 == 1 && m3 == 0)
 	{
-		sun_calc();
+		//sun_calc();
 		myGLCD.setColor(255, 255, 255);
 		myGLCD.setBackColor(0, 0, 255);
 		myGLCD.printNumF(temp_sun_in, 2, 40, 26);
@@ -1282,13 +1307,6 @@ void view_menuN2()
 	myGLCD.print("270", kompassCenterX - 109, kompassCenterY - 8);
 	myGLCD.print("0", kompassCenterX - 6, kompassCenterY - 74);
 
-	drawMaxMin(poz_min, poz_max);
-	
-	drawKompass(headingDegrees);
-	draw_azimuth(azimuth);
-	draw_header(headingDegrees);
-	draw_headerCalc(altitude);
-
 	myGLCD.setColor(0, 0, 255);
 
 	myGLCD.fillRoundRect(11, 11, 49, 89);
@@ -1329,8 +1347,7 @@ void view_menuN2()
 	
 }
 
-
-void drawKompass(int m)
+void drawKompass(int m)             // Нарисовать положение установки
 {
 	myGLCD.setColor(0, 255, 0);
 	myGLCD.print("   ", 70, 150);
@@ -1395,7 +1412,8 @@ void drawKompass0()
 	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
 	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
 }
-void draw_azimuth(int m)
+
+void draw_azimuthCalc(int m)        
 {
 	myGLCD.setColor(255, 255, 0);
 	myGLCD.print("   ", 70, 165);
@@ -1455,6 +1473,7 @@ void draw_azimuth(int m)
 	myGLCD.drawLine(x2 + kompassCenterX, y2 + kompassCenterY, x4 + kompassCenterX, y4 + kompassCenterY);
 	myGLCD.drawLine(x4 + kompassCenterX, y4 + kompassCenterY, x1 + kompassCenterX, y1 + kompassCenterY);
 }
+
 void drawMaxMin(int min, int max)
 {
 	float x1, y1, x2, y2, x3, y3, x4, y4;
@@ -1494,7 +1513,8 @@ void drawMaxMin(int min, int max)
 
 
 }
-void draw_header(int m)
+
+void draw_header(int m)       //   Нарисовать высоту положение установки
 {
 	float x1, y1, x2, y2, x3, y3, x4, y4;
 	m = -m;
@@ -1543,8 +1563,9 @@ void draw_header(int m)
 	x4_tempH = x4;
 	y4_tempH = y4;
 
+	myGLCD.printNumI(upr_head, 70, 5);
 }
-void draw_headerCalc(int m)
+void draw_headerCalc(int m)                                  // Нарисовать расчетное положение установки
 {
 	float x1, y1, x2, y2, x3, y3, x4, y4;
 	m = -m;
@@ -1592,7 +1613,10 @@ void draw_headerCalc(int m)
 	x4_tempC = x4;
 	y4_tempC = y4;
 
+	myGLCD.printNumI(altitude, 70, 20);
 }
+
+
 void view_menuN3()
 {
 
@@ -1611,7 +1635,6 @@ int read_int_eeprom(unsigned int adr)
 	res_eeprom = (hi << 8) | low;
 	return res_eeprom;
 }
-
 void save_int_eeprom(unsigned int adr, unsigned int res)
 {
 	hi = highByte(res);
@@ -1620,7 +1643,6 @@ void save_int_eeprom(unsigned int adr, unsigned int res)
 	i2c_eeprom_write_byte(deviceaddress, adr, hi);
 	i2c_eeprom_write_byte(deviceaddress, adr + 1, low);
 }
-
 void clear_eeprom(int start, int long_mem)
 {
 	for (int i = start; i < long_mem; i++)                            // Очистить блока регистров в памяти.        
@@ -1647,16 +1669,16 @@ void read_Temperatures()
 	//temp_tank = sensor_tank.getTempCByIndex(0);
 	//temp_out = sensor_outhouse.getTempCByIndex(0);
 	
-	Serial.print("sensor_sun_in: ");
+	Serial.print("sensor_sun_in:  \t");  
 	Serial.println(temp_sun_in);
 
-	Serial.print("sensor_sun_out: ");
+	Serial.print("sensor_sun_out: \t");  
 	Serial.println(temp_sun_out);
 
-	Serial.print("sensor_tube_in: ");
+	Serial.print("sensor_tube_in: \t");  
 	Serial.println(temp_tube_in);
 
-	Serial.print("sensor_tube_out: ");
+	Serial.print("sensor_tube_out: \t");  
 	Serial.println(temp_tube_out);
 
 	//Serial.print("sensor_tank: ");
@@ -1666,42 +1688,44 @@ void read_Temperatures()
 	//Serial.println(temp_out);
 
 } 
-
 void read_compass()
 {
-	Vector norm = compass.readNormalize();
-
-	// Calculate heading
-	float heading = atan2(norm.YAxis, norm.XAxis);
-
-	// Set declination angle on your location and fix heading
-	// You can find your declination on: http://magnetic-declination.com/
-	// (+) Positive or (-) for negative
-	// For Bytom / Poland declination angle is 4'26E (positive)
-	// Formula: (deg + (min / 60.0)) / (180 / M_PI);
-	float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
-	heading += declinationAngle;
-
-	// Correct for heading < 0deg and heading > 360deg
-	if (heading < 0)
+	if (compass_enable)
 	{
-		heading += 2 * PI;
+		Vector norm = compass.readNormalize();
+
+		// Calculate heading
+		float heading = atan2(norm.YAxis, norm.XAxis);
+
+		// Set declination angle on your location and fix heading
+		// You can find your declination on: http://magnetic-declination.com/
+		// (+) Positive or (-) for negative
+		// For Bytom / Poland declination angle is 4'26E (positive)
+		// Formula: (deg + (min / 60.0)) / (180 / M_PI);
+		float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
+		heading += declinationAngle;
+
+		// Correct for heading < 0deg and heading > 360deg
+		if (heading < 0)
+		{
+			heading += 2 * PI;
+		}
+
+		if (heading > 2 * PI)
+		{
+			heading -= 2 * PI;
+		}
+
+		// Convert to degrees
+		headingDegrees = heading * 180 / M_PI;
+
+		// Output
+		Serial.print(" Heading = \t");
+		Serial.print(heading);
+		Serial.print(" Degress = \t");
+		Serial.print(headingDegrees);
+		Serial.println();
 	}
-
-	if (heading > 2 * PI)
-	{
-		heading -= 2 * PI;
-	}
-
-	// Convert to degrees
-	headingDegrees = heading * 180 / M_PI;
-
-	// Output
-	Serial.print(" Heading = ");
-	Serial.print(heading);
-	Serial.print(" Degress = ");
-	Serial.print(headingDegrees);
-	Serial.println();
 }
 void sun_calc()
 {
@@ -1727,20 +1751,19 @@ void sun_calc()
 	altitude = (asin(sin(latitude) * sin(delta) + cos(latitude) * cos(delta) * cos(h))) * 180 / pi;//FINDS THE SUN'S ALTITUDE.
 	azimuth = ((atan2((sin(h)), ((cos(h) * sin(latitude)) - tan(delta) * cos(latitude)))) + (northOrSouth*pi / 180)) * 180 / pi;//FINDS THE SUN'S AZIMUTH.
 	
-	Serial.print("month2 ");
+	Serial.print("month2 \t\t");
 	Serial.println(month2);
-	Serial.print("day2 ");
+	Serial.print("day2 \t\t"); 
 	Serial.println(day);   
-	Serial.print("hour2 ");
+	Serial.print("hour2 \t\t"); 
 	Serial.println(hour2);
-	Serial.print("minute2 ");
+	Serial.print("minute2 \t");
 	Serial.println(minute2);   //END OF THE CODE THAT CALCULATES THE POSITION OF THE SUN
 
-	Serial.println("Altitude");
+	Serial.print("Altitude \t");
 	Serial.println(altitude);
-	Serial.println("Azimuth");
+	Serial.print("Azimuth \t");
 	Serial.println(azimuth);
-
 }
 
 void clear_display()
@@ -1779,7 +1802,7 @@ void print_up() // Печать верхней строчки над меню
 	  break;
   }
 }
-void draw_measure()
+void draw_display1()                                       // Нарисовать экран
 {
 	myGLCD.setColor(255, 255, 255);                                             // Белая окантовка
 	
@@ -2036,31 +2059,33 @@ void setup()
 
   // Initialize Initialize HMC5883L
   Serial.println("Initialize HMC5883L");
- 
 
- /* while (!compass.begin())
+ 
+  if (!compass.begin())
   {
 	  Serial.println("Could not find a valid HMC5883L sensor, check wiring!");
-	  delay(500);
+	  compass_enable = false;
   }
+  else
+  {
+	  // Set measurement range
+	  compass.setRange(HMC5883L_RANGE_1_3GA);
 
-  // Set measurement range
-  compass.setRange(HMC5883L_RANGE_1_3GA);
+	  // Set measurement mode
+	  compass.setMeasurementMode(HMC5883L_CONTINOUS);
 
-  // Set measurement mode
-  compass.setMeasurementMode(HMC5883L_CONTINOUS);
+	  // Set data rate
+	  compass.setDataRate(HMC5883L_DATARATE_30HZ);
 
-  // Set data rate
-  compass.setDataRate(HMC5883L_DATARATE_30HZ);
+	  // Set number of samples averaged
+	  compass.setSamples(HMC5883L_SAMPLES_8);
 
-  // Set number of samples averaged
-  compass.setSamples(HMC5883L_SAMPLES_8);
+	  // Set calibration offset. See HMC5883L_calibration.ino
+	  compass.setOffset(0, 0);
 
-  // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0);
-
- // read_compass();
-  */
+	  //read_compass();
+	  compass_enable = true;
+  }
 
   /*lightMeter.begin(BH1750_CONTINUOUS_HIGH_RES_MODE);
   Serial.println(F("BH1750 Test"));*/
