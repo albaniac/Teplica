@@ -50,7 +50,7 @@ VisualMicro
 #include <modbusDevice.h>
 #include <modbusRegBank.h>
 #include <modbusSlave.h>
-#include "MCP23017.h"
+//#include "MCP23017.h"
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 #include <stdlib.h> // div, div_t
@@ -79,8 +79,8 @@ VisualMicro
 //#define Rele2       9                                    // Управление реле 2
 //#define Rele3      10                                    // Управление реле 3
 
-MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  4 A - Out, B - Out
-MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  6 A - Out, B - Out
+//MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  4 A - Out, B - Out
+//MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  6 A - Out, B - Out
 
 
 
@@ -104,6 +104,41 @@ bool  run_elevation = true;            // Блокировка вращения по вертикали
 
 
 int delta_motor = 10;                  // Дельта управления моторами
+
+
+//+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
+// MCP23017 registers (everything except direction defaults to 0)
+
+#define IODIRA   0x00   // установить порт A IO direction  (0 = output, 1 = input (Default))
+#define IODIRB   0x01   // установить порт B IO direction  (0 = output, 1 = input (Default))
+#define IOPOLA   0x02   // IO polarity   (0 = normal, 1 = inverse)
+#define IOPOLB   0x03
+#define GPINTENA 0x04   // установить порт A Interrupt on change (0 = disable, 1 = enable)
+#define GPINTENB 0x05   // установить порт B
+#define DEFVALA  0x06   // Default comparison for interrupt on change (interrupts on opposite)
+#define DEFVALB  0x07
+#define INTCONA  0x08   // установить порт A Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
+#define INTCONB  0x09   // установить порт B
+#define IOCON    0x0A   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
+//#define IOCON 0x0B  // same as 0x0A
+#define GPPUA    0x0C   // установить порт A Pull-up resistor (0 = disabled, 1 = enabled)
+#define GPPUB    0x0D   // установить порт B
+#define INFTFA   0x0E   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
+#define INFTFB   0x0F
+#define INTCAPA  0x10   // Interrupt capture (read only) : value of GPIO at time of last interrupt Прерывание захвата (только чтение): значение GPIO во время последнего прерывания
+#define INTCAPB  0x11
+#define GPIOA    0x12   // установить порт A Port value. Write to change, read to obtain value Значение порта. Записывать изменения, читать, чтобы получить значение
+#define GPIOB    0x13   // установить порт B Значение порта. Записывать изменения, читать, чтобы получить значение
+#define OLLATA   0x14   // Output latch. Write to latch output.
+#define OLLATB   0x15
+
+
+#define mcp1 0x21  // MCP23017 is on I2C port 0x21
+volatile bool keyPressed;
+
+
+//#define ISR_INDICATOR 12  // pin 12
+//#define ONBOARD_LED 13    // pin 13
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -423,6 +458,95 @@ void i2c_eeprom_write_page( int deviceaddress, unsigned int eeaddresspage, byte*
   Wire.endTransmission();
 
 }
+
+//+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
+void expanderWrite(const byte reg, const byte data)
+{
+	Wire.beginTransmission(mcp1);
+	Wire.write(reg);
+	Wire.write(data);  // port 
+	Wire.endTransmission();
+} 
+
+unsigned int expanderRead(const byte reg)
+{
+	Wire.beginTransmission(mcp1);
+	Wire.write(reg);
+	Wire.endTransmission();
+	Wire.requestFrom(mcp1, 1);
+	return Wire.read();
+} // en
+
+void expanderWriteBoth(const byte reg, const byte data)
+{
+	Wire.beginTransmission(mcp1);
+	Wire.write(reg);
+	Wire.write(data);  // port A
+	Wire.write(data);  // port B
+	Wire.endTransmission();
+} // end of expanderWrite
+
+void keypress()
+{
+	//digitalWrite(ISR_INDICATOR, HIGH);  // debugging
+	keyPressed = true;   // set flag so main loop knows
+
+}  // end of keypress
+
+void handleKeypress()
+{
+	unsigned int keyValue = 0;
+
+	delay(100);  // de-bounce before we re-enable interrupts
+
+	keyPressed = false;  // ready for next time through the interrupt service routine
+	//digitalWrite(ISR_INDICATOR, LOW);  // debugging
+
+									   // Read port values, as required. Note that this re-arms the interrupts.
+	if (expanderRead(INFTFA))
+		keyValue |= expanderRead(INTCAPA) << 8;    // read value at time of interrupt
+	if (expanderRead(INFTFB))
+		keyValue |= expanderRead(INTCAPB);        // port B is in low-order byte
+
+	Serial.println("Button states");
+	Serial.println("0                   1");
+	Serial.println("0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5");
+
+	expanderWrite(GPIOA, keyValue);
+	// display which buttons were down at the time of the interrupt
+	//for (byte button = 0; button < 16; button++)
+	//{
+	//	// this key down?
+	//	if (keyValue & (1 << button))
+	//		Serial.print("1 ");
+	//	else
+	//		Serial.print("0 ");
+
+	//} // end of for each button
+
+	Serial.println();
+
+	// if a switch is now pressed, turn LED on  (key down event)
+	//if (keyValue)
+	//{
+	//	time = millis();  // remember when
+	//	digitalWrite(ONBOARD_LED, HIGH);  // on-board LED
+	//}  // end if
+
+
+	//if (millis() > (time + 500) && time != 0)
+	//{
+	//	digitalWrite(ONBOARD_LED, LOW);
+	//	time = 0;
+	//}  // end if time up
+
+
+}  // end of handleKeypress
+
+
+//--------------------------------------------------------------------------
+
+
 
 void drawDisplay()
 {
@@ -1156,6 +1280,8 @@ void swichMenu()
 	while (1)
 	{
 		//view_menuN1();
+		if (keyPressed)
+			handleKeypress();
 		
     	wait_time = millis();                                      // Программа обновления информации
 		if (wait_time - wait_time_Old > 1000 * time_period_measure)                 
@@ -1676,13 +1802,13 @@ void run_motor(int upr)
 		case 1:
 			if(SW_HighK && run_horison)
 			{
-				mcp_Out1.digitalWrite(motor_High, HIGH);    // Мотор движение вверх
+				//mcp_Out1.digitalWrite(motor_High, HIGH);    // Мотор движение вверх
 				run_elevation = false;                      // Блокировка вращения по вертикали
 				Serial.println(upr);                        // Мотор движение вверх
 			}
 			else
 			{
-				mcp_Out1.digitalWrite(motor_High, LOW);     // Мотор движение стоп
+				//mcp_Out1.digitalWrite(motor_High, LOW);     // Мотор движение стоп
 				run_elevation = true;                       // Блокировка вращения по вертикали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
@@ -1690,13 +1816,13 @@ void run_motor(int upr)
 		case 2:
 			if(SW_DownK && run_horison)
 			{
-				mcp_Out1.digitalWrite(motor_Down, HIGH);     // Мотор движение вниз
+				//mcp_Out1.digitalWrite(motor_Down, HIGH);     // Мотор движение вниз
 				run_elevation = false;                       // Блокировка вращения по вертикали
 				Serial.println(upr);  // Мотор движение  
 			}
 			else
 			{
-				mcp_Out1.digitalWrite(motor_Down, LOW);     // Мотор движение стоп
+				//mcp_Out1.digitalWrite(motor_Down, LOW);     // Мотор движение стоп
 				run_elevation = true;                       // Блокировка вращения по вертикали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
@@ -1704,13 +1830,13 @@ void run_motor(int upr)
 		case 3:
 			if (SW_WestK && run_elevation)
 			{
-				mcp_Out1.digitalWrite(motor_West, HIGH);    // Мотор движение запад
+				//mcp_Out1.digitalWrite(motor_West, HIGH);    // Мотор движение запад
 				run_horison = false;                        // Блокировка вращения по горизонтали
 				Serial.println(upr);                        // Мотор движение  
 			}
 			else
 			{
-				mcp_Out1.digitalWrite(motor_West, LOW);    // Мотор движение стоп
+				//mcp_Out1.digitalWrite(motor_West, LOW);    // Мотор движение стоп
 				run_horison = true;              // Блокировка вращения по горизонтали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
@@ -1718,13 +1844,13 @@ void run_motor(int upr)
 		case 4:
 			if (SW_EastK && run_elevation)
 			{
-				mcp_Out1.digitalWrite(motor_East, HIGH);    // Мотор движение восток
+				//mcp_Out1.digitalWrite(motor_East, HIGH);    // Мотор движение восток
 				run_horison = false;              // Блокировка вращения по горизонтали
 				Serial.println(upr);                        // Мотор движение  
 			}
 			else
 			{
-				mcp_Out1.digitalWrite(motor_East, LOW);    // Мотор движение стоп
+				//mcp_Out1.digitalWrite(motor_East, LOW);    // Мотор движение стоп
 				run_horison = true;              // Блокировка вращения по горизонтали
 				Serial.println("Stop");                     // Мотор движение стоп
 			}
@@ -1733,10 +1859,10 @@ void run_motor(int upr)
 	}
 	else
 	{
-		mcp_Out1.digitalWrite(motor_West, LOW);            //  1A1 Назначение  мотор Запад
-		mcp_Out1.digitalWrite(motor_East, LOW);            //  1B1 Назначение  мотор Восток
-		mcp_Out1.digitalWrite(motor_High, LOW);            //  1C1 Назначение  мотор Вверх
-		mcp_Out1.digitalWrite(motor_Down, LOW);            //  1D1 Назначение  мотор Вниз
+		//mcp_Out1.digitalWrite(motor_West, LOW);            //  1A1 Назначение  мотор Запад
+		//mcp_Out1.digitalWrite(motor_East, LOW);            //  1B1 Назначение  мотор Восток
+		//mcp_Out1.digitalWrite(motor_High, LOW);            //  1C1 Назначение  мотор Вверх
+		//mcp_Out1.digitalWrite(motor_Down, LOW);            //  1D1 Назначение  мотор Вниз
 		Serial.println(upr);  // Мотор движение стоп
 	}
 }
@@ -2140,56 +2266,75 @@ void setup_mcp()
 {
   // Настройка расширителя портов
 
+  // expander configuration register  Регистр конфигурации расширителя
+	expanderWriteBoth(IOCON, 0b01100000); // mirror interrupts, disable sequential mode  Зеркальные прерывания, отключить последовательный режим
+
+										  // enable pull-up on switches
+	expanderWrite(GPPUB, 0xFF);   // pull-up resistor for switch - both ports  Подтягивающий резистор для переключателя - оба порта
+
+								  // invert polarity
+	expanderWrite(IOPOLB, 0xFF);  // invert polarity of signal - both ports  Инверсная полярность сигнала - оба порта
+
+								  // enable all interrupts
+	expanderWrite(GPINTENB, 0xFF); // enable interrupts - both ports  Разрешать прерывания - оба порта
+
+	expanderWrite(IODIRA, 0x00);    //
+	delay(2000);
+	expanderWrite(GPIOA, 0xFF);     //
+	delay(2000);
+	expanderWrite(GPIOA, 0x00);    //
+								   // read from interrupt capture ports to clear them  Читать из портов захвата прерываний, чтобы очистить их
+								   // expanderRead (INTCAPA);
+	expanderRead(INTCAPB);
+
+ // mcp_Out1.begin(1);                               //  Адрес (1) U6 первого  расширителя портов
+ // mcp_Out1.pinMode(motor_West, OUTPUT);            //  1A1 Назначение  мотор Запад
+ // mcp_Out1.pinMode(motor_East, OUTPUT);            //  1B1 Назначение  мотор Восток
+ // mcp_Out1.pinMode(motor_High, OUTPUT);            //  1C1 Назначение  мотор Вверх
+ // mcp_Out1.pinMode(motor_Down, OUTPUT);            //  1D1 Назначение  мотор Вниз
+ // mcp_Out1.pinMode(4, OUTPUT);                     //  1A2
+ // mcp_Out1.pinMode(5, OUTPUT);                     //  1B2
+ // mcp_Out1.pinMode(6, OUTPUT);                     //  1C2
+ // mcp_Out1.pinMode(7, OUTPUT);                     //  1D2
 
 
-  mcp_Out1.begin(1);                               //  Адрес (1) U6 первого  расширителя портов
-  mcp_Out1.pinMode(motor_West, OUTPUT);            //  1A1 Назначение  мотор Запад
-  mcp_Out1.pinMode(motor_East, OUTPUT);            //  1B1 Назначение  мотор Восток
-  mcp_Out1.pinMode(motor_High, OUTPUT);            //  1C1 Назначение  мотор Вверх
-  mcp_Out1.pinMode(motor_Down, OUTPUT);            //  1D1 Назначение  мотор Вниз
-  mcp_Out1.pinMode(4, OUTPUT);                     //  1A2
-  mcp_Out1.pinMode(5, OUTPUT);                     //  1B2
-  mcp_Out1.pinMode(6, OUTPUT);                     //  1C2
-  mcp_Out1.pinMode(7, OUTPUT);                     //  1D2
+ // mcp_Out1.pinMode(SW_East, INPUT);                //  1E1   Назначение концевик Восток 
+ // mcp_Out1.pinMode(SW_West, INPUT);                //  1E2  Назначение концевик Запад  
+ // mcp_Out1.pinMode(SW_High, INPUT);                //  1E3   Назначение концевик Верх
+ // mcp_Out1.pinMode(SW_Down, INPUT);                //  1E4   Назначение концевик Низ
+ // mcp_Out1.pinMode(12, INPUT);                    //  1E5   U19  порты А GND
+ // mcp_Out1.pinMode(13, INPUT);                    //  1E6   U21  порты А GND
+ // mcp_Out1.pinMode(14, INPUT);                    //  1E7   Свободен
+ // mcp_Out1.pinMode(15, INPUT);                    //  1E8   Свободен
 
+ // mcp_Out2.begin(2);                               //  Адрес (2) U9 второго  расширителя портов
+ // mcp_Out2.pinMode(0, OUTPUT);                     //  2A1
+ // mcp_Out2.pinMode(1, OUTPUT);                     //  2B1
+ // mcp_Out2.pinMode(2, OUTPUT);                     //  2C1
+ // mcp_Out2.pinMode(3, OUTPUT);                     //  2D1
+ // mcp_Out2.pinMode(4, OUTPUT);                     //  2A2
+ // mcp_Out2.pinMode(5, OUTPUT);                     //  2B2
+ // mcp_Out2.pinMode(6, OUTPUT);                     //  2C2
+ // mcp_Out2.pinMode(7, OUTPUT);                     //  2D2
 
-  mcp_Out1.pinMode(SW_East, INPUT);                //  1E1   Назначение концевик Восток 
-  mcp_Out1.pinMode(SW_West, INPUT);                //  1E2  Назначение концевик Запад  
-  mcp_Out1.pinMode(SW_High, INPUT);                //  1E3   Назначение концевик Верх
-  mcp_Out1.pinMode(SW_Down, INPUT);                //  1E4   Назначение концевик Низ
-  mcp_Out1.pinMode(12, INPUT);                    //  1E5   U19  порты А GND
-  mcp_Out1.pinMode(13, INPUT);                    //  1E6   U21  порты А GND
-  mcp_Out1.pinMode(14, INPUT);                    //  1E7   Свободен
-  mcp_Out1.pinMode(15, INPUT);                    //  1E8   Свободен
+ // mcp_Out2.pinMode(8, OUTPUT);                     //  2E1   U15  порты B in/out
+ // mcp_Out2.pinMode(9, OUTPUT);                     //  2E2   U18  порты B in/out
+ // mcp_Out2.pinMode(10, OUTPUT);                    //  2E3   U22  порты B in/out
+ // mcp_Out2.pinMode(11, OUTPUT);                    //  2E4   U16  порты B GND
+ // mcp_Out2.pinMode(12, OUTPUT);                    //  2E5   U20  порты B GND
+ // mcp_Out2.pinMode(13, OUTPUT);                    //  2E6   U24  порты B GND
+ // mcp_Out2.pinMode(14, OUTPUT);                    //  2E7   Реле №1, №2
+ // mcp_Out2.pinMode(15, OUTPUT);                    //  2E8   Свободен
 
-  mcp_Out2.begin(2);                               //  Адрес (2) U9 второго  расширителя портов
-  mcp_Out2.pinMode(0, OUTPUT);                     //  2A1
-  mcp_Out2.pinMode(1, OUTPUT);                     //  2B1
-  mcp_Out2.pinMode(2, OUTPUT);                     //  2C1
-  mcp_Out2.pinMode(3, OUTPUT);                     //  2D1
-  mcp_Out2.pinMode(4, OUTPUT);                     //  2A2
-  mcp_Out2.pinMode(5, OUTPUT);                     //  2B2
-  mcp_Out2.pinMode(6, OUTPUT);                     //  2C2
-  mcp_Out2.pinMode(7, OUTPUT);                     //  2D2
+ // for (int i = 0; i < 8; i++)
+ // {
+	//  mcp_Out1.digitalWrite(i, LOW);
 
-  mcp_Out2.pinMode(8, OUTPUT);                     //  2E1   U15  порты B in/out
-  mcp_Out2.pinMode(9, OUTPUT);                     //  2E2   U18  порты B in/out
-  mcp_Out2.pinMode(10, OUTPUT);                    //  2E3   U22  порты B in/out
-  mcp_Out2.pinMode(11, OUTPUT);                    //  2E4   U16  порты B GND
-  mcp_Out2.pinMode(12, OUTPUT);                    //  2E5   U20  порты B GND
-  mcp_Out2.pinMode(13, OUTPUT);                    //  2E6   U24  порты B GND
-  mcp_Out2.pinMode(14, OUTPUT);                    //  2E7   Реле №1, №2
-  mcp_Out2.pinMode(15, OUTPUT);                    //  2E8   Свободен
-
-  for (int i = 0; i < 8; i++)
-  {
-	  mcp_Out1.digitalWrite(i, LOW);
-
-  }
-  for (int i = 0; i < 16; i++)
-  {
-	mcp_Out2.digitalWrite(i, HIGH);
-  }
+ // }
+ // for (int i = 0; i < 16; i++)
+ // {
+	//mcp_Out2.digitalWrite(i, HIGH);
+ // }
   //mcp_Out2.digitalWrite(14, LOW);                 // Отключить реле
 }
 
@@ -2400,6 +2545,7 @@ void setup()
 	}
 
   //MsTimer2::start();
+	attachInterrupt(4, keypress, FALLING);
 
   Serial.println(" ");
   Serial.println(F("System initialization OK!."));        // Информация о завершении настройки
