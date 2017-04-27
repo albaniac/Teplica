@@ -107,38 +107,7 @@ int delta_motor = 10;                  // Дельта управления моторами
 
 
 //+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
-// MCP23017 registers (everything except direction defaults to 0)
 
-#define IODIRA   0x00   // установить порт A IO direction  (0 = output, 1 = input (Default))
-#define IODIRB   0x01   // установить порт B IO direction  (0 = output, 1 = input (Default))
-#define IOPOLA   0x02   // IO polarity   (0 = normal, 1 = inverse)
-#define IOPOLB   0x03
-#define GPINTENA 0x04   // установить порт A Interrupt on change (0 = disable, 1 = enable)
-#define GPINTENB 0x05   // установить порт B
-#define DEFVALA  0x06   // Default comparison for interrupt on change (interrupts on opposite)
-#define DEFVALB  0x07
-#define INTCONA  0x08   // установить порт A Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
-#define INTCONB  0x09   // установить порт B
-#define IOCON    0x0A   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
-//#define IOCON 0x0B  // same as 0x0A
-#define GPPUA    0x0C   // установить порт A Pull-up resistor (0 = disabled, 1 = enabled)
-#define GPPUB    0x0D   // установить порт B
-#define INFTFA   0x0E   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
-#define INFTFB   0x0F
-#define INTCAPA  0x10   // Interrupt capture (read only) : value of GPIO at time of last interrupt Прерывание захвата (только чтение): значение GPIO во время последнего прерывания
-#define INTCAPB  0x11
-#define GPIOA    0x12   // установить порт A Port value. Write to change, read to obtain value Значение порта. Записывать изменения, читать, чтобы получить значение
-#define GPIOB    0x13   // установить порт B Значение порта. Записывать изменения, читать, чтобы получить значение
-#define OLLATA   0x14   // Output latch. Write to latch output.
-#define OLLATB   0x15
-
-
-#define mcp1 0x21  // MCP23017 is on I2C port 0x21
-volatile bool keyPressed;
-
-
-//#define ISR_INDICATOR 12  // pin 12
-//#define ONBOARD_LED 13    // pin 13
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -460,88 +429,7 @@ void i2c_eeprom_write_page( int deviceaddress, unsigned int eeaddresspage, byte*
 }
 
 //+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
-void expanderWrite(const byte reg, const byte data)
-{
-	Wire.beginTransmission(mcp1);
-	Wire.write(reg);
-	Wire.write(data);  // port 
-	Wire.endTransmission();
-} 
 
-unsigned int expanderRead(const byte reg)
-{
-	Wire.beginTransmission(mcp1);
-	Wire.write(reg);
-	Wire.endTransmission();
-	Wire.requestFrom(mcp1, 1);
-	return Wire.read();
-} // en
-
-void expanderWriteBoth(const byte reg, const byte data)
-{
-	Wire.beginTransmission(mcp1);
-	Wire.write(reg);
-	Wire.write(data);  // port A
-	Wire.write(data);  // port B
-	Wire.endTransmission();
-} // end of expanderWrite
-
-void keypress()
-{
-	//digitalWrite(ISR_INDICATOR, HIGH);  // debugging
-	keyPressed = true;   // set flag so main loop knows
-
-}  // end of keypress
-
-void handleKeypress()
-{
-	unsigned int keyValue = 0;
-
-	delay(100);  // de-bounce before we re-enable interrupts
-
-	keyPressed = false;  // ready for next time through the interrupt service routine
-	//digitalWrite(ISR_INDICATOR, LOW);  // debugging
-
-									   // Read port values, as required. Note that this re-arms the interrupts.
-	if (expanderRead(INFTFA))
-		keyValue |= expanderRead(INTCAPA) << 8;    // read value at time of interrupt
-	if (expanderRead(INFTFB))
-		keyValue |= expanderRead(INTCAPB);        // port B is in low-order byte
-
-	Serial.println("Button states");
-	Serial.println("0                   1");
-	Serial.println("0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5");
-
-	expanderWrite(GPIOA, keyValue);
-	// display which buttons were down at the time of the interrupt
-	//for (byte button = 0; button < 16; button++)
-	//{
-	//	// this key down?
-	//	if (keyValue & (1 << button))
-	//		Serial.print("1 ");
-	//	else
-	//		Serial.print("0 ");
-
-	//} // end of for each button
-
-	Serial.println();
-
-	// if a switch is now pressed, turn LED on  (key down event)
-	//if (keyValue)
-	//{
-	//	time = millis();  // remember when
-	//	digitalWrite(ONBOARD_LED, HIGH);  // on-board LED
-	//}  // end if
-
-
-	//if (millis() > (time + 500) && time != 0)
-	//{
-	//	digitalWrite(ONBOARD_LED, LOW);
-	//	time = 0;
-	//}  // end if time up
-
-
-}  // end of handleKeypress
 
 
 //--------------------------------------------------------------------------
