@@ -107,6 +107,35 @@ int delta_motor = 10;                  // Дельта управления моторами
 
 
 //+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
+// MCP23017 registers (everything except direction defaults to 0)
+
+#define IODIRA   0x00   // установить порт A IO direction  (0 = output, 1 = input (Default))
+#define IODIRB   0x01   // установить порт B IO direction  (0 = output, 1 = input (Default))
+#define IOPOLA   0x02   // IO polarity   (0 = normal, 1 = inverse)
+#define IOPOLB   0x03
+#define GPINTENA 0x04   // установить порт A Interrupt on change (0 = disable, 1 = enable)
+#define GPINTENB 0x05   // установить порт B
+#define DEFVALA  0x06   // Default comparison for interrupt on change (interrupts on opposite)
+#define DEFVALB  0x07
+#define INTCONA  0x08   // установить порт A Interrupt control (0 = interrupt on change from previous, 1 = interrupt on change from DEFVAL)
+#define INTCONB  0x09   // установить порт B
+#define IOCON    0x0A   // IO Configuration: bank/mirror/seqop/disslw/haen/odr/intpol/notimp
+//#define IOCON 0x0B  // same as 0x0A
+#define GPPUA    0x0C   // установить порт A Pull-up resistor (0 = disabled, 1 = enabled)
+#define GPPUB    0x0D   // установить порт B
+#define INFTFA   0x0E   // Interrupt flag (read only) : (0 = no interrupt, 1 = pin caused interrupt)
+#define INFTFB   0x0F
+#define INTCAPA  0x10   // Interrupt capture (read only) : value of GPIO at time of last interrupt Прерывание захвата (только чтение): значение GPIO во время последнего прерывания
+#define INTCAPB  0x11
+#define GPIOA    0x12   // установить порт A Port value. Write to change, read to obtain value Значение порта. Записывать изменения, читать, чтобы получить значение
+#define GPIOB    0x13   // установить порт B Значение порта. Записывать изменения, читать, чтобы получить значение
+#define OLLATA   0x14   // Output latch. Write to latch output.
+#define OLLATB   0x15
+
+
+#define mcp1 0x21  // MCP23017 is on I2C port 0x20
+
+volatile bool keyPressed;
 
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -429,8 +458,64 @@ void i2c_eeprom_write_page( int deviceaddress, unsigned int eeaddresspage, byte*
 }
 
 //+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
+void keypress()
+{
+	//digitalWrite(ISR_INDICATOR, HIGH);  // debugging
+	keyPressed = true;   // set flag so main loop knows
+
+}  // end of keypress
+
+void handleKeypress()
+{
+	unsigned int keyValue = 0;
+
+	delay(100);  // de-bounce before we re-enable interrupts
+
+	keyPressed = false;  // ready for next time through the interrupt service routine
+	//digitalWrite(ISR_INDICATOR, LOW);  // debugging
+
+									   // Read port values, as required. Note that this re-arms the interrupts.
+	if (expanderRead(mcp1, INFTFA))
+		keyValue |= expanderRead(mcp1, INTCAPA) << 8;    // read value at time of interrupt
+	if (expanderRead(mcp1, INFTFB))
+		keyValue |= expanderRead(mcp1, INTCAPB);        // port B is in low-order byte
+
+	Serial.println("Button states");
+	//Serial.println("0                   1");
+	//Serial.println("0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5");
+
+	expanderWrite(mcp1, GPIOA, keyValue);
+	Serial.print(keyValue);
+
+	// display which buttons were down at the time of the interrupt
+	//for (byte button = 0; button < 16; button++)
+	//{
+	//	// this key down?
+	//	if (keyValue & (1 << button))
+	//		Serial.print("1 ");
+	//	else
+	//		Serial.print("0 ");
+
+	//} // end of for each button
+
+	Serial.println();
+
+	// if a switch is now pressed, turn LED on  (key down event)
+	//if (keyValue)
+	//{
+	//	time = millis();  // remember when
+	//	digitalWrite(ONBOARD_LED, HIGH);  // on-board LED
+	//}  // end if
 
 
+	//if (millis() > (time + 500) && time != 0)
+	//{
+	//	digitalWrite(ONBOARD_LED, LOW);
+	//	time = 0;
+	//}  // end if time up
+
+
+}  // end of handleKeypress
 
 //--------------------------------------------------------------------------
 
@@ -2155,25 +2240,25 @@ void setup_mcp()
   // Настройка расширителя портов
 
   // expander configuration register  Регистр конфигурации расширителя
-	expanderWriteBoth(IOCON, 0b01100000); // mirror interrupts, disable sequential mode  Зеркальные прерывания, отключить последовательный режим
+	expanderWriteBoth(mcp1, IOCON, 0b01100000); // mirror interrupts, disable sequential mode  Зеркальные прерывания, отключить последовательный режим
 
 										  // enable pull-up on switches
-	expanderWrite(GPPUB, 0xFF);   // pull-up resistor for switch - both ports  Подтягивающий резистор для переключателя - оба порта
+	expanderWrite(mcp1, GPPUB, 0xFF);   // pull-up resistor for switch - both ports  Подтягивающий резистор для переключателя - оба порта
 
 								  // invert polarity
-	expanderWrite(IOPOLB, 0xFF);  // invert polarity of signal - both ports  Инверсная полярность сигнала - оба порта
+	expanderWrite(mcp1, IOPOLB, 0xFF);  // invert polarity of signal - both ports  Инверсная полярность сигнала - оба порта
 
 								  // enable all interrupts
-	expanderWrite(GPINTENB, 0xFF); // enable interrupts - both ports  Разрешать прерывания - оба порта
+	expanderWrite(mcp1, GPINTENB, 0xFF); // enable interrupts - both ports  Разрешать прерывания - оба порта
 
-	expanderWrite(IODIRA, 0x00);    //
+	expanderWrite(mcp1, IODIRA, 0x00);    //
 	delay(2000);
-	expanderWrite(GPIOA, 0xFF);     //
+	expanderWrite(mcp1, GPIOA, 0xFF);     //
 	delay(2000);
-	expanderWrite(GPIOA, 0x00);    //
+	expanderWrite(mcp1, GPIOA, 0x00);    //
 								   // read from interrupt capture ports to clear them  Читать из портов захвата прерываний, чтобы очистить их
 								   // expanderRead (INTCAPA);
-	expanderRead(INTCAPB);
+	expanderRead(mcp1, INTCAPB);
 
  // mcp_Out1.begin(1);                               //  Адрес (1) U6 первого  расширителя портов
  // mcp_Out1.pinMode(motor_West, OUTPUT);            //  1A1 Назначение  мотор Запад
@@ -2561,6 +2646,37 @@ float FindH(int day3, int month) {
 	return h;
 }
 /////////////////////////////////////////////////////////////
+
+//+++++++++++++++++++ MCP23017 ++++++++++++++++++++++++++++++++++++++++++++++
+void expanderWrite(int mcpAddress, const byte reg, const byte data)
+{
+	Wire.beginTransmission(mcpAddress);
+	Wire.write(reg);
+	Wire.write(data);  // port 
+	Wire.endTransmission();
+}
+
+unsigned int expanderRead(int mcpAddress, const byte reg)
+{
+	Wire.beginTransmission(mcpAddress);
+	Wire.write(reg);
+	Wire.endTransmission();
+	Wire.requestFrom(mcpAddress, 1);
+	return Wire.read();
+} // en
+
+void expanderWriteBoth(int mcpAddress, const byte reg, const byte data)
+{
+	Wire.beginTransmission(mcpAddress);
+	Wire.write(reg);
+	Wire.write(data);  // port A
+	Wire.write(data);  // port B
+	Wire.endTransmission();
+} // end of expanderWrite
+
+
+
+
 void i2cWrite(uint8_t registerAddress, uint8_t data) {
 	Wire.beginTransmission(IMUAddress);
 	Wire.write(registerAddress);
