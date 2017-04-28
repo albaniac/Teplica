@@ -136,7 +136,7 @@ int delta_motor = 10;                  // Дельта управления моторами
 #define mcp1 0x21  // MCP23017 is on I2C port 0x20
 
 volatile bool keyPressed;
-
+byte sw_all[8] = {0,0,0,0,0,0,0,0};
 
 //+++++++++++++++++++ MODBUS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -469,57 +469,95 @@ void handleKeypress()
 {
 	unsigned int keyValue = 0;
 
-	delay(100);  // de-bounce before we re-enable interrupts
+	delay(10);  // de-bounce before we re-enable interrupts Отскок до повторного включения прерываний
 
 	keyPressed = false;  // ready for next time through the interrupt service routine
 	//digitalWrite(ISR_INDICATOR, LOW);  // debugging
 
-									   // Read port values, as required. Note that this re-arms the interrupts.
-	if (expanderRead(mcp1, INFTFA))
-		keyValue |= expanderRead(mcp1, INTCAPA) << 8;    // read value at time of interrupt
+	//								   // Read port values, as required. Note that this re-arms the interrupts.
+
 	if (expanderRead(mcp1, INFTFB))
 		keyValue |= expanderRead(mcp1, INTCAPB);        // port B is in low-order byte
 
 	Serial.println("Button states");
-	//Serial.println("0                   1");
-	//Serial.println("0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5");
 
-	expanderWrite(mcp1, GPIOA, keyValue);
+	Serial.println("0             1");
+	Serial.println("0 1 2 3 4 5 6 7  N ");
+
+	for (byte button = 0; button < 8; button++)
+	{
+		// this key down?
+		if (keyValue & (1 << button))
+		{
+			sw_all[button] = 1;
+			Serial.print("1 ");
+		}
+		else
+		{
+			Serial.print("0 ");
+			sw_all[button] = 0;
+		}
+
+	} 
+
+
+	if (sw_all[0] == 1)
+	{
+		SW_WestK = false;                 // концевик Запад  
+		myGLCD.setColor(255, 0, 0);
+		myGLCD.fillCircle(292, 138, 7);
+	}
+	else
+	{
+		SW_WestK = true;                 // концевик Запад  
+		myGLCD.setColor(0, 0, 0);
+		myGLCD.fillCircle(292, 138, 7);
+	}
+	if (sw_all[1] == 1)
+	{
+		SW_EastK = false;                 // концевик Восток 
+		myGLCD.setColor(255, 0, 0);
+		myGLCD.fillCircle(138, 138, 7);
+	}
+	else
+	{
+		SW_EastK = true;                 // концевик Восток 
+		myGLCD.setColor(0, 0, 0);
+		myGLCD.fillCircle(138, 138, 7);
+	}
+	if (sw_all[2] == 1)
+	{
+		SW_HighK = false;                 // концевик Верх
+		myGLCD.setColor(255, 0, 0);
+		myGLCD.fillCircle(62, 18, 7);
+	}
+	else
+	{
+		SW_HighK = true;                 // концевик Верх
+		myGLCD.setColor(0, 0, 0);
+		myGLCD.fillCircle(62, 18, 7);
+	}
+	if (sw_all[3] == 1)
+	{
+		SW_DownK = false;                 // концевик Низ
+		myGLCD.setColor(255, 0, 0);
+		myGLCD.fillCircle(62, 108, 7);
+	}
+	else
+	{
+		SW_DownK = true;                 // концевик Низ
+		myGLCD.setColor(0, 0, 0);
+		myGLCD.fillCircle(62, 108, 7);
+	}
+
+	myGLCD.setColor(255, 255, 255);
+//	expanderWrite(mcp1, GPIOA, keyValue);
 	Serial.print(keyValue);
-
-	// display which buttons were down at the time of the interrupt
-	//for (byte button = 0; button < 16; button++)
-	//{
-	//	// this key down?
-	//	if (keyValue & (1 << button))
-	//		Serial.print("1 ");
-	//	else
-	//		Serial.print("0 ");
-
-	//} // end of for each button
-
 	Serial.println();
+}  
 
-	// if a switch is now pressed, turn LED on  (key down event)
-	//if (keyValue)
-	//{
-	//	time = millis();  // remember when
-	//	digitalWrite(ONBOARD_LED, HIGH);  // on-board LED
-	//}  // end if
-
-
-	//if (millis() > (time + 500) && time != 0)
-	//{
-	//	digitalWrite(ONBOARD_LED, LOW);
-	//	time = 0;
-	//}  // end if time up
-
-
-}  // end of handleKeypress
 
 //--------------------------------------------------------------------------
-
-
 
 void drawDisplay()
 {
@@ -1035,28 +1073,56 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 	drawKompass0();
 	while (myTouch.dataAvailable())
 	{
+		if (keyPressed)	handleKeypress();
+
 		switch (upr)
 		{
 		case 1:
-			upr_head++;       // Заменить на команды управления
-			if (upr_head > head_max) upr_head = head_max;
+			if (SW_HighK)                // концевик Верх
+			{
+		    	expanderWrite(mcp1, GPIOA, 4);
+			}
+			else
+			{
+				expanderWrite(mcp1, GPIOA, 0);
+			}
 			break;
 		case 2:
-			upr_head--;       // Заменить на команды управления
-			if (upr_head < head_min) upr_head = head_min;
+			if (SW_DownK)                // концевик Низ
+			{
+				expanderWrite(mcp1, GPIOA, 8);
+			}
+			else
+			{
+				expanderWrite(mcp1, GPIOA, 0);
+			}
 			break;
 		case 3:
-			upr_motor++;      // Заменить на команды управления
-			if (upr_motor > poz_max) upr_motor = poz_max;
+			if (SW_WestK)                     // концевик Запад 
+			{			
+				expanderWrite(mcp1, GPIOA, 1);
+			}
+			else
+			{
+				expanderWrite(mcp1, GPIOA, 0);
+			}
 			break;
 		case 4:
-			upr_motor--;       // Заменить на команды управления
-			if (upr_motor < poz_min) upr_motor = poz_min;
+			if (SW_EastK)                     // концевик Восток 
+			{
+				expanderWrite(mcp1, GPIOA, 2);
+			}
+			else
+			{
+				expanderWrite(mcp1, GPIOA, 0);
+			}
 			break;
-		}
+		default:
+		    break;
 
+		}
 		delay(25);
-		headingDegrees = upr_motor;
+
 		kalAngleX = upr_head;
 		if (headingDegrees >= poz_max) headingDegrees = poz_max;
 		if (headingDegrees <= poz_min) headingDegrees = poz_min;
@@ -1070,15 +1136,16 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 	
 	
 		myGLCD.setColor(0, 255, 0);
-		myGLCD.printNumI(kalAngleX, 70, 5);
+		myGLCD.printNumI(kalAngleX, 75, 5);
 		myGLCD.setColor(255, 255, 0);
-		myGLCD.printNumI(altitude, 70, 20);
+		myGLCD.printNumI(altitude, 75, 20);
 		run_motor(upr);
 	}
 
 	run_motor(0);
 	myTouch.read();
 	myGLCD.drawRoundRect(x1, y1, x2, y2);
+	expanderWrite(mcp1, GPIOA, 0);
 }
 void control_command()
 {
@@ -1253,9 +1320,8 @@ void swichMenu()
 	while (1)
 	{
 		//view_menuN1();
-		if (keyPressed)
-			handleKeypress();
-		
+		if (keyPressed)	handleKeypress();
+			
     	wait_time = millis();                                      // Программа обновления информации
 		if (wait_time - wait_time_Old > 1000 * time_period_measure)                 
 		{
@@ -1422,6 +1488,11 @@ void view_menuN2()
 	myGLCD.drawRoundRect(130, 150, 210, 180);
 	myGLCD.drawRoundRect(220, 150, 300, 180);
 
+	myGLCD.drawCircle(62, 18, 8);
+	myGLCD.drawCircle(62, 108, 8);
+	myGLCD.drawCircle(138, 138, 8);
+	myGLCD.drawCircle(292, 138, 8);
+
 	for (int i = 0; i < 3; i++)                                                // Внешний круг компаса
 	{    
 		myGLCD.drawCircle(kompassCenterX, kompassCenterY, 65 - i);   
@@ -1460,27 +1531,6 @@ void view_menuN2()
 	myGLCD.print("Down", 40, 110,90);
 
 	myGLCD.setBackColor(0, 0, 0);
-
-
-
-	//if (m2 == 1 && m3 == 0)
-	//{
-	//	sun_calc();
-	//	myGLCD.setColor(255, 255, 255);
-	//	myGLCD.setBackColor(0, 0, 255);
-	//	myGLCD.printNumF(temp_sun_in, 2, 40, 26);
-	//	myGLCD.printNumF(temp_sun_out, 2, 196, 26);
-	//	myGLCD.printNumF(temp_tube_in, 2, 40, 66);
-	//	myGLCD.printNumF(temp_tube_out, 2, 196, 66);
-	//	myGLCD.printNumF(azimuth, 2, 40, 106);
-	//	myGLCD.printNumF(altitude, 2, 196, 106);
-	//	myGLCD.printNumF(headingDegrees, 2, 40, 153);
-	//	myGLCD.printNumF(10.00, 2, 196, 153);
-	//	myGLCD.setBackColor(0, 0, 0);
-
-	//}
-
-	
 }
 
 void drawKompass(int m)             // Нарисовать положение установки
@@ -1699,7 +1749,7 @@ void draw_header(int m)       //   Нарисовать высоту положение установки
 	x4_tempH = x4;
 	y4_tempH = y4;
 
-	myGLCD.printNumI(kalAngleX, 70, 5);
+	myGLCD.printNumI(kalAngleX, 75, 5);
 }
 void draw_headerCalc(int m)                                  // Нарисовать расчетное положение установки
 {
@@ -1749,7 +1799,7 @@ void draw_headerCalc(int m)                                  // Нарисовать расче
 	x4_tempC = x4;
 	y4_tempC = y4;
 
-	myGLCD.printNumI(altitude, 70, 20); 
+	myGLCD.printNumI(altitude, 75, 20); 
 	myGLCD.setColor(255, 255, 255);
 	myGLCD.printNumI(hour, 112, 5);
 	myGLCD.print(":", 140, 5);
@@ -2684,7 +2734,7 @@ void i2cWrite(uint8_t registerAddress, uint8_t data) {
 	Wire.endTransmission(); // Send stop
 }
 uint8_t* i2cRead(uint8_t registerAddress, uint8_t nbytes) {
-	uint8_t data[nbytes];
+	uint8_t data[nbytes]; 
 	Wire.beginTransmission(IMUAddress);
 	Wire.write(registerAddress);
 	Wire.endTransmission(false); // Don't release the bus
