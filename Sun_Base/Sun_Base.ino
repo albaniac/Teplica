@@ -1032,6 +1032,63 @@ void drawButtons1() // Отображение цифровой клавиатуры
   myGLCD.print("B""\xAB""x", 252, 147);                                  // Вых
   myGLCD.setBackColor (0, 0, 0);
 }
+void drawmenu3() // Отображение цифровой клавиатуры
+{
+	myGLCD.clrScr();
+	myGLCD.setBackColor(0, 0, 255);
+	// Draw the upper row of buttons
+	for (x = 0; x < 3; x++)
+	{
+		myGLCD.setColor(0, 0, 255);
+		myGLCD.fillRoundRect(10 + (x * 100), 10, 100 + (x * 100), 60);
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.drawRoundRect(10 + (x * 100), 10, 100 + (x * 100), 60);
+		//myGLCD.printNumI(x + 1, 27 + (x * 60), 27);
+	}
+	// Draw the center row of buttons
+	for (x = 0; x < 3; x++)
+	{
+		myGLCD.setColor(0, 0, 255);
+		myGLCD.fillRoundRect(10 + (x * 100), 70, 100 + (x * 100), 120);
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.drawRoundRect(10 + (x * 100), 70, 100 + (x * 100), 120);
+	/*	if (x < 4)
+			myGLCD.printNumI(x + 6, 27 + (x * 60), 87);*/
+	}
+	for (x = 0; x < 3; x++)
+	{
+		myGLCD.setColor(0, 0, 255);
+		myGLCD.fillRoundRect(10 + (x * 100), 130, 100 + (x * 100), 180);
+		myGLCD.setColor(255, 255, 255);
+		myGLCD.drawRoundRect(10 + (x * 100), 130, 100 + (x * 100), 180);
+		/*	if (x < 4)
+		myGLCD.printNumI(x + 6, 27 + (x * 60), 87);*/
+	}
+
+
+	/*myGLCD.print("0", 267, 87);
+	 Draw the lower row of buttons*/
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.fillRoundRect(10, 190, 120, 239);
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.drawRoundRect(10, 190, 120, 239);
+	myGLCD.print("O""\xA4\xA1""e""\xA2""a", 20, 207);                                   // "Отмена"
+
+
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.fillRoundRect(130, 190, 240, 239);
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.drawRoundRect(130, 190, 240, 239);
+	myGLCD.print("B""\x97""o""\x99", 155, 207);                                  // "Ввод"
+
+
+	myGLCD.setColor(0, 0, 255);
+	myGLCD.fillRoundRect(250, 190, 300, 239);
+	myGLCD.setColor(255, 255, 255);
+	myGLCD.drawRoundRect(250, 190, 300, 239);
+	myGLCD.print("B""\xAB""x", 252, 207);                                  // Вых
+	myGLCD.setBackColor(0, 0, 0);
+}
 void updateStr(int val)
 {
   if (stCurrentLen < 20)
@@ -1140,7 +1197,7 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 	//	run_motor(upr);
 	}
 
-	run_motor(0);
+	//run_motor(0);  // Переделать
 	myTouch.read();
 	myGLCD.drawRoundRect(x1, y1, x2, y2);
 	expanderWrite(mcp1, GPIOA, 0);
@@ -1349,9 +1406,12 @@ void swichMenu()
 				draw_headerCalc(altitude);                       // Нарисовать расчетное положение установки по высоте
 				break;
 			case 3:
-
+				//Set_Down_Buttons();
 				break;
 			case 4:
+
+				break;
+			case 5:
 
 				break;
 			}
@@ -1390,7 +1450,6 @@ void swichMenu()
 				{
 					waitForIt(130, 189, 180, 239);
 					m2 = 3;
-					clear_display();                             // Очистить экран
 					view_menuN3();
 				}
 
@@ -1807,14 +1866,126 @@ void draw_headerCalc(int m)                                  // Нарисовать расче
 
 void view_menuN3()
 {
+	drawmenu3();
+	while (1)
+	{
+		if (myTouch.dataAvailable() == true)                       // Проверить нажатие кнопок
+		{
+			myTouch.read();
+			x = myTouch.getX();
+			y = myTouch.getY();
 
+			if ((y >= 10) && (y <= 60))                          //нажата кнопка 
+			{
+				myGLCD.setFont(BigFont);
+
+				if ((x >= 10) && (x <= 100))                       //нажата кнопка "1"
+				{
+					waitForIt(10, 10, 100, 60);
+	
+				}
+
+				if ((x >= 110) && (x <= 200))                      //нажата кнопка "2"
+				{
+					waitForIt(110, 10, 200, 60);
+		
+				}
+
+				if ((x >= 210) && (x <= 300))                     //нажата кнопка "3"
+				{
+					waitForIt(210, 10, 300, 60);
+		
+				}
+
+			}
+			if ((y >= 70) && (y <= 120))                          //нажата кнопка 
+			{
+				myGLCD.setFont(BigFont);
+
+				if ((x >= 10) && (x <= 100))                       //нажата кнопка "1"
+				{
+					waitForIt(10, 70, 100, 120);
+
+				}
+
+				if ((x >= 110) && (x <= 200))                      //нажата кнопка "2"
+				{
+					waitForIt(110, 70, 200, 120);
+
+				}
+
+				if ((x >= 210) && (x <= 300))                     //нажата кнопка "3"
+				{
+					waitForIt(210, 70, 300, 120);
+
+				}
+
+			}
+			if ((y >= 130) && (y <= 180))                          //нажата кнопка 
+			{
+				myGLCD.setFont(BigFont);
+
+				if ((x >= 10) && (x <= 100))                       //нажата кнопка "1"
+				{
+					waitForIt(10, 130, 100, 180);
+
+				}
+
+				if ((x >= 110) && (x <= 200))                      //нажата кнопка "2"
+				{
+					waitForIt(110, 130, 200, 180);
+
+				}
+
+				if ((x >= 210) && (x <= 300))                     //нажата кнопка "3"
+				{
+					waitForIt(210, 130, 300, 180);
+
+				}
+
+			}
+
+			if ((y >= 190) && (y <= 239))                          //нажата кнопка 
+			{
+				myGLCD.setFont(BigFont);
+
+				if ((x >= 10) && (x <= 120))                       //нажата кнопка "1"
+				{
+					waitForIt(10, 190, 120, 239);
+					myGLCD.clrScr();
+					//return;
+					break;
+				}
+
+				if ((x >= 130) && (x <= 240))                      //нажата кнопка "2"
+				{
+					waitForIt(130, 190, 240, 239);
+
+				}
+
+				if ((x >= 250) && (x <= 300))                     //нажата кнопка "3"
+				{
+					waitForIt(250, 190, 300, 239);
+					myGLCD.clrScr();
+					m2 = 1;
+
+					//return;
+					break;
+
+				}
+
+			}
+		}
+	}
+	while (myTouch.dataAvailable())
+		myTouch.read();
 }
 void view_menuN4()
 {
 
 }
 
-void run_motor(int upr)
+void run_motor(int upr)                      // Программа включения моторов. Переделать остальные
 {
 	if (upr > 0)
 	{
