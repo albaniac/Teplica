@@ -1078,7 +1078,7 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 		switch (upr)
 		{
 		case 1:
-			if (SW_HighK)                // концевик Верх
+			if (SW_HighK)                // концевик Верх 
 			{
 		    	expanderWrite(mcp1, GPIOA, 4);
 			}
@@ -1119,7 +1119,6 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 			break;
 		default:
 		    break;
-
 		}
 		delay(25);
 
@@ -1133,13 +1132,12 @@ void waitForIt_Upr(int x1, int y1, int x2, int y2, int upr)
 		draw_azimuthCalc(azimuth);                            // Расчетное положение по горизонтали
 		draw_header(kalAngleX);                               // Положение по вертикали
 		draw_headerCalc(altitude);                            // Расчетное положение по вертикали
-	
-	
+
 		myGLCD.setColor(0, 255, 0);
 		myGLCD.printNumI(kalAngleX, 75, 5);
 		myGLCD.setColor(255, 255, 0);
 		myGLCD.printNumI(altitude, 75, 20);
-		run_motor(upr);
+	//	run_motor(upr);
 	}
 
 	run_motor(0);
@@ -1826,8 +1824,8 @@ void run_motor(int upr)
 			if(SW_HighK && run_horison)
 			{
 				//mcp_Out1.digitalWrite(motor_High, HIGH);    // Мотор движение вверх
-				run_elevation = false;                      // Блокировка вращения по вертикали
-				Serial.println(upr);                        // Мотор движение вверх
+				run_elevation = false;                        // Блокировка вращения по вертикали
+				Serial.println(upr);                          // Мотор движение вверх
 			}
 			else
 			{
@@ -1854,14 +1852,14 @@ void run_motor(int upr)
 			if (SW_WestK && run_elevation)
 			{
 				//mcp_Out1.digitalWrite(motor_West, HIGH);    // Мотор движение запад
-				run_horison = false;                        // Блокировка вращения по горизонтали
-				Serial.println(upr);                        // Мотор движение  
+				run_horison = false;                          // Блокировка вращения по горизонтали
+				Serial.println(upr);                          // Мотор движение  
 			}
 			else
 			{
 				//mcp_Out1.digitalWrite(motor_West, LOW);    // Мотор движение стоп
-				run_horison = true;              // Блокировка вращения по горизонтали
-				Serial.println("Stop");                     // Мотор движение стоп
+				run_horison = true;                          // Блокировка вращения по горизонтали
+				Serial.println("Stop");                      // Мотор движение стоп
 			}
 			break;
 		case 4:
@@ -1874,8 +1872,8 @@ void run_motor(int upr)
 			else
 			{
 				//mcp_Out1.digitalWrite(motor_East, LOW);    // Мотор движение стоп
-				run_horison = true;              // Блокировка вращения по горизонтали
-				Serial.println("Stop");                     // Мотор движение стоп
+				run_horison = true;                          // Блокировка вращения по горизонтали
+				Serial.println("Stop");                      // Мотор движение стоп
 			}
 			break;
 		}
@@ -2106,13 +2104,14 @@ void run_uprav_horizon(float azimuth, float headingDegrees)
 			{
 				if (SW_WestK)        // Не достигнут конец разворота
 				{
-					digitalWrite(motor_West, HIGH);                          //  
+					run_motor(4);
+				//	digitalWrite(motor_West, HIGH);                          //  
 					Serial.println("PLUS horizon");             // Применить для расчета положения установки
 				}
 			}
 			else
 			{
-				digitalWrite(motor_West, LOW);                          //  
+			//	digitalWrite(motor_West, LOW);                          //  
 				Serial.println("PLUS horizon Stop");             // Применить для расчета положения установки
 			}
 		}
@@ -2123,14 +2122,14 @@ void run_uprav_horizon(float azimuth, float headingDegrees)
 			{
 				if (SW_EastK)
 				{
-					digitalWrite(motor_East, HIGH);                          //  
-
+					//digitalWrite(motor_East, HIGH);                          //  
+					run_motor(3);
 					Serial.println("MINUS horizon");             // Применить для расчета положения установки
 				}
 			}
 			else
 			{
-				digitalWrite(motor_East, LOW);                          //  
+				//digitalWrite(motor_East, LOW);                          //  
 
 				Serial.println("MINUS horizon Stop");             // Применить для расчета положения установки
 
