@@ -2904,7 +2904,7 @@ void i2cWrite(uint8_t registerAddress, uint8_t data) {
 	Wire.endTransmission(); // Send stop
 }
 uint8_t* i2cRead(uint8_t registerAddress, uint8_t nbytes) {
-	uint8_t data[nbytes]; 
+	uint8_t data[255];  
 	Wire.beginTransmission(IMUAddress);
 	Wire.write(registerAddress);
 	Wire.endTransmission(false); // Don't release the bus
