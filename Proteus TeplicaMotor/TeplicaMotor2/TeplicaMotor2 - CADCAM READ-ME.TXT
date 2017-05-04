@@ -1,0 +1,69 @@
+LABCENTER PROTEUS TOOL INFORMATION FILE
+=======================================
+
+In case of difficulty, please e-mail support@labcenter.co.uk
+
+Tool set up for Proteus layout 'TeplicaMotor2.pdsprj'.
+CADCAM generated at 9:50:45 on 30 апреля 2017 г..
+
+File List
+---------
+Top Copper              : TeplicaMotor2 - CADCAM Top Copper.TXT
+Bottom Copper           : TeplicaMotor2 - CADCAM Bottom Copper.TXT
+Top Silk Screen         : TeplicaMotor2 - CADCAM Top Silk Screen.TXT
+Bottom Silk Screen      : TeplicaMotor2 - CADCAM Bottom Silk Screen.TXT
+Top Solder Resist       : TeplicaMotor2 - CADCAM Top Solder Resist.TXT
+Bottom Solder Resist    : TeplicaMotor2 - CADCAM Bottom Solder Resist.TXT
+Top SMT Paste Mask      : TeplicaMotor2 - CADCAM Top SMT Paste Mask.TXT
+Bottom SMT Paste Mask   : TeplicaMotor2 - CADCAM Bottom SMT Paste Mask.TXT
+Mechanical 1            : TeplicaMotor2 - CADCAM Mechanical 1.TXT
+Drill                   : TeplicaMotor2 - CADCAM Drill.TXT
+
+Photoplotter Setup
+------------------
+Format: RS274X, ASCII, 2.4, imperial, absolute, eob=*, LZO
+Notes:  D=Diameter, S=Side, W=Width, H=Height, C=Chamfer
+
+D10	CIRCLE  D=50th                                                            DRAW
+D11	CIRCLE  D=25th                                                            DRAW
+D12	CIRCLE  D=30th                                                            DRAW
+D13	CIRCLE  D=40th                                                            DRAW
+D14	CIRCLE  D=30th                                                            FLASH
+D15	CIRCLE  D=120th                                                           FLASH
+D16	RECT    W=35th                H=40th                                      FLASH
+D17	CIRCLE  D=60th                                                            FLASH
+D18	CIRCLE  D=90th                                                            FLASH
+D19	RECT    W=37th                H=57th                                      FLASH
+D70	RECT    W=40th                H=50th                                      FLASH
+D71	SQUARE  S=80th                                                            FLASH
+D20	CIRCLE  D=250th                                                           FLASH
+D21	SQUARE  S=83th                                                            FLASH
+D22	CIRCLE  D=80th                                                            FLASH
+D23	CIRCLE  D=8th                                                             DRAW
+D24	CIRCLE  D=7.8th                                                           DRAW
+D25	CIRCLE  D=9.8th                                                           DRAW
+D26	CIRCLE  D=50th                                                            FLASH
+D27	CIRCLE  D=140th                                                           FLASH
+D28	RECT    W=55th                H=60th                                      FLASH
+D29	CIRCLE  D=110th                                                           FLASH
+D72	RECT    W=60th                H=70th                                      FLASH
+D73	SQUARE  S=100th                                                           FLASH
+D30	CIRCLE  D=290th                                                           FLASH
+D31	CIRCLE  D=150th                                                           FLASH
+
+NC Drill Setup
+--------------
+Format: ASCII, 2.4, imperial, absolute, eob=<CR><LF>, no zero suppression.
+Notes:  Tool sizes are diameters. Layer sets are in brackets - 0=TOP, 15=BOTTOM, 1-14=INNER.
+
+T01	15th (0-15)
+T02	70th (0-15)
+T03	35th (0-15)
+T04	91th (0-15)
+T05	40th (0-15)
+T06	157.4th (0-15)
+T07	60th (0-15)
+T08	59th (0-15)
+
+
+[END OF FILE]
