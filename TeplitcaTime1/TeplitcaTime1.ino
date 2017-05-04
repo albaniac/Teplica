@@ -441,7 +441,7 @@ void AnalogClock()
   {
 	if (oldsec!=sec)
 	{
-	  if ((sec==0) and (min==0) and (hour==0))
+	  if ((sec== 0) and (min==0) and (hour==0))
 	  {
 		clearDate();
 		printDate();
