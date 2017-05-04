@@ -428,14 +428,12 @@ int bcd2bin(int temp)//BCD  to decimal
 	return temp;
 }
 void AnalogClock()
-
 {
 	int x, y;
 
 	drawDisplay();
 	printDate();
- 
-  clock_read();
+    clock_read();
   
   while (true)
   {
@@ -517,7 +515,7 @@ void drawButtons()
 }
 void klav_vvod()
 {
-	 while (true)
+  while (true)
   {
 	if (myTouch.dataAvailable())
 	{
@@ -525,48 +523,48 @@ void klav_vvod()
 	  x=myTouch.getX();
 	  y=myTouch.getY();
 
-	  if ((y>=10) && (y<=60))                 // Upper row
+	  if ((y>=10) && (y<=60))                   // Upper row
 	  {
-		if ((x>= xi+10) && (x<= xi+60))       // Button: 1
+		if ((x>= xi+10) && (x<= xi+60))         // Button: 1
 		{
 		  waitForIt( xi+10, 10,  xi+60, 60);
 		  updateStr('1');
 		}
-		if ((x>= xi+70) && (x<= xi+120))  // Button: 2
+		if ((x>= xi+70) && (x<= xi+120))        // Button: 2
 		{
 		  waitForIt( xi+70, 10,  xi+120, 60);
 		  updateStr('2');
 		}
-		if ((x>= xi+130) && (x<= xi+180))  // Button: 3
+		if ((x>= xi+130) && (x<= xi+180))       // Button: 3
 		{
 		  waitForIt( xi+130, 10,  xi+180, 60);
 		  updateStr('3');
 		}
-		if ((x>= xi+190) && (x<= xi+240))  // Button: 4
+		if ((x>= xi+190) && (x<= xi+240))       // Button: 4
 		{
 		  waitForIt( xi+190, 10,  xi+240, 60);
 		  updateStr('4');
 		}
-		if ((x>= xi+250) && (x<= xi+300))  // Button: 5
+		if ((x>= xi+250) && (x<= xi+300))       // Button: 5
 		{
 		  waitForIt( xi+250, 10,  xi+300, 60);
 		  updateStr('5');
 		}
 	  }
 
-	  if ((y>=70) && (y<=120))  // Center row
+	  if ((y>=70) && (y<=120))                 // Center row
 	  {
-		if ((x>= xi+10) && (x<= xi+60))  // Button: 6
+		if ((x>= xi+10) && (x<= xi+60))        // Button: 6
 		{
 		  waitForIt( xi+10, 70,  xi+60, 120);
 		  updateStr('6');
 		}
-		if ((x>= xi+70) && (x<= xi+120))  // Button: 7
+		if ((x>= xi+70) && (x<= xi+120))       // Button: 7
 		{
 		  waitForIt( xi+70, 70,  xi+120, 120);
 		  updateStr('7');
 		}
-		if ((x>= xi+130) && (x<= xi+180))  // Button: 8
+		if ((x>= xi+130) && (x<= xi+180))     // Button: 8
 		{
 		  waitForIt( xi+130, 70,  xi+180, 120);
 		  updateStr('8');
@@ -625,7 +623,6 @@ void klav_vvod()
 	  }
 	}
   }
-  
 }
 void updateStr(int val)
 {
@@ -1444,263 +1441,261 @@ void swich_menu_Sector()
 		myGLCD.printNumI(t_temp_sec_run, 178, 127);
 	  }
    
- while (true)
+	while (true)
 	{
 		if (myTouch.dataAvailable())
-			{
-				myTouch.read();
-				int	x=myTouch.getX();
-				int	y=myTouch.getY();
+		{
+			myTouch.read();
+			int	x=myTouch.getX();
+			int	y=myTouch.getY();
 			
 
-				if ((x>=260) && (x<=319))                                                          // 
+			if ((x>=260) && (x<=319))                                                          // 
+				{
+						if ((y>=5) && (y<=55))                                                   //  "1"
+						{
+							waitForIt(260, 5, 319, 55);
+
+						}
+
+					if ((y>=65) && (y<=115))                                                   //  "ЗАП"
+						{
+							waitForIt(260, 65, 319, 115);
+							save_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+						}
+
+					if ((y>=125) && (y<=175))                                                  //  "ESC"
+						{
+							waitForIt(260, 125, 319, 175);
+							break;
+						}
+
+					if ((y>=185) && (y<=235))                                                  // 
+						{
+							waitForIt(260, 185, 319, 235);
+							AnalogClock();
+							Draw_menu_Sector();
+						}
+
+				}
+
+				if ((y>=60) && (y<=90))                                                        // 
 					{
-						  if ((y>=5) && (y<=55))                                                   //  "1"
-							{
-								waitForIt(260, 5, 319, 55);
 
+						if ((x>=40) && (x<=120))                                               // 
+							{
+								waitForIt(40, 60, 120, 90);                                    //  Клавиша "Авто"
+								i2c_eeprom_write_byte(deviceaddress,(sector * 10)+teplitca_adr+1,1);
+								delay(10);
+								print_set_avto();
 							}
 
-						if ((y>=65) && (y<=115))                                                   //  "ЗАП"
+						if ((x>=130) && (x<=210))                                              //  Клавиша "Ручн"
 							{
-								waitForIt(260, 65, 319, 115);
-								save_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-							}
-
-						if ((y>=125) && (y<=175))                                                  //  "ESC"
-							{
-								waitForIt(260, 125, 319, 175);
-								break;
-							}
-
-						if ((y>=185) && (y<=235))                                                  // 
-							{
-								waitForIt(260, 185, 319, 235);
-								AnalogClock();
-								Draw_menu_Sector();
+								waitForIt(130, 60, 210, 90);
+								i2c_eeprom_write_byte(deviceaddress,(sector * 10)+teplitca_adr+1,0);
+								delay(10);
+								print_set_avto();
 							}
 
 					}
 
-					if ((y>=60) && (y<=90))                                                        // 
-						{
+				if ((y>=180) && (y<=230))                                                      // 
+					{
+						if ((x>=40) && (x<=120))                                               // 
+							{
+								waitForIt(40, 180, 120, 230);                                  //  Клавиша "Пуск"
+								on_off = true;
+								print_on_off();
+								run_poliv_on_off(teplitca, sector, on_off);
+							}
 
-							if ((x>=40) && (x<=120))                                               // 
-								{
-									waitForIt(40, 60, 120, 90);                                    //  Клавиша "Авто"
-									i2c_eeprom_write_byte(deviceaddress,(sector * 10)+teplitca_adr+1,1);
-									delay(10);
-									print_set_avto();
-								}
+						if ((x>=130) && (x<=210))                                              //  Клавиша "Стоп"
+							{
+								waitForIt(130, 180, 210, 230);
+								on_off = false;
+								print_on_off();
+								run_poliv_on_off(teplitca, sector, on_off);
+							}
 
-							if ((x>=130) && (x<=210))                                              //  Клавиша "Ручн"
-								{
-									waitForIt(130, 60, 210, 90);
-									i2c_eeprom_write_byte(deviceaddress,(sector * 10)+teplitca_adr+1,0);
-									delay(10);
-									print_set_avto();
-								}
-
-						}
-
-					if ((y>=180) && (y<=230))                                                      // 
-						{
-							if ((x>=40) && (x<=120))                                               // 
-								{
-									waitForIt(40, 180, 120, 230);                                  //  Клавиша "Пуск"
-									on_off = true;
-									print_on_off();
-									run_poliv_on_off(teplitca, sector, on_off);
-								}
-
-							if ((x>=130) && (x<=210))                                              //  Клавиша "Стоп"
-								{
-									waitForIt(130, 180, 210, 230);
-									on_off = false;
-									print_on_off();
-									run_poliv_on_off(teplitca, sector, on_off);
-								}
-
-						}
+					}
 
 //+++++++++++++++++++++++++ Установка времени полива +++++++++++++++++++++++++++++++++++++++
 
-				if ((y>=97) && (y<=122)) // Buttons: Time UP Верхние клавиши установки времени
-					  {
-						if ((x>=40) && (x<=72)) // Час
-							{
-							  buttonWait(40, 97);
-							  t_temp_hour+=1;
-							  if (t_temp_hour==24) 	t_temp_hour=0;
-							  if (t_temp_hour<10)
-								  {
-									myGLCD.printNumI(0, 40, 127);
-									myGLCD.printNumI(t_temp_hour, 56, 127);
-								  }
-							  else
-								  {
-									  myGLCD.printNumI(t_temp_hour, 40, 127);
-								  }
-							  if (ct==false)
-								  {
-									ct=true;
-								  }
-
-							  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-
-
-							}
-					  else if ((x>=88) && (x<=120))   // Минута
-							{
-								buttonWait(88, 97);
-								t_temp_min+=1;
-								if (t_temp_min==60) t_temp_min=0;
-								if (t_temp_min<10)
-									{
-									myGLCD.printNumI(0, 90, 127);
-									myGLCD.printNumI(t_temp_min, 106, 127);
-									}
-								else
-									{
-										myGLCD.printNumI(t_temp_min, 90, 127);
-									}
-								if (ct==false)
-									{
-										ct=true;
-									}
-								test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-							}
-
-					  else if ((x>=130) && (x<=162))  // Минута run
-							{
-							  buttonWait(130, 97);
-							  t_temp_min_run+=1;
-							  if (t_temp_min_run==60) t_temp_min_run=0;
-							  if (t_temp_min_run<10)
-								  {
-									myGLCD.printNumI(0, 130, 127);
-									myGLCD.printNumI(t_temp_min_run, 146, 127);
-								  }
-							  else
-								  {
-									 myGLCD.printNumI(t_temp_min_run, 130, 127);
-								  }
-							  if (ct==false)
-								  {
-									ct=true;
-								  }
-							  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-							}
-
-					 else if ((x>=178) && (x<=210))  // sec_run
-							{
-							  buttonWait(178, 97);
-							  t_temp_sec_run+=1;
-							  if (t_temp_sec_run==60) 	t_temp_sec_run=0;
-							  if (t_temp_sec_run<10)
-								  {
-									myGLCD.printNumI(0, 178, 127);
-									myGLCD.printNumI(t_temp_sec_run, 194, 127);
-								  }
-							  else
-								  {
-									myGLCD.printNumI(t_temp_sec_run, 178, 127);
-								  }
-							  if (ct==false)
-							  {
-								ct=true;
-							  }
-							  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-							}
-					  }
-//----------------------------------------------------------------------------------------------
-				 else if ((y>=148) && (y<=173))                       //Time DOWN Нижние  клавиши установки времени
-				  {
-					if ((x>=40) && (x<=72))
-					{
-					  buttonWait(40, 148);
-					  t_temp_hour -= 1;
-					  if (t_temp_hour<0)  t_temp_hour=23;
-					  if (t_temp_hour<10)
-					  {
+			if ((y>=97) && (y<=122)) // Buttons: Time UP Верхние клавиши установки времени
+			{
+				if ((x>=40) && (x<=72)) // Час
+				{
+					buttonWait(40, 97);
+					t_temp_hour+=1;
+					if (t_temp_hour==24) 	t_temp_hour=0;
+					if (t_temp_hour<10)
+						{
 						myGLCD.printNumI(0, 40, 127);
 						myGLCD.printNumI(t_temp_hour, 56, 127);
-					  }
-					  else
-					  {
-						  myGLCD.printNumI(t_temp_hour, 40, 127);
-					  }
-					  if (ct==false)
-					  {
+						}
+					else
+						{
+							myGLCD.printNumI(t_temp_hour, 40, 127);
+						}
+					if (ct==false)
+						{
 						ct=true;
-					   }
-					  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-					}
-				  else if ((x>=88) && (x<=120))
-					{
-					  buttonWait(88, 148);
-					  t_temp_min-=1;
-					  if (t_temp_min < 0) t_temp_min=59;
-					  if (t_temp_min<10)
-					  {
+						}
+
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+
+
+				}
+				else if ((x>=88) && (x<=120))   // Минута
+				{
+					buttonWait(88, 97);
+					t_temp_min+=1;
+					if (t_temp_min==60) t_temp_min=0;
+					if (t_temp_min<10)
+						{
 						myGLCD.printNumI(0, 90, 127);
 						myGLCD.printNumI(t_temp_min, 106, 127);
-					  }
-					  else
-					  {
-						 myGLCD.printNumI(t_temp_min, 90, 127);
-					  }
-					  if (ct==false)
-					  {
-						ct=true;
-					  }
-					  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-					}
-
-
-					else if ((x>=130) && (x<=162))
-					{
-					  buttonWait(130, 148);
-					  t_temp_min_run-=1;
-					  if (t_temp_min_run < 0) 	t_temp_min_run=59;
-					  if (t_temp_min_run<10)
-					  {
+						}
+					else
+						{
+							myGLCD.printNumI(t_temp_min, 90, 127);
+						}
+					if (ct==false)
+						{
+							ct=true;
+						}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+			    else if ((x>=130) && (x<=162))  // Минута run
+				{
+					buttonWait(130, 97);
+					t_temp_min_run+=1;
+					if (t_temp_min_run==60) t_temp_min_run=0;
+					if (t_temp_min_run<10)
+						{
 						myGLCD.printNumI(0, 130, 127);
 						myGLCD.printNumI(t_temp_min_run, 146, 127);
-					  }
-					  else
-					  {
-						 myGLCD.printNumI(t_temp_min_run, 130, 127);
-					  }
-					  if (ct==false)
-					  {
+						}
+					else
+						{
+							myGLCD.printNumI(t_temp_min_run, 130, 127);
+						}
+					if (ct==false)
+						{
 						ct=true;
-					  }
-					  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
-					}
-				 else if ((x>=178) && (x<=210))
+						}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+  			    else if ((x>=178) && (x<=210))  // sec_run
+				{
+					buttonWait(178, 97);
+					t_temp_sec_run+=1;
+					if (t_temp_sec_run==60) 	t_temp_sec_run=0;
+					if (t_temp_sec_run<10)
+						{
+							myGLCD.printNumI(0, 178, 127);
+							myGLCD.printNumI(t_temp_sec_run, 194, 127);
+						}
+					else
+						{
+							myGLCD.printNumI(t_temp_sec_run, 178, 127);
+						}
+					if (ct==false)
 					{
-					  buttonWait(178, 148);
-					  t_temp_sec_run-=1;
-					  if (t_temp_sec_run<0)  t_temp_sec_run=59;
-
-					  if (t_temp_sec_run<10)
-					  {
-						myGLCD.printNumI(0, 178, 127);
-						myGLCD.printNumI(t_temp_sec_run, 194, 127);
-					  }
-					  else
-					  {
-						myGLCD.printNumI(t_temp_sec_run, 178, 127);
-					  }
-					  if (ct==false)
-					  {
 						ct=true;
-					  }
-					  test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
 					}
-				  }
-		   }
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+			}
+//----------------------------------------------------------------------------------------------
+			else if ((y>=148) && (y<=173))                       //Time DOWN Нижние  клавиши установки времени
+			{
+				if ((x>=40) && (x<=72))
+				{
+					buttonWait(40, 148);
+					t_temp_hour -= 1;
+					if (t_temp_hour<0)  t_temp_hour=23;
+					if (t_temp_hour<10)
+					{
+					myGLCD.printNumI(0, 40, 127);
+					myGLCD.printNumI(t_temp_hour, 56, 127);
+					}
+					else
+					{
+						myGLCD.printNumI(t_temp_hour, 40, 127);
+					}
+					if (ct==false)
+					{
+						ct=true;
+					}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+				else if ((x>=88) && (x<=120))
+				{
+					buttonWait(88, 148);
+					t_temp_min-=1;
+					if (t_temp_min < 0) t_temp_min=59;
+					if (t_temp_min<10)
+					{
+						myGLCD.printNumI(0, 90, 127);
+						myGLCD.printNumI(t_temp_min, 106, 127);
+					}
+					else
+					{
+						myGLCD.printNumI(t_temp_min, 90, 127);
+					}
+					if (ct==false)
+					{
+						ct=true;
+					}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+
+
+				else if ((x>=130) && (x<=162))
+				{
+					buttonWait(130, 148);
+					t_temp_min_run-=1;
+					if (t_temp_min_run < 0) 	t_temp_min_run=59;
+					if (t_temp_min_run<10)
+					{
+					myGLCD.printNumI(0, 130, 127);
+					myGLCD.printNumI(t_temp_min_run, 146, 127);
+					}
+					else
+					{
+						myGLCD.printNumI(t_temp_min_run, 130, 127);
+					}
+					if (ct==false)
+					{
+					ct=true;
+					}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+				else if ((x>=178) && (x<=210))
+				{
+					buttonWait(178, 148);
+					t_temp_sec_run-=1;
+					if (t_temp_sec_run<0)  t_temp_sec_run=59;
+
+					if (t_temp_sec_run<10)
+					{
+					myGLCD.printNumI(0, 178, 127);
+					myGLCD.printNumI(t_temp_sec_run, 194, 127);
+					}
+					else
+					{
+					myGLCD.printNumI(t_temp_sec_run, 178, 127);
+					}
+					if (ct==false)
+					{
+					ct=true;
+					}
+					test_Time(t_temp_hour,t_temp_min,t_temp_min_run,t_temp_sec_run );
+				}
+			}
+		}
 	}
 	draw_Poliv_Menu();
 }
@@ -1713,7 +1708,7 @@ void test_Time(int save_start_hour, int save_start_min, int save_stop_min, int s
 	int temp_stop_min = 0;
 	int temp_stop_sec = 0;
 
-	if (teplitca == 1) teplitca_adr = 100;         // Определить диапазон адресов текущей теплицы
+	if (teplitca == 1) teplitca_adr = 100;                                                   // Определить диапазон адресов текущей теплицы
 	else if (teplitca == 2) teplitca_adr = 200;
 
 	err_save = true;
@@ -1737,44 +1732,43 @@ void test_Time(int save_start_hour, int save_start_min, int save_stop_min, int s
 		time_stop = time_start + (temp_stop_min*60)+temp_stop_sec;                            // Преобразовать в секунды текущее время отключения
 
 		if(i != sector)                                                                       // Свой сектор не проверять
+		{
+		    if (s_time_start < time_start)
 			{
-				if (s_time_start < time_start)
-					{
-						if (s_time_stop < time_start )
-							{
-							   err_save = true;
-							   myGLCD.setColor(VGA_LIME);
-							   myGLCD.fillCircle(18,135,7);
-							}
-						else if (s_time_stop <= time_stop)
-							{
-								err_save = false;
-								myGLCD.setColor(VGA_RED);
-								myGLCD.fillCircle(18,135,7);
-								Serial.println("false");
-								break;
-							}
-					}
-				else if (s_time_start >= time_start)
-					{
-
-						if(s_time_start >= time_stop )
-							{
-								err_save = true;
-								myGLCD.setColor(VGA_LIME);
-								myGLCD.fillCircle(18,135,7);
-							}
-						else 
-							{
-								err_save = false;
-								myGLCD.setColor(VGA_RED);
-								myGLCD.fillCircle(18,135,7);
-								Serial.println("false");
-								break;
-							}
-
-					}
+			    if (s_time_stop < time_start )
+				{
+					err_save = true;
+					myGLCD.setColor(VGA_LIME);
+					myGLCD.fillCircle(18,135,7);
+				}
+			    else if (s_time_stop <= time_stop)
+				{
+					err_save = false;
+					myGLCD.setColor(VGA_RED);
+					myGLCD.fillCircle(18,135,7);
+					Serial.println("false");
+					break;
+				}
 			}
+			else if (s_time_start >= time_start)
+			{
+
+				if(s_time_start >= time_stop )
+				{
+					err_save = true;
+					myGLCD.setColor(VGA_LIME);
+					myGLCD.fillCircle(18,135,7);
+				}
+				else 
+				{
+					err_save = false;
+					myGLCD.setColor(VGA_RED);
+					myGLCD.fillCircle(18,135,7);
+					Serial.println("false");
+					break;
+				}
+			}
+		}
 	}
 }
 void save_Time(int save_start_hour, int save_start_min, int save_stop_min, int save_stop_sec )
@@ -1796,250 +1790,242 @@ void save_Time(int save_start_hour, int save_start_min, int save_stop_min, int s
 
 void run_poliv_on_off(int temp_teplitca, int temp_sector, bool temp_on_off)
 {
-	  if(temp_teplitca == 1)
-	   {
-		   if(temp_on_off == true)
-		   {
-			  mcp_Out1.digitalWrite(temp_sector-1, LOW);  
-			  delay(500);
-			  mcp_Out1.digitalWrite(7, LOW);  
-			  Serial.print(temp_teplitca);
-			  Serial.print("  ");
-			  Serial.print(temp_sector);
-			  Serial.print("  ");
-			  Serial.println("On");
+	if(temp_teplitca == 1)
+	{
+		if(temp_on_off == true)
+		{
+			mcp_Out1.digitalWrite(temp_sector-1, LOW);  
+			delay(500);
+			mcp_Out1.digitalWrite(7, LOW);  
+			Serial.print(temp_teplitca);
+			Serial.print("  ");
+			Serial.print(temp_sector);
+			Serial.print("  ");
+			Serial.println("On");
 
-			  switch (temp_sector) 
-			  {
-				case 1:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
+			switch (temp_sector) 
+			{
+			case 1:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
 
-					myGLCD.drawLine (85, 5+30, 165, 5+30);
-                    myGLCD.drawLine (85, 65+30, 85, 5+30);
-					break;
-				case 2:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 5+30, 165, 5+30);
+                myGLCD.drawLine (85, 65+30, 85, 5+30);
+				break;
+			case 2:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
 					
-					myGLCD.drawLine (85, 65+30, 165, 65+30);
-                    myGLCD.drawLine (165, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 65+30, 165, 65+30);
+                myGLCD.drawLine (165, 65+30, 165, 5+30);
 
-					break;
- 				case 3:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 70+30, 80, 170);
-					break;
-				case 4:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (85, 70+30, 165, 170);
-					break;
-				case 5:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 70+30, 250, 170);
-					break;
-				case 6:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 175, 80, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
+				break;
+ 			case 3:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 70+30, 80, 170);
+				break;
+			case 4:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (85, 70+30, 165, 170);
+				break;
+			case 5:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 70+30, 250, 170);
+				break;
+			case 6:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 175, 80, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
 					
-					myGLCD.drawLine (85, 235, 165, 235);
-                    myGLCD.drawLine (85, 175, 85, 235);
-					break;
-				case 7:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 175, 250, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (85, 235, 165, 235);
+                myGLCD.drawLine (85, 175, 85, 235);
+				break;
+			case 7:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 175, 250, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
 					
-					myGLCD.drawLine (165, 175, 165, 235);
-                    myGLCD.drawLine (85, 175, 165, 175);
-            		break;
-			  }
+				myGLCD.drawLine (165, 175, 165, 235);
+                myGLCD.drawLine (85, 175, 165, 175);
+            	break;
+			}
+		}
+		else if(temp_on_off == false)
+		{
+			mcp_Out1.digitalWrite(temp_sector-1, HIGH);  
+			mcp_Out1.digitalWrite(7, HIGH);  
+			Serial.print(temp_teplitca);
+			Serial.print("  ");
+			Serial.print(temp_sector);
+			Serial.print("  ");
+			Serial.println("Off");
+			switch (temp_sector) 
+			{
+			case 1:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 5+30, 165, 5+30);
+                myGLCD.drawLine (85, 65+30, 85, 5+30);
+				break;
+			case 2:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 65+30, 165, 65+30);
+                myGLCD.drawLine (165, 65+30, 165, 5+30);
+				break;
+ 			case 3:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 70+30, 80, 170);
+				break;
+			case 4:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (85, 70+30, 165, 170);
+				break;
+			case 5:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 70+30, 250, 170);
+				break;
+			case 6:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 175, 80, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (85, 235, 165, 235);
+                myGLCD.drawLine (85, 175, 85, 235);
+				break;
+			case 7:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 175, 250, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (165, 175, 165, 235);
+                myGLCD.drawLine (85, 175, 165, 175);
 
 
-
-		   }
-		   else if(temp_on_off == false)
-		   {
-			  mcp_Out1.digitalWrite(temp_sector-1, HIGH);  
-			  mcp_Out1.digitalWrite(7, HIGH);  
-			  Serial.print(temp_teplitca);
-			  Serial.print("  ");
-			  Serial.print(temp_sector);
-			  Serial.print("  ");
-			  Serial.println("Off");
-			  switch (temp_sector) 
-			  {
-				case 1:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
-					myGLCD.drawLine (85, 5+30, 165, 5+30);
-                    myGLCD.drawLine (85, 65+30, 85, 5+30);
-					break;
-				case 2:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
-					myGLCD.drawLine (85, 65+30, 165, 65+30);
-                    myGLCD.drawLine (165, 65+30, 165, 5+30);
-					break;
- 				case 3:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 70+30, 80, 170);
-					break;
-				case 4:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (85, 70+30, 165, 170);
-					break;
-				case 5:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 70+30, 250, 170);
-					break;
-				case 6:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 175, 80, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
-					myGLCD.drawLine (85, 235, 165, 235);
-                    myGLCD.drawLine (85, 175, 85, 235);
-					break;
-				case 7:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 175, 250, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
-					myGLCD.drawLine (165, 175, 165, 235);
-                    myGLCD.drawLine (85, 175, 165, 175);
-
-
-					break;
-			  }
-
-		   }
-                  // 
-	   }
-   else if(temp_teplitca == 2)
-	   {
-		  if(temp_on_off == true)
-		   {
-			  mcp_Out1.digitalWrite(temp_sector-1+8, LOW);  
-			  delay(500);
-			  mcp_Out1.digitalWrite(7+8, LOW); 
-			  Serial.print(temp_teplitca);
-			  Serial.print("  ");
-			  Serial.print(temp_sector);
-			  Serial.print("  ");
-			  Serial.println("On");
+				break;
+			}
+		}
+ 	}
+	else if(temp_teplitca == 2)
+	{
+		if(temp_on_off == true)
+		{
+			mcp_Out1.digitalWrite(temp_sector-1+8, LOW);  
+			delay(500);
+			mcp_Out1.digitalWrite(7+8, LOW); 
+			Serial.print(temp_teplitca);
+			Serial.print("  ");
+			Serial.print(temp_sector);
+			Serial.print("  ");
+			Serial.println("On");
 			  
-			  switch (temp_sector) 
-			  {
-				case 1:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
+			switch (temp_sector) 
+			{
+			case 1:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
 
-					myGLCD.drawLine (85, 5+30, 165, 5+30);
-                    myGLCD.drawLine (85, 65+30, 85, 5+30);
-					break;
-				case 2:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 5+30, 165, 5+30);
+                myGLCD.drawLine (85, 65+30, 85, 5+30);
+				break;
+			case 2:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
 					
-					myGLCD.drawLine (85, 65+30, 165, 65+30);
-                    myGLCD.drawLine (165, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 65+30, 165, 65+30);
+                myGLCD.drawLine (165, 65+30, 165, 5+30);
 
-					break;
- 				case 3:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 70+30, 80, 170);
-					break;
-				case 4:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (85, 70+30, 165, 170);
-					break;
-				case 5:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 70+30, 250, 170);
-					break;
-				case 6:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (5, 175, 80, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
+				break;
+ 			case 3:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 70+30, 80, 170);
+				break;
+			case 4:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (85, 70+30, 165, 170);
+				break;
+			case 5:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 70+30, 250, 170);
+				break;
+			case 6:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (5, 175, 80, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
 					
-					myGLCD.drawLine (85, 235, 165, 235);
-                    myGLCD.drawLine (85, 175, 85, 235);
-					break;
-				case 7:
-					myGLCD.setColor(255, 0, 0);
-					myGLCD.drawRoundRect (170, 175, 250, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (85, 235, 165, 235);
+                myGLCD.drawLine (85, 175, 85, 235);
+				break;
+			case 7:
+				myGLCD.setColor(255, 0, 0);
+				myGLCD.drawRoundRect (170, 175, 250, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
 					
-					myGLCD.drawLine (165, 175, 165, 235);
-                    myGLCD.drawLine (85, 175, 165, 175);
-            		break;
-			  }
+				myGLCD.drawLine (165, 175, 165, 235);
+                myGLCD.drawLine (85, 175, 165, 175);
+            	break;
+			}
 
-		   }
-		   else if(temp_on_off == false)
-		   {
-			  mcp_Out1.digitalWrite(temp_sector-1+8, HIGH);  
-			  mcp_Out1.digitalWrite(7+8, HIGH);  
-			  Serial.print(temp_teplitca);
-			  Serial.print("  ");
-			  Serial.print(temp_sector);
-			  Serial.print("  ");
-			  Serial.println("Off");
+		}
+		else if(temp_on_off == false)
+		{
+			mcp_Out1.digitalWrite(temp_sector-1+8, HIGH);  
+			mcp_Out1.digitalWrite(7+8, HIGH);  
+			Serial.print(temp_teplitca);
+			Serial.print("  ");
+			Serial.print(temp_sector);
+			Serial.print("  ");
+			Serial.println("Off");
 
-			 switch (temp_sector) 
-			  {
-				case 1:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
-					myGLCD.drawLine (85, 5+30, 165, 5+30);
-                    myGLCD.drawLine (85, 65+30, 85, 5+30);
-					break;
-				case 2:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
-					myGLCD.drawLine (85, 65+30, 165, 5+30);
-					myGLCD.drawLine (85, 65+30, 165, 65+30);
-                    myGLCD.drawLine (165, 65+30, 165, 5+30);
-					break;
- 				case 3:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 70+30, 80, 170);
-					break;
-				case 4:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (85, 70+30, 165, 170);
-					break;
-				case 5:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 70+30, 250, 170);
-					break;
-				case 6:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (5, 175, 80, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
-					myGLCD.drawLine (85, 235, 165, 235);
-                    myGLCD.drawLine (85, 175, 85, 235);
-					break;
-				case 7:
-					myGLCD.setColor(255, 255, 255);
-					myGLCD.drawRoundRect (170, 175, 250, 235);
-					myGLCD.drawLine (85, 175, 165, 235);
-					myGLCD.drawLine (165, 175, 165, 235);
-                    myGLCD.drawLine (85, 175, 165, 175);
-
-
-					break;
-			  }
-
-		   }
-	   }
+			switch (temp_sector) 
+			{
+			case 1:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 5+30, 80, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 5+30, 165, 5+30);
+                myGLCD.drawLine (85, 65+30, 85, 5+30);
+				break;
+			case 2:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 5+30, 250, 65+30);
+				myGLCD.drawLine (85, 65+30, 165, 5+30);
+				myGLCD.drawLine (85, 65+30, 165, 65+30);
+                myGLCD.drawLine (165, 65+30, 165, 5+30);
+				break;
+ 			case 3:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 70+30, 80, 170);
+				break;
+			case 4:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (85, 70+30, 165, 170);
+				break;
+			case 5:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 70+30, 250, 170);
+				break;
+			case 6:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (5, 175, 80, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (85, 235, 165, 235);
+                myGLCD.drawLine (85, 175, 85, 235);
+				break;
+			case 7:
+				myGLCD.setColor(255, 255, 255);
+				myGLCD.drawRoundRect (170, 175, 250, 235);
+				myGLCD.drawLine (85, 175, 165, 235);
+				myGLCD.drawLine (165, 175, 165, 235);
+                myGLCD.drawLine (85, 175, 165, 175);
+				break;
+			}
+		}
+	}
 }
 void poliv_ruchnoj()
 {
@@ -2052,8 +2038,71 @@ void poliv_ruchnoj()
 	bool t_run = true;
 
     do                                                            // Произвести проверку секторов на совпадение
+	{
+		if (myTouch.dataAvailable())
 		{
-			if (myTouch.dataAvailable())
+			myTouch.read();
+			int	x=myTouch.getX();
+			int	y=myTouch.getY();
+
+			if ((x>=260) && (x<=319))                     // Отключить полив
+			{
+				if ((y>=65) && (y<=115))              //  "2"
+				{
+					waitForIt(260, 65, 319, 115);
+					myGLCD.setColor(0, 0, 255);
+					myGLCD.setBackColor(0, 0, 255);
+					myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
+					myGLCD.setColor(255, 255, 255);
+					myGLCD.drawRoundRect (260, 5, 319, 55);        //
+					myGLCD.setColor(255, 255, 255);
+					myGLCD.print("BCE",265, 13);                               // 
+					myGLCD.print("BK""\x88",265, 32);    
+					rtemp_on_off = false;
+					run_poliv_on_off(teplitca ,i ,rtemp_on_off);
+					break;
+				}
+			}
+		}
+
+		print_avtomat = i2c_eeprom_read_byte(deviceaddress, (i * 10) + teplitca_adr + 1 );
+
+		if (print_avtomat == true)                                   // Включить если режим полива "Автомат"
+		{
+			rtemp_on_off = true;
+			if (t_run == true)
+			{
+				run_poliv_on_off(teplitca , i ,rtemp_on_off);
+				t_run = false;
+
+				temp_time_pol = millis();                         // Записать время старта полива
+				// MsTimer2::start();
+			}
+				  
+			if (millis()- temp_time_pol > time_poliv * 1000)     // Проверить время окончания полива.
+			{
+				//  MsTimer2::stop();
+				rtemp_on_off = false;
+				run_poliv_on_off(teplitca , i ,rtemp_on_off);
+				i++;
+				count_sector++;
+				t_run = true;
+				// run_timer =0;
+			}
+
+		}
+		else
+		{
+			i++;
+		}
+
+		if (count_sector >=3)
+		{
+			Serial.println("voda in");
+
+            for (int i=0;i<time_bochka;i++)
+			{
+				if (myTouch.dataAvailable())
 				{
 					myTouch.read();
 					int	x=myTouch.getX();
@@ -2079,77 +2128,12 @@ void poliv_ruchnoj()
 						}
 				}
 
-			  print_avtomat = i2c_eeprom_read_byte(deviceaddress, (i * 10) + teplitca_adr + 1 );
-
-			if (print_avtomat == true)                                   // Включить если режим полива "Автомат"
-				{
-				   rtemp_on_off = true;
-				   if (t_run == true)
-				   {
-					  run_poliv_on_off(teplitca , i ,rtemp_on_off);
-					  t_run = false;
-
-					  temp_time_pol = millis();                         // Записать время старта полива
-					 // MsTimer2::start();
-				   }
-				  
-				   if (millis()- temp_time_pol > time_poliv * 1000)     // Проверить время окончания полива.
-					   {
-						 //  MsTimer2::stop();
-						   rtemp_on_off = false;
-						   run_poliv_on_off(teplitca , i ,rtemp_on_off);
-						   i++;
-						   count_sector++;
-						   t_run = true;
-						  // run_timer =0;
-					   }
-
-				}
-			else
-				{
-					i++;
-				}
-
-			if (count_sector >=3)
-				   {
-					    Serial.println("voda in");
-
-                        for (int i=0;i<time_bochka;i++)
-						{
-							if (myTouch.dataAvailable())
-								{
-									myTouch.read();
-									int	x=myTouch.getX();
-									int	y=myTouch.getY();
-
-									if ((x>=260) && (x<=319))                     // Отключить полив
-										{
-											if ((y>=65) && (y<=115))              //  "2"
-												{
-													waitForIt(260, 65, 319, 115);
-													myGLCD.setColor(0, 0, 255);
-													myGLCD.setBackColor(0, 0, 255);
-													myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
-													myGLCD.setColor(255, 255, 255);
-													myGLCD.drawRoundRect (260, 5, 319, 55);        //
-													myGLCD.setColor(255, 255, 255);
-													myGLCD.print("BCE",265, 13);                               // 
-													myGLCD.print("BK""\x88",265, 32);    
-													rtemp_on_off = false;
-													run_poliv_on_off(teplitca ,i ,rtemp_on_off);
-													break;
-												}
-										}
-								}
-
-						  delay(1000);       // Время наполнения бочки.  1 sec * 
-						}
-                      count_sector=0;
-					  Serial.println("voda out");
-				   }
-
-
-		} while (i<8);
+			delay(1000);       // Время наполнения бочки.  1 sec * 
+			}
+            count_sector=0;
+			Serial.println("voda out");
+		}
+	} while (i<8);
 }
 
 void setup_mcp()
@@ -2300,7 +2284,7 @@ void setup()
 	//myTouch.setPrecision(PREC_MEDIUM);
 	//i2c_test1();
 	setup_mcp();
-	draw_Glav_menu();
+	//draw_Glav_menu();
 
 	MsTimer2::set(1000, flash_time);                // 1 сек. период таймера прерывания
 	DHT11.attach(12);                               // Уточнить
@@ -2309,8 +2293,8 @@ void setup()
 }  
 void loop() 
 {    
-   // draw_Glav_menu();
-	//swich_Pliv_Menu();
+    draw_Glav_menu();
+	//swich_Poliv_Menu();
 	swich_Glav_Menu();
 	 //test_MCP1();
 	 //delay(100);
