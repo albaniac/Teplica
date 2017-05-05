@@ -882,13 +882,13 @@ void draw_Poliv_Menu()
 	myGLCD.drawLine (85, 175, 165, 235);
 
 	myGLCD.setBackColor(0, 0, 255);
-	myGLCD.print("BCE",265, 13);                               // 
+	myGLCD.print("BCE",265, 13);                               //  
 	myGLCD.print("BK""\x88",265, 32);                          // 
 	myGLCD.print("BCE",265, 73);                               //
-	myGLCD.print("OTK",265, 92);                         //
-	myGLCD.print("B""\x91""X",265, 142);                            // "ESC"
-	myGLCD.print("\x8D""a",274, 195);                        // "Ча"
-	myGLCD.print("c\xAB",274, 210);                          // "сы"
+	myGLCD.print("OTK",265, 92);                               //
+	myGLCD.print("B""\x91""X",265, 142);                       // "ESC"
+	myGLCD.print("\x8D""a",274, 195);                          // "Ча"
+	myGLCD.print("c\xAB",274, 210);                            // "сы"
 	myGLCD.setColor(VGA_YELLOW);
 	myGLCD.setBackColor(0, 0, 0);
 	myGLCD.print("1",10, 10+30);          
@@ -1024,7 +1024,6 @@ void draw_Poliv_Menu()
 			myGLCD.print("  : ",171, 215);  
 			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_min ),175,215);
 			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_sec ),216,215);
-
 		}
 
 	if(teplitca==2)
@@ -1159,19 +1158,19 @@ void swich_Poliv_Menu()
 				int	x=myTouch.getX();
 				int	y=myTouch.getY();
 
-				if ((x>=260) && (x<=319))                               // 
+				if ((x>=260) && (x<=319))                                      // 
 					{
-						 if ((y>=5) && (y<=55))                         //  "1"
+						 if ((y>=5) && (y<=55))                                //  "1"
 							{
-								waitForIt(260, 5, 319, 55);             //   
+								waitForIt(260, 5, 319, 55);                    //   
 								myGLCD.setColor(0, 255, 0);
 								myGLCD.setBackColor(0, 255, 0);
 	                            myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
 								myGLCD.setColor(255, 255, 255);
 	                            myGLCD.drawRoundRect (260, 5, 319, 55);        //
 								myGLCD.setColor(255, 255, 255);
-								myGLCD.print("BCE",265, 13);                               // 
-	                            myGLCD.print("BK""\x88",265, 32);                          // 
+								myGLCD.print("BCE",265, 13);                   // ВСЕ
+	                            myGLCD.print("BK""\x88",265, 32);              // ВКЛ
 							    count_sector=0;
 								poliv_ruchnoj();  
 							
@@ -1181,26 +1180,26 @@ void swich_Poliv_Menu()
 								myGLCD.setColor(255, 255, 255);
 								myGLCD.drawRoundRect (260, 5, 319, 55);        //
 								myGLCD.setColor(255, 255, 255);
-								myGLCD.print("BCE",265, 13);                               // 
-								myGLCD.print("BK""\x88",265, 32);    
+								myGLCD.print("BCE",265, 13);                   // ВСЕ
+								myGLCD.print("BK""\x88",265, 32);              // ВКЛ
 							}
 
-						else if ((y>=65) && (y<=115))         //  "2"
+						else if ((y>=65) && (y<=115))                          //  "2"
 							{
 								waitForIt(260, 65, 319, 115);
 								// Программа 2
 							}
 
-						else if ((y>=125) && (y<=175))         //  "RET"
+						else if ((y>=125) && (y<=175))                         //  "RET"
 							{
 								waitForIt(260, 125, 319, 175);
 								break;
 							}
 
-						else if ((y>=185) && (y<=235))         // 
+						else if ((y>=185) && (y<=235))                          // 
 							{
 								waitForIt(260, 185, 319, 235);
-								AnalogClock();                   // Часы
+								AnalogClock();                                  // Часы
 								draw_Poliv_Menu();
 							}
 
@@ -2045,9 +2044,9 @@ void poliv_ruchnoj()
 			int	x=myTouch.getX();
 			int	y=myTouch.getY();
 
-			if ((x>=260) && (x<=319))                     // Отключить полив
+			if ((x>=260) && (x<=319))                                 // Отключить полив
 			{
-				if ((y>=65) && (y<=115))              //  "2"
+				if ((y>=65) && (y<=115))                             //  "2"
 				{
 					waitForIt(260, 65, 319, 115);
 					myGLCD.setColor(0, 0, 255);
