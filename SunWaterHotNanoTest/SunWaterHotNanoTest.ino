@@ -103,9 +103,9 @@ DallasTemperature sensor3(&ds18x20_3);
 DallasTemperature sensor4(&ds18x20_4);
 
 
-int setTmp  = 45; // переменная для заданного значения температуры
-
-				 //Объявим переменную для хранения состояния реле
+int setTmpMax  = 65;            // переменная для заданного максимального значения температуры
+int setTmpMin  = 45;            // переменная для заданного минимального значения температуры
+				                //Объявим переменную для хранения состояния реле
 boolean relay1Status = LOW;
 boolean relay2Status = LOW;
 int delta_motor = 10;
@@ -394,8 +394,11 @@ void setup() {
 
 
 
-	EEPROM_write_byte(0, setTmp);							 // Сохранить в постоянной памяти заданную температуру
-	setTmp = EEPROM_read_byte(0);                            // Считаем из постоянной памяти заданную температуру
+	EEPROM_write_byte(0, setTmpMax);						 // Сохранить в постоянной памяти заданную температуру
+	setTmpMax = EEPROM_read_byte(0);                         // Считаем из постоянной памяти заданную температуру
+	EEPROM_write_byte(1, setTmpMin);						 // Сохранить в постоянной памяти заданную температуру
+	setTmpMin = EEPROM_read_byte(1);                         // Считаем из постоянной памяти заданную температуру
+
 
 	latitude = latitude * pi / 180;                          // Расчет положения солнца
 															 // Initialize Initialize HMC5883L
@@ -454,11 +457,11 @@ void loop() {
 
 
 		//Проверка условия включения/выключения мотора
-		if (t1<setTmp&&relay1Status == LOW) { relay1Status = HIGH; digitalWrite(Rele1, LOW); }
-		if (t1>setTmp&&relay1Status == HIGH) { relay1Status = LOW; digitalWrite(Rele1, HIGH); }
+		if (t1<setTmpMin&&relay1Status == LOW) {relay1Status = HIGH; digitalWrite(Rele1, LOW); }
+		if (t1>setTmpMax&&relay1Status == HIGH) {relay1Status = LOW; digitalWrite(Rele1, HIGH); }
 
-		if (t2<setTmp&&relay2Status == LOW) { relay2Status = HIGH; digitalWrite(Rele2, LOW); }
-		if (t2>setTmp&&relay2Status == HIGH) { relay2Status = LOW; digitalWrite(Rele2, HIGH); }
+		if (t2<setTmpMax&&relay2Status == LOW) {relay2Status = HIGH; digitalWrite(Rele2, LOW); }
+		if (t2>setTmpMin&&relay2Status == HIGH) {relay2Status = LOW; digitalWrite(Rele2, HIGH); }
 
 		Serial.print("relay1Status: "); Serial.println(relay1Status);
 		Serial.print("relay1Status: "); Serial.println(relay2Status);
