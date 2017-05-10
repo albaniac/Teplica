@@ -41,7 +41,7 @@ RTC_DS1307 RTC;            // define the Real Time Clock object
 int clockCenterX     = 119;
 int clockCenterY     = 119;
 int oldsec=0;
-const char* str[]          = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
+const char* str_day[]          = {"MON","TUE","WED","THU","FRI","SAT","SUN"};
 const char* str_mon[]      = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 //-------------------------------------------------------------------------------
 int but1, but2, but3, but4, but5, but6, but7, but8, but9, but10, butX, butY, but_m1, but_m2, but_m3, but_m4, but_m5, pressed_button;
@@ -170,6 +170,15 @@ int adr2_7kl_start_hour              = 272;   //
 int adr2_7kl_start_min               = 273;   //
 int adr2_7kl_stop_min                = 274;   //
 int adr2_7kl_stop_sec                = 275;   //
+
+
+
+
+
+
+
+
+
 
 
 void flash_time()                              // Программа обработчик прерывания 
@@ -380,7 +389,7 @@ void printDate()
   myGLCD.setColor(0, 0, 0);
   myGLCD.setBackColor(255, 255, 255);
 	
-  myGLCD.print(str[dow-1], 256, 8);
+  myGLCD.print(str_day[dow-1], 256, 8);
   if (date<10)
 	myGLCD.printNumI(date, 272, 28);
   else
@@ -389,6 +398,29 @@ void printDate()
   myGLCD.print(str_mon[mon-1], 256, 48);
   myGLCD.printNumI(year, 248, 65);
 }
+void serial_print_Date()
+{
+	clock_read();
+	Serial.print(year, DEC);
+	Serial.print('/');
+	Serial.print(mon, DEC);
+	Serial.print('/');
+	Serial.print(date, DEC);
+	Serial.print(' ');
+	Serial.print(hour, DEC);
+	Serial.print(':');
+	Serial.print(min, DEC);
+	Serial.print(':');
+	Serial.print(sec, DEC);
+	Serial.print(' ');
+	Serial.print(str_day[dow - 1]);
+	Serial.print(' ');
+	Serial.print(dow, DEC);
+	Serial.println(); 
+}
+
+
+
 void clearDate()
 {
   myGLCD.setColor(255, 255, 255);
@@ -797,59 +829,56 @@ void draw_Glav_menu()
 void swich_Glav_Menu()
 {
 	while (true)
-	 {                      	
+	{                      	
 		if (myTouch.dataAvailable())
+		{
+			myTouch.read();
+			int	x=myTouch.getX();
+			int	y=myTouch.getY();
+
+			if ((x>= 1) && (x<=240))                                              // кнопка Выбор номера теплицы
 			{
-				myTouch.read();
-				int	x=myTouch.getX();
-				int	y=myTouch.getY();
-
-				if ((x>= 1) && (x<=240))                                              // кнопка Выбор номера теплицы
-					{
-						 if ((y>=1) && (y<=117))                                      // Выбрана  Теплица № "1"
-							{
-								waitForIt(1, 1, 240, 117);
-								teplitca = 1;                                         // Выбрана  Теплица № "1"                        
-								myGLCD.setColor(VGA_RED);                             // Установлен красный цвет надписи
-								myGLCD.setBackColor(0, 0, 255);                       // Установлен синий цвет фона
-								myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);       // Теплица №1
-								myGLCD.setColor(255, 255, 255);                       // Установлен белый цвет надписи
-								myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 127);     // Теплица №2
+				if ((y>=1) && (y<=117))                                      // Выбрана  Теплица № "1"
+				{
+					waitForIt(1, 1, 240, 117);
+					teplitca = 1;                                         // Выбрана  Теплица № "1"                        
+					myGLCD.setColor(VGA_RED);                             // Установлен красный цвет надписи
+					myGLCD.setBackColor(0, 0, 255);                       // Установлен синий цвет фона
+					myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);       // Теплица №1
+					myGLCD.setColor(255, 255, 255);                       // Установлен белый цвет надписи
+					myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 127);     // Теплица №2
 
 
-							}
+				}
+				else if ((y>=122) && (y<=239))                                // Выбрана  Теплица № "2"
+				{
+					waitForIt(1, 122, 240, 239);
+					teplitca = 2;                                         // Выбрана  Теплица № "2"   
+					myGLCD.setColor(255, 255, 255);                       // Установлен белый цвет надписи
+					myGLCD.setBackColor(0, 0, 255);                       // Установлен синий цвет фона
+					myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);       // Теплица №1 
+					myGLCD.setColor(VGA_RED);                             // Установлен красный цвет надписи
+					myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 127);     // Теплица №2
+				}
 
-						else if ((y>=122) && (y<=239))                                // Выбрана  Теплица № "2"
-							{
-								waitForIt(1, 122, 240, 239);
-								teplitca = 2;                                         // Выбрана  Теплица № "2"   
-								myGLCD.setColor(255, 255, 255);                       // Установлен белый цвет надписи
-								myGLCD.setBackColor(0, 0, 255);                       // Установлен синий цвет фона
-								myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);       // Теплица №1 
-								myGLCD.setColor(VGA_RED);                             // Установлен красный цвет надписи
-								myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 127);     // Теплица №2
-							}
-
-					}
-				if ((x>=245) && (x<=319))                                             // кнопка Управление поливом или окнами
-					{
-						 if ((y>=1) && (y<=117))                                      // выбран Полив
-							{
-								waitForIt(245, 1, 319, 117);
-								draw_Poliv_Menu();                                    // нарисовать Меню полива
-								swich_Poliv_Menu();                                   // вызов меню полива
-								draw_Glav_menu();                                     // возврат в главное меню
-							}
-
-						else if ((y>=122) && (y<=239))                                // Управление окнами
-							{
-								waitForIt(245, 122, 319, 239);
-								// Программа  управления окнами
-								draw_Glav_menu();                                     // возврат в главное меню
-							}
-
-					}
-		  }
+			}
+			if ((x>=245) && (x<=319))                                             // кнопка Управление поливом или окнами
+			{
+				if ((y>=1) && (y<=117))                                      // выбран Полив
+				{
+					waitForIt(245, 1, 319, 117);
+					draw_Poliv_Menu();                                    // нарисовать Меню полива
+					swich_Poliv_Menu();                                   // вызов меню полива
+					draw_Glav_menu();                                     // возврат в главное меню
+				}
+				else if ((y>=122) && (y<=239))                                // Управление окнами
+				{
+					waitForIt(245, 122, 319, 239);
+					// Программа  управления окнами
+					draw_Glav_menu();                                     // возврат в главное меню
+				}
+			}
+		}
 	}
 }
 
@@ -898,365 +927,358 @@ void draw_Poliv_Menu()
 	myGLCD.print("5",175, 76+30); 
 	myGLCD.print("6",10, 180);          
 	myGLCD.print("7",175, 180); 
-	myGLCD.setFont(SmallFont);
+	myGLCD.setFont(SmallFont); 
 	myGLCD.print("=>",95, 15+30); 
 	myGLCD.print("<=",140, 40+30); 
 	myGLCD.print("=>",95, 210); 
 	myGLCD.print("<=",140, 187); 
 
 	if(teplitca==1)
+	{
+		myGLCD.setFont(BigFont);
+		myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);  
+		myGLCD.setFont(SmallFont);
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_1kl_avto ) == 0 )  // 1
 		{
-			myGLCD.setFont(BigFont);
-			myGLCD.print("Te\xA3\xA0\xA2\xA6""a N1",40, 5);  
-			myGLCD.setFont(SmallFont);
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_1kl_avto ) == 0 )  // 1
-				{
-					myGLCD.print("Py\xA7\xA2",30, 14+30);   
-					//Serial.println(adr1_1kl_avto);
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 14+30);  
-					//Serial.println(adr1_1kl_avto);
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_2kl_avto ) == 0 )  // 2
-				{
-					myGLCD.print("Py\xA7\xA2",195, 14+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 14+30);  
-				}
-
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_3kl_avto ) == 0 )  // 3
-				{
-					myGLCD.print("Py\xA7\xA2",30, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 80+30);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_4kl_avto ) == 0 ) // 4
-				{
-					myGLCD.print("Py\xA7\xA2",110, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",110, 80+30);  
-				}
-
-		   if (i2c_eeprom_read_byte(deviceaddress, adr1_5kl_avto ) == 0 )  // 5
-				{
-					myGLCD.print("Py\xA7\xA2 ",195, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 80+30);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_6kl_avto ) == 0 )  // 6
-				{
-					myGLCD.print("Py\xA7\xA2",30, 184);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 184);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr1_7kl_avto ) == 0 )  // 7
-				{
-					myGLCD.print("Py\xA7\xA2",195, 184);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 184);  
-				}
-			myGLCD.setFont(BigFont);
-
-			myGLCD.print("  : ",6, 27+30);  // 1
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_start_hour ),10,27+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_start_min ),48,27+30);
-			myGLCD.print("  : ",6, 45+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_stop_min ),10,45+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_stop_sec ),48,45+30);
-
-			myGLCD.print("  : ",171, 27+30);  //2
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_start_hour ),175,27+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_start_min ),216,27+30);
-			myGLCD.print("  : ",171, 45+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_stop_min ),175,45+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_stop_sec ),216,45+30);
-
-			myGLCD.print("  : ",6, 93+30);  // 3
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_start_hour ),10,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_start_min ),48,93+30);
-			myGLCD.print("  : ",6, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_stop_min ),10,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_stop_sec ),48,111+30);
-
-			myGLCD.print("  : ",86, 93+30);  //4
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_start_hour ),90,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_start_min ),128,93+30);
-			myGLCD.print("  : ",86, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_stop_min ),90,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_stop_sec ),128,111+30);
-
-			myGLCD.print("  : ",171, 93+30);  // 5
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_start_hour ),175,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_start_min ),216,93+30);
-			myGLCD.print("  : ",171, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_stop_min ),175,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_stop_sec ),216,111+30);
-
-			myGLCD.print("  : ",6, 197);  //6
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_start_hour ),10,197);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_start_min ),48,197);
-			myGLCD.print("  : ",6, 215);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_stop_min ),10,215);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_stop_sec ),48,215);
-
-			myGLCD.print("  : ",171, 197);  //7
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_start_hour ),175,197);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_start_min ),216,197);
-			myGLCD.print("  : ",171, 215);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_min ),175,215);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_sec ),216,215);
+			myGLCD.print("Py\xA7\xA2",30, 14+30);   
+			//Serial.println(adr1_1kl_avto);
 		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 14+30);  
+			//Serial.println(adr1_1kl_avto);
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_2kl_avto ) == 0 )  // 2
+		{
+			myGLCD.print("Py\xA7\xA2",195, 14+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 14+30);  
+		}
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_3kl_avto ) == 0 )  // 3
+		{
+			myGLCD.print("Py\xA7\xA2",30, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_4kl_avto ) == 0 ) // 4
+		{
+			myGLCD.print("Py\xA7\xA2",110, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",110, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_5kl_avto ) == 0 )  // 5
+		{
+			myGLCD.print("Py\xA7\xA2 ",195, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_6kl_avto ) == 0 )  // 6
+		{
+			myGLCD.print("Py\xA7\xA2",30, 184);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 184);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr1_7kl_avto ) == 0 )  // 7
+		{
+			myGLCD.print("Py\xA7\xA2",195, 184);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 184);  
+		}
+		myGLCD.setFont(BigFont);
+
+		myGLCD.print("  : ",6, 27+30);  // 1
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_start_hour ),10,27+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_start_min ),48,27+30);
+		myGLCD.print("  : ",6, 45+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_stop_min ),10,45+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_1kl_stop_sec ),48,45+30);
+
+		myGLCD.print("  : ",171, 27+30);  //2
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_start_hour ),175,27+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_start_min ),216,27+30);
+		myGLCD.print("  : ",171, 45+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_stop_min ),175,45+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_2kl_stop_sec ),216,45+30);
+
+		myGLCD.print("  : ",6, 93+30);  // 3
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_start_hour ),10,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_start_min ),48,93+30);
+		myGLCD.print("  : ",6, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_stop_min ),10,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_3kl_stop_sec ),48,111+30);
+
+		myGLCD.print("  : ",86, 93+30);  //4
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_start_hour ),90,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_start_min ),128,93+30);
+		myGLCD.print("  : ",86, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_stop_min ),90,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_4kl_stop_sec ),128,111+30);
+
+		myGLCD.print("  : ",171, 93+30);  // 5
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_start_hour ),175,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_start_min ),216,93+30);
+		myGLCD.print("  : ",171, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_stop_min ),175,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_5kl_stop_sec ),216,111+30);
+
+		myGLCD.print("  : ",6, 197);  //6
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_start_hour ),10,197);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_start_min ),48,197);
+		myGLCD.print("  : ",6, 215);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_stop_min ),10,215);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_6kl_stop_sec ),48,215);
+
+		myGLCD.print("  : ",171, 197);  //7
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_start_hour ),175,197);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_start_min ),216,197);
+		myGLCD.print("  : ",171, 215);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_min ),175,215);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr1_7kl_stop_sec ),216,215);
+	}
 
 	if(teplitca==2)
-		{
-			myGLCD.setFont(BigFont);
-			myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 5);  
-			myGLCD.setFont(SmallFont);
+	{
+		myGLCD.setFont(BigFont);
+		myGLCD.print("Te\xA3\xA0\xA2\xA6""a N2",40, 5);  
+		myGLCD.setFont(SmallFont);
 		if (i2c_eeprom_read_byte(deviceaddress, adr2_1kl_avto ) == 0 )  // 1
-				{
-					myGLCD.print("Py\xA7\xA2",30, 14+30);   
-					//Serial.println(adr1_1kl_avto);
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 14+30);  
-					//Serial.println(adr1_1kl_avto);
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr2_2kl_avto ) == 0 )  // 2
-				{
-					myGLCD.print("Py\xA7\xA2",195, 14+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 14+30);  
-				}
-
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr2_3kl_avto ) == 0 )  // 3
-				{
-					myGLCD.print("Py\xA7\xA2",30, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 80+30);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr2_4kl_avto ) == 0 ) // 4
-				{
-					myGLCD.print("Py\xA7\xA2",110, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",110, 80+30);  
-				}
-
-		   if (i2c_eeprom_read_byte(deviceaddress, adr2_5kl_avto ) == 0 )  // 5
-				{
-					myGLCD.print("Py\xA7\xA2 ",195, 80+30);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 80+30);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr2_6kl_avto ) == 0 )  // 6
-				{
-					myGLCD.print("Py\xA7\xA2",30, 184);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",30, 184);  
-				}
-
-			if (i2c_eeprom_read_byte(deviceaddress, adr2_7kl_avto ) == 0 )  // 7
-				{
-					myGLCD.print("Py\xA7\xA2",195, 184);    
-				}
-			else
-				{
-					myGLCD.print("A\x97\xA4o ",195, 184);  
-				}
-			myGLCD.setFont(BigFont);
-
-			myGLCD.print("  : ",6, 27+30);  // 1
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_start_hour ),10,27+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_start_min ),48,27+30);
-			myGLCD.print("  : ",6, 45+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_stop_min ),10,45+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_stop_sec ),48,45+30);
-
-			myGLCD.print("  : ",171, 27+30);  //2
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_start_hour ),175,27+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_start_min ),216,27+30);
-			myGLCD.print("  : ",171, 45+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_stop_min ),175,45+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_stop_sec ),216,45+30);
-
-			myGLCD.print("  : ",6, 93+30);  // 3
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_start_hour ),10,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_start_min ),48,93+30);
-			myGLCD.print("  : ",6, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_stop_min ),10,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_stop_sec ),48,111+30);
-
-			myGLCD.print("  : ",86, 93+30);  //4
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_start_hour ),90,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_start_min ),128,93+30);
-			myGLCD.print("  : ",86, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_stop_min ),90,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_stop_sec ),128,111+30);
-
-			myGLCD.print("  : ",171, 93+30);  // 5
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_start_hour ),175,93+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_start_min ),216,93+30);
-			myGLCD.print("  : ",171, 111+30);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_stop_min ),175,111+30);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_stop_sec ),216,111+30);
-
-			myGLCD.print("  : ",6, 197);  //6
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_start_hour ),10,197);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_start_min ),48,197);
-			myGLCD.print("  : ",6, 215);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_stop_min ),10,215);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_stop_sec ),48,215);
-
-			myGLCD.print("  : ",171, 197);  //7
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_start_hour ),175,197);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_start_min ),216,197);
-			myGLCD.print("  : ",171, 215);  
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_stop_min ),175,215);
-			myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_stop_sec ),216,215);
+		{
+			myGLCD.print("Py\xA7\xA2",30, 14+30);   
+			//Serial.println(adr1_1kl_avto);
 		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 14+30);  
+			//Serial.println(adr1_1kl_avto);
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_2kl_avto ) == 0 )  // 2
+		{
+			myGLCD.print("Py\xA7\xA2",195, 14+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 14+30);  
+		}
+
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_3kl_avto ) == 0 )  // 3
+		{
+			myGLCD.print("Py\xA7\xA2",30, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_4kl_avto ) == 0 ) // 4
+		{
+			myGLCD.print("Py\xA7\xA2",110, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",110, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_5kl_avto ) == 0 )  // 5
+		{
+			myGLCD.print("Py\xA7\xA2 ",195, 80+30);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 80+30);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_6kl_avto ) == 0 )  // 6
+		{
+			myGLCD.print("Py\xA7\xA2",30, 184);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",30, 184);  
+		}
+
+		if (i2c_eeprom_read_byte(deviceaddress, adr2_7kl_avto ) == 0 )  // 7
+		{
+			myGLCD.print("Py\xA7\xA2",195, 184);    
+		}
+		else
+		{
+			myGLCD.print("A\x97\xA4o ",195, 184);  
+		}
+		myGLCD.setFont(BigFont);
+
+		myGLCD.print("  : ",6, 27+30);  // 1
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_start_hour ),10,27+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_start_min ),48,27+30);
+		myGLCD.print("  : ",6, 45+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_stop_min ),10,45+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_1kl_stop_sec ),48,45+30);
+
+		myGLCD.print("  : ",171, 27+30);  //2
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_start_hour ),175,27+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_start_min ),216,27+30);
+		myGLCD.print("  : ",171, 45+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_stop_min ),175,45+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_2kl_stop_sec ),216,45+30);
+
+		myGLCD.print("  : ",6, 93+30);  // 3
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_start_hour ),10,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_start_min ),48,93+30);
+		myGLCD.print("  : ",6, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_stop_min ),10,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_3kl_stop_sec ),48,111+30);
+
+		myGLCD.print("  : ",86, 93+30);  //4
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_start_hour ),90,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_start_min ),128,93+30);
+		myGLCD.print("  : ",86, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_stop_min ),90,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_4kl_stop_sec ),128,111+30);
+
+		myGLCD.print("  : ",171, 93+30);  // 5
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_start_hour ),175,93+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_start_min ),216,93+30);
+		myGLCD.print("  : ",171, 111+30);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_stop_min ),175,111+30);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_5kl_stop_sec ),216,111+30);
+
+		myGLCD.print("  : ",6, 197);  //6
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_start_hour ),10,197);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_start_min ),48,197);
+		myGLCD.print("  : ",6, 215);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_stop_min ),10,215);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_6kl_stop_sec ),48,215);
+
+		myGLCD.print("  : ",171, 197);  //7
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_start_hour ),175,197);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_start_min ),216,197);
+		myGLCD.print("  : ",171, 215);  
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_stop_min ),175,215);
+		myGLCD.printNumI(i2c_eeprom_read_byte(deviceaddress, adr2_7kl_stop_sec ),216,215);
+	}
 }
 void swich_Poliv_Menu()
 {
 	while (true)
-		{
+	{
 		if (myTouch.dataAvailable())
+		{
+			myTouch.read();
+			int	x=myTouch.getX();
+			int	y=myTouch.getY();
+
+			if ((x>=260) && (x<=319))                                      // 
 			{
-				myTouch.read();
-				int	x=myTouch.getX();
-				int	y=myTouch.getY();
-
-				if ((x>=260) && (x<=319))                                      // 
-					{
-						 if ((y>=5) && (y<=55))                                //  "1"
-							{
-								waitForIt(260, 5, 319, 55);                    //   
-								myGLCD.setColor(0, 255, 0);
-								myGLCD.setBackColor(0, 255, 0);
-	                            myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
-								myGLCD.setColor(255, 255, 255);
-	                            myGLCD.drawRoundRect (260, 5, 319, 55);        //
-								myGLCD.setColor(255, 255, 255);
-								myGLCD.print("BCE",265, 13);                   // ВСЕ
-	                            myGLCD.print("BK""\x88",265, 32);              // ВКЛ
-							    count_sector=0;
-								poliv_ruchnoj();  
+				if ((y>=5) && (y<=55))                                //  "1"
+				{
+					waitForIt(260, 5, 319, 55);                    //   
+					myGLCD.setColor(0, 255, 0);
+					myGLCD.setBackColor(0, 255, 0);
+	                myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
+					myGLCD.setColor(255, 255, 255);
+	                myGLCD.drawRoundRect (260, 5, 319, 55);        //
+					myGLCD.setColor(255, 255, 255);
+					myGLCD.print("BCE",265, 13);                   // ВСЕ
+	                myGLCD.print("BK""\x88",265, 32);              // ВКЛ
+					count_sector=0;
+					poliv_ruchnoj();  
 							
-								myGLCD.setColor(0, 0, 255);
-								myGLCD.setBackColor(0, 0, 255);
-								myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
-								myGLCD.setColor(255, 255, 255);
-								myGLCD.drawRoundRect (260, 5, 319, 55);        //
-								myGLCD.setColor(255, 255, 255);
-								myGLCD.print("BCE",265, 13);                   // ВСЕ
-								myGLCD.print("BK""\x88",265, 32);              // ВКЛ
-							}
-
-						else if ((y>=65) && (y<=115))                          //  "2"
-							{
-								waitForIt(260, 65, 319, 115);
-								// Программа 2
-							}
-
-						else if ((y>=125) && (y<=175))                         //  "RET"
-							{
-								waitForIt(260, 125, 319, 175);
-								break;
-							}
-
-						else if ((y>=185) && (y<=235))                          // 
-							{
-								waitForIt(260, 185, 319, 235);
-								AnalogClock();                                  // Часы
-								draw_Poliv_Menu();
-							}
-
-					}
-				// ----------------------- Выбор секции --------------------------
-				if ((y>=5+30) && (y<=65+30))                 // 
-					{
-						if ((x>=5) && (x<=80))               // 
-							{
-								waitForIt(5, 5+30, 80, 65+30);
-								sector = 1;
-								swich_menu_Sector();
-							}
-						else if ((x>=170) && (x<=250))         // 
-							{
-								waitForIt(170, 5+30, 250, 65+30);
-								sector = 2;
-								swich_menu_Sector();
-							}
-					}
-				if ((y>=70+30) && (y<=170))                 // 
-					{
-						if ((x>=5) && (x<=80))         // 
-							{
-								waitForIt(5, 70+30, 80, 170);
-								sector = 3;
-								swich_menu_Sector();
-							}
-						else if ((x>=85) && (x<=165))         // 
-							{
-								waitForIt(85, 70+30, 165, 170);
-								sector = 4;
-								swich_menu_Sector();
-							}
-						else if ((x>=170) && (x<=250))         // 
-							{
-								waitForIt(170, 70+30, 250, 170);
-								sector = 5;
-								swich_menu_Sector();
-							}
-					}
-				if ((y>=175) && (y<=235))                 // 
-					{
-						if ((x>=5) && (x<=80))         // 
-							{
-								waitForIt(5, 175, 80, 235);
-								sector = 6;
-								swich_menu_Sector();
-							}
-						else if ((x>=170) && (x<=250))         // 
-							{
-								waitForIt(170, 175, 250, 235);
-								sector = 7;
-								swich_menu_Sector();
-							}
-					}
-
+					myGLCD.setColor(0, 0, 255);
+					myGLCD.setBackColor(0, 0, 255);
+					myGLCD.fillRoundRect (260, 5, 319, 55);        // Кнопка 
+					myGLCD.setColor(255, 255, 255);
+					myGLCD.drawRoundRect (260, 5, 319, 55);        //
+					myGLCD.setColor(255, 255, 255);
+					myGLCD.print("BCE",265, 13);                   // ВСЕ
+					myGLCD.print("BK""\x88",265, 32);              // ВКЛ
+				}
+				else if ((y>=65) && (y<=115))                          //  "2"
+				{
+					waitForIt(260, 65, 319, 115);
+					// Программа 2
+				}
+				else if ((y>=125) && (y<=175))                         //  "RET"
+				{
+					waitForIt(260, 125, 319, 175);
+					break;
+				}
+				else if ((y>=185) && (y<=235))                          // 
+				{
+					waitForIt(260, 185, 319, 235);
+					AnalogClock();                                  // Часы
+					draw_Poliv_Menu(); 
+				}
+			}
+			// ----------------------- Выбор секции --------------------------
+			if ((y>=5+30) && (y<=65+30))                 // 
+			{
+				if ((x>=5) && (x<=80))               // 
+				{
+					waitForIt(5, 5+30, 80, 65+30);
+					sector = 1;
+					swich_menu_Sector();
+				}
+				else if ((x>=170) && (x<=250))         // 
+				{
+					waitForIt(170, 5+30, 250, 65+30);
+					sector = 2;
+					swich_menu_Sector();
+				}
+			}
+			if ((y>=70+30) && (y<=170))                 // 
+			{
+				if ((x>=5) && (x<=80))         // 
+				{
+					waitForIt(5, 70+30, 80, 170);
+					sector = 3;
+					swich_menu_Sector();
+				}
+				else if ((x>=85) && (x<=165))         // 
+				{
+					waitForIt(85, 70+30, 165, 170);
+					sector = 4;
+					swich_menu_Sector();
+				}
+				else if ((x>=170) && (x<=250))         // 
+				{
+					waitForIt(170, 70+30, 250, 170);
+					sector = 5;
+					swich_menu_Sector();
+				}
+			}
+			if ((y>=175) && (y<=235))                 // 
+			{
+				if ((x>=5) && (x<=80))         // 
+				{
+					waitForIt(5, 175, 80, 235);
+					sector = 6;
+					swich_menu_Sector();
+				}
+				else if ((x>=170) && (x<=250))         // 
+				{
+					waitForIt(170, 175, 250, 235);
+					sector = 7;
+					swich_menu_Sector();
+				}
+			}
 		}
 	}
 }
@@ -1751,10 +1773,10 @@ void test_Time(int save_start_hour, int save_start_min, int save_stop_min, int s
 			}
 			else if (s_time_start >= time_start)
 			{
-
+				 
 				if(s_time_start >= time_stop )
 				{
-					err_save = true;
+					err_save = true; 
 					myGLCD.setColor(VGA_LIME);
 					myGLCD.fillCircle(18,135,7);
 				}
@@ -1785,7 +1807,7 @@ void save_Time(int save_start_hour, int save_start_min, int save_stop_min, int s
 		i2c_eeprom_write_byte(deviceaddress,((sector * 10)+teplitca_adr+4 ),save_stop_min);
 		i2c_eeprom_write_byte(deviceaddress,((sector * 10)+teplitca_adr+5 ),save_stop_sec);
 	 }
-}
+}  
 
 void run_poliv_on_off(int temp_teplitca, int temp_sector, bool temp_on_off)
 {
@@ -2233,37 +2255,36 @@ void test_MCP2()
  }
 void dh11_temperature() 
 {
-  Serial.println("\n");
+	Serial.println("\n");
 
-  int chk = DHT11.read();
+	int chk = DHT11.read();
 
-  Serial.print("Read sensor: ");
-  switch (chk)
-  {
-    case  0: Serial.println("OK"); break;
-    case -1: Serial.println("Checksum error"); break;
-    case -2: Serial.println("Time out error"); break;
-    default: Serial.println("Unknown error"); break;
-  }
+	Serial.print("Read sensor: ");
+	switch (chk)
+	{
+		case  0: Serial.println("OK"); break;
+		case -1: Serial.println("Checksum error"); break;
+		case -2: Serial.println("Time out error"); break;
+		default: Serial.println("Unknown error"); break;
+	}
 
-  Serial.print("Humidity (%): ");
-  Serial.println((float)DHT11.humidity, DEC);
+	Serial.print("Humidity (%): ");
+	Serial.println((float)DHT11.humidity, DEC);
 
-  Serial.print("Temperature (°C): ");
-  Serial.println((float)DHT11.temperature, DEC);
+	Serial.print("Temperature (°C): ");
+	Serial.println((float)DHT11.temperature, DEC);
 
-  Serial.print("Temperature (°F): ");
-  Serial.println(DHT11.fahrenheit(), DEC);
+	Serial.print("Temperature (°F): ");
+	Serial.println(DHT11.fahrenheit(), DEC);
 
-  Serial.print("Temperature (°K): ");
-  Serial.println(DHT11.kelvin(), DEC);
+	Serial.print("Temperature (°K): ");
+	Serial.println(DHT11.kelvin(), DEC);
 
-  Serial.print("Dew Point (°C): ");
-  Serial.println(DHT11.dewPoint(), DEC);
+	Serial.print("Dew Point (°C): ");
+	Serial.println(DHT11.dewPoint(), DEC);
 
-  Serial.print("Dew PointFast (°C): ");
-  Serial.println(DHT11.dewPointFast(), DEC);
-
+	Serial.print("Dew PointFast (°C): ");
+	Serial.println(DHT11.dewPointFast(), DEC);
 }
 
 void setup()  
@@ -2271,10 +2292,10 @@ void setup()
 	Serial.begin(115200); 
 	Wire.begin();
 	if (!RTC.begin())
-		{
-			Serial.println("RTC failed");
-			while(1);
-		}; 
+	{
+		Serial.println("RTC failed");
+		while(1);
+	}; 
 	myGLCD.InitLCD();
 	myGLCD.clrScr();
 	myGLCD.setFont(BigFont);
@@ -2287,17 +2308,16 @@ void setup()
 
 	MsTimer2::set(1000, flash_time);                // 1 сек. период таймера прерывания
 	DHT11.attach(12);                               // Уточнить
+	serial_print_Date();
+
 	Serial.println("Setup Ok");
 
 }  
 void loop() 
 {    
-    draw_Glav_menu();
+	draw_Glav_menu();
 	//swich_Poliv_Menu();
 	swich_Glav_Menu();
-	 //test_MCP1();
-	 //delay(100);
-
-
-
+	//test_MCP1();
+	//delay(100);
 }  
