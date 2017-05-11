@@ -492,11 +492,11 @@ void loop() {
 	//Serial.print(':');
 	//Serial.print(future.minute(), DEC);
 	//Serial.print(':');
-	//Serial.print(future.second(), DEC);
+	//Serial.print(future.second(), DEC); 
 	//Serial.println();
 
 	//Serial.println();
-	//delay(3000);
+	delay(30000);
 }
 
 
