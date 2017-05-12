@@ -1,5 +1,5 @@
-C:\Users\Александр\AppData\Local\Temp\VMBuilds\SunWaterHotNanoTest\nano_atmega328\Debug\SunWaterHotNanoTest.cpp.o: \
- C:\Users\Александр\AppData\Local\Temp\VMBuilds\SunWaterHotNanoTest\nano_atmega328\Debug\SunWaterHotNanoTest.cpp \
+C:\Users\Александр\AppData\Local\Temp\VMBuilds\SunWaterHotNanoTest\mega_atmega2560\Debug\SunWaterHotNanoTest.cpp.o: \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\SunWaterHotNanoTest\mega_atmega2560\Debug\SunWaterHotNanoTest.cpp \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/arduino.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/binary.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/WCharacter.h \
@@ -10,8 +10,7 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\SunWaterHotNanoTest\nano_atmega32
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Printable.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/USBAPI.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\eightanaloginputs/pins_arduino.h \
- C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\eightanaloginputs/../standard/pins_arduino.h \
+ C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\variants\mega/pins_arduino.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Arduino.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\libraries\Wire\src/Wire.h \
  C:\Users\Александр\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.18\cores\arduino/Stream.h \
