@@ -318,7 +318,7 @@ const char* str1[]             = {"Sunday", "Monday", "Tuesday", "Wednesday", "T
 const char* str_mon[]          = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 unsigned long wait_time        = 0;                               // Время простоя прибора
 unsigned long wait_time_Old    = 0;                               // Время простоя прибора
-int time_period_measure        = 2;                               // Период обновления информации
+int time_period_measure        = 6;                               // Период обновления информации
 int pin_cable                  = 0;                               // Количество выводов кабеля
 //------------------------------------------------------------------------------
 
@@ -465,7 +465,7 @@ void keypress()
 
 }  // end of keypress
 
-void handleKeypress()
+void handleKeypress()   // Проверка срабатывания концевиков по прерыванию
 {
 	unsigned int keyValue = 0;
 
@@ -1349,7 +1349,7 @@ void control_command()
   }
 }
 
-void Set_Down_Buttons()
+void Draw_Down_Buttons()
 {
 	for (x = 0; x < 5; x++)
 	{
@@ -1366,16 +1366,49 @@ void Set_Down_Buttons()
 void draw_Glav_Menu()
 {
 	myGLCD.clrScr();
-	Set_Down_Buttons();
-	draw_display1();
+	Draw_Down_Buttons();
+	//draw_display1();
+	draw_swich_Menu(1);
 }
+void draw_swich_Menu(int n_menu) 
+{
+	clear_display();                             // Очистить экран
+	switch (n_menu)
+	{
+	case 1:
+		draw_display1(); 
+		view_menuN1();                                   // Обновить информацию измерения
+		//run_uprav_horizon(azimuth, headingDegrees);      // Обеспечить последовательность управления
+		//run_uprav_elevation(altitude, kalAngleX);        // Обеспечить последовательность управления 
+		break;
+	case 2:
+		view_menuN2();
+		drawMaxMin(poz_min, poz_max);                    // Нарисовать границы ограничения
+		drawKompass(headingDegrees);                     // Нарисовать положение установки
+		draw_azimuthCalc(azimuth);                       // Нарисовать расчетное положение установки по горизонтали
+		draw_header(upr_head);                           // Нарисовать высоту положение установки           
+		draw_headerCalc(altitude);                       // Нарисовать расчетное положение установки по высоте
+		break;
+	case 3:
+		Draw_Down_Buttons();
+		break;
+	case 4:
+
+		break;
+	case 5:
+
+		break;
+	}
+}
+
+
 void swichMenu()
 {
 	m2 = 1;
 	while (1)
 	{
 		//view_menuN1();
-		if (keyPressed)	handleKeypress();
+		if (keyPressed)	handleKeypress();                // Проверка срабатывания концевиков по прерыванию
 			
     	wait_time = millis();                                      // Программа обновления информации
 		if (wait_time - wait_time_Old > 1000 * time_period_measure)                 
@@ -1385,36 +1418,13 @@ void swichMenu()
 			Serial.println("====================================");
 
 			read_Temperatures();                                  // Обновить информацию по температуре
-			Serial.println();
-			read_compass();                                       // Обновить информацию по положению установки.    
-			Serial.println();
-			sun_calc();                                           // Обновить информацию по расчетному положению установки
+			view_menuN1();                                        // Обновить информацию измерения
+			//Serial.println();
+			//read_compass();                                       // Обновить информацию по положению установки.    
+			//Serial.println();
+			//sun_calc();                                           // Обновить информацию по расчетному положению установки
 
 
-			switch (m2)
-			{
-			case 1:
-				view_menuN1();                                   // Обновить информацию измерения
-				run_uprav_horizon(azimuth, headingDegrees);      // Обеспечить последовательность управления
-				run_uprav_elevation(altitude, kalAngleX);        // Обеспечить последовательность управления
-				break;
-			case 2:
-				drawMaxMin(poz_min, poz_max);                    // Нарисовать границы ограничения
-				drawKompass(headingDegrees);                     // Нарисовать положение установки
-				draw_azimuthCalc(azimuth);                       // Нарисовать расчетное положение установки по горизонтали
-				draw_header(upr_head);                           // Нарисовать высоту положение установки           
-				draw_headerCalc(altitude);                       // Нарисовать расчетное положение установки по высоте
-				break;
-			case 3:
-				//Set_Down_Buttons();
-				break;
-			case 4:
-
-				break;
-			case 5:
-
-				break;
-			}
 		}
 
 		if (myTouch.dataAvailable() == true)                       // Проверить нажатие кнопок
@@ -1432,17 +1442,19 @@ void swichMenu()
 				{
 					waitForIt(10, 189, 60, 239);
 					m2 = 1;
-					myGLCD.clrScr();
-					Set_Down_Buttons();
-					draw_display1();
+					draw_swich_Menu(m2);
+			/*		myGLCD.clrScr();
+					Draw_Down_Buttons();
+					draw_display1();*/
 				}
 
 				if ((x >= 70) && (x <= 120))                      //нажата кнопка "2"
 				{
 					waitForIt(70, 189, 120, 239);
 					m2 = 2;
-					clear_display();                             // Очистить экран
-					view_menuN2();
+					draw_swich_Menu(m2);
+					//clear_display();                             // Очистить экран
+					//view_menuN2();
 					//myGLCD.clrScr();
 				}
 
@@ -1450,15 +1462,17 @@ void swichMenu()
 				{
 					waitForIt(130, 189, 180, 239);
 					m2 = 3;
-					view_menuN3();
+					draw_swich_Menu(m2);
+					//view_menuN3();
 				}
 
 				if ((x >= 190) && (x <= 240))                    //нажата кнопка "4"
 				{
 					waitForIt(190, 189, 240, 239);
 					m2 = 4;
-					clear_display();                             // Очистить экран
-					view_menuN4();
+					draw_swich_Menu(m2);
+					//clear_display();                             // Очистить экран
+					//view_menuN4();
 				}
 
 				if ((x >= 250) && (x <= 300))                    //нажата кнопка "5"
@@ -1466,7 +1480,7 @@ void swichMenu()
 					waitForIt(250, 189, 300, 239);
 					m3 = 1;
 					AnalogClock();
-					Set_Down_Buttons();
+					Draw_Down_Buttons();
 					m3 = 0;
 					if (m2 == 1)
 					{
@@ -1531,7 +1545,6 @@ void view_menuN1()
 		myGLCD.printNumF(headingDegrees, 2, 40, 153);
 		myGLCD.printNumF(kalAngleX, 2, 196, 153);
 		myGLCD.setBackColor(0, 0, 0);
-		
 	}
 }
 void view_menuN2()
@@ -2087,7 +2100,8 @@ void clear_eeprom(int start, int long_mem)
 
 void read_Temperatures()
 {
-
+	bool process = true;
+	waith_process(process);
 	sensor_sun_in.requestTemperatures();
 	sensor_sun_out.requestTemperatures();
 	sensor_tube_in.requestTemperatures();
@@ -2102,24 +2116,34 @@ void read_Temperatures()
 	//temp_tank = sensor_tank.getTempCByIndex(0);
 	//temp_out = sensor_outhouse.getTempCByIndex(0);
 	
-	Serial.print("sensor_sun_in:  \t");  
-	Serial.println(temp_sun_in);
+	Serial.print("Sun_in ");  
+	//Serial.println(temp_sun_in);
 
-	Serial.print("sensor_sun_out: \t");  
-	Serial.println(temp_sun_out);
+	Serial.print("Sun_out ");  
+	//Serial.println(temp_sun_out);
 
-	Serial.print("sensor_tube_in: \t");  
-	Serial.println(temp_tube_in);
+	Serial.print("Tube_in ");  
+	//Serial.println(temp_tube_in);
 
-	Serial.print("sensor_tube_out: \t");  
-	Serial.println(temp_tube_out);
+	Serial.println("Tube_out");  
+	//Serial.println(temp_tube_out);
 
+	Serial.print(temp_sun_in);
+	Serial.print("\t");
+	Serial.print(temp_sun_out);
+	Serial.print("\t");
+	Serial.print(temp_tube_in);
+	Serial.print("\t");
+	Serial.print(temp_tube_out);
+	Serial.println("");
 	//Serial.print("sensor_tank: ");
 	//Serial.println(temp_tank);
 
 	//Serial.print("Outhouse: ");
 	//Serial.println(temp_out);
 
+	process = false;
+	waith_process(process);
 } 
 void read_compass()
 {
@@ -2370,7 +2394,19 @@ void run_uprav_elevation(float altitude, float kalAngleX)
 
 }
 
-
+void waith_process(bool process)
+{
+	if (process)
+	{
+		myGLCD.setColor(255, 0, 0);
+		myGLCD.fillRoundRect(250, 1, 319, 10);
+	}
+	else
+	{
+		myGLCD.setColor(0, 0, 0);
+		myGLCD.fillRoundRect(250, 1, 319, 10);
+	}
+}
 
 
 
@@ -2739,14 +2775,15 @@ void setup()
 
   //MsTimer2::start();
 	attachInterrupt(4, keypress, FALLING);
-
+	read_Temperatures();                                  // Обновить информацию по температуре
   Serial.println(" ");
   Serial.println(F("System initialization OK!."));        // Информация о завершении настройки
+  draw_Glav_Menu();
 }
 
 void loop()
 {
-    draw_Glav_Menu();
+  //  draw_Glav_Menu();
     swichMenu();
 }
 
