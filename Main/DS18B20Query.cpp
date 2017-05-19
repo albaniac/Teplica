@@ -79,11 +79,17 @@ bool DS18B20Support::readTemperature(DS18B20Temperature* result,DSSensorType typ
   {
     case DS18B20:
       tc_100 = (6 * temp) + temp/4;
+	 // tc_100 = (temp * 100) / 2;
     break;
 
     case DS18S20:
       tc_100 = (temp*100)/2;
     break;
+
+	case DS1820:
+		tc_100 = (temp * 100) / 2;
+		break;
+
   }
    
 
