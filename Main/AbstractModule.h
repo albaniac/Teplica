@@ -11,18 +11,14 @@ class ModuleController; // forward declaration
 #include "MCP23017.h"
 
 
-//MCP23017 mcp_Water;                                       // Назначение портов расширения MCP23017  
-//MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  
-
-
 // структура для публикации
 struct PublishStruct
 {
-  bool Status; // Статус ответа на запрос: false - ошибка, true - нет ошибки
-  String Text; // текстовое сообщение о публикации, общий для всех буфер
-  bool AddModuleIDToAnswer; // добавлять ли имя модуля в ответ?
-  void* Data; // любая информация, в зависимости от типа модуля
-  bool Busy; // флаг, что структура занята для записи
+  bool Status;                  // Статус ответа на запрос: false - ошибка, true - нет ошибки
+  String Text;                  // текстовое сообщение о публикации, общий для всех буфер
+  bool AddModuleIDToAnswer;     // добавлять ли имя модуля в ответ?
+  void* Data;                   // любая информация, в зависимости от типа модуля
+  bool Busy;                    // флаг, что структура занята для записи
 
   void Reset()
   {

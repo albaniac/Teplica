@@ -3,6 +3,17 @@
 #ifdef USE_PH_MODULE
 #include "PHModule.h"
 #endif
+#include "MCP23017.h"
+
+
+MCP23017 mcp_Water;                                          // Назначение портов расширения MCP23017  
+MCP23017 mcp_Windows1;                                       // Назначение портов расширения MCP23017  
+MCP23017 mcp_Windows2;                                       // Назначение портов расширения MCP23017  
+
+
+
+
+
 
 PublishStruct& PublishStruct::operator=(const String& src)
 {
@@ -83,55 +94,55 @@ PublishStruct& PublishStruct::operator<<(long src)
   return *this;      
 }
 
-//void WorkStatus::setup_mcp()
-//{
-//	// Настройка расширителя портов
-//	Wire.begin();
-//
-//	mcp_Out1.begin(1);                               //  Адрес (1) U6 первого  расширителя портов
-//	mcp_Out1.pinMode(0, OUTPUT);                     //   
-//	mcp_Out1.pinMode(1, OUTPUT);                     //   
-//	mcp_Out1.pinMode(2, OUTPUT);                     //   
-//	mcp_Out1.pinMode(3, OUTPUT);                     //   
-//	mcp_Out1.pinMode(4, OUTPUT);                     //   
-//	mcp_Out1.pinMode(5, OUTPUT);                     //   
-//	mcp_Out1.pinMode(6, OUTPUT);                     //   
-//	mcp_Out1.pinMode(7, OUTPUT);                     //   
-//
-//	mcp_Out1.pinMode(8, OUTPUT);                     //   
-//	mcp_Out1.pinMode(9, OUTPUT);                     //   
-//	mcp_Out1.pinMode(10, OUTPUT);                    //   
-//	mcp_Out1.pinMode(11, OUTPUT);                    //   
-//	mcp_Out1.pinMode(12, OUTPUT);                    //   
-//	mcp_Out1.pinMode(13, OUTPUT);                    //  
-//	mcp_Out1.pinMode(14, OUTPUT);                    //   
-//	mcp_Out1.pinMode(15, OUTPUT);                    //   
-//
-//	mcp_Out2.begin(2);                               //   
-//	mcp_Out2.pinMode(0, OUTPUT);                     //   
-//	mcp_Out2.pinMode(1, OUTPUT);                     //  
-//	mcp_Out2.pinMode(2, OUTPUT);                     //   
-//	mcp_Out2.pinMode(3, OUTPUT);                     //   
-//	mcp_Out2.pinMode(4, OUTPUT);                     //   
-//	mcp_Out2.pinMode(5, OUTPUT);                     //   
-//	mcp_Out2.pinMode(6, OUTPUT);                     //   
-//	mcp_Out2.pinMode(7, OUTPUT);                     //   
-//
-//	mcp_Out2.pinMode(8, OUTPUT);                     //   
-//	mcp_Out2.pinMode(9, OUTPUT);                     //   
-//	mcp_Out2.pinMode(10, OUTPUT);                    //   
-//	mcp_Out2.pinMode(11, OUTPUT);                    //   
-//	mcp_Out2.pinMode(12, OUTPUT);                    //   
-//	mcp_Out2.pinMode(13, OUTPUT);                    //   
-//	mcp_Out2.pinMode(14, OUTPUT);                    //   
-//	mcp_Out2.pinMode(15, OUTPUT);                    //   
-//
-//	for (int i = 0; i < 16; i++)
-//	{
-//		mcp_Out1.digitalWrite(i, HIGH);
-//		mcp_Out2.digitalWrite(i, HIGH);
-//	}
-//}
+void WorkStatus::setup_mcp()
+{
+	// Настройка расширителя портов
+	Wire.begin();
+
+	mcp_Water.begin(1);                               //  Адрес (1)  первого  расширителя портов
+	mcp_Water.pinMode(0, OUTPUT);                     //   
+	mcp_Water.pinMode(1, OUTPUT);                     //   
+	mcp_Water.pinMode(2, OUTPUT);                     //   
+	mcp_Water.pinMode(3, OUTPUT);                     //   
+	mcp_Water.pinMode(4, OUTPUT);                     //   
+	mcp_Water.pinMode(5, OUTPUT);                     //   
+	mcp_Water.pinMode(6, OUTPUT);                     //   
+	mcp_Water.pinMode(7, OUTPUT);                     //   
+
+	mcp_Water.pinMode(8, OUTPUT);                     //   
+	mcp_Water.pinMode(9, OUTPUT);                     //   
+	mcp_Water.pinMode(10, OUTPUT);                    //   
+	mcp_Water.pinMode(11, OUTPUT);                    //   
+	mcp_Water.pinMode(12, OUTPUT);                    //   
+	mcp_Water.pinMode(13, OUTPUT);                    //  
+	mcp_Water.pinMode(14, OUTPUT);                    //   
+	mcp_Water.pinMode(15, OUTPUT);                    //   
+
+	mcp_Windows1.begin(2);                               //   
+	mcp_Windows1.pinMode(0, OUTPUT);                     //   
+	mcp_Windows1.pinMode(1, OUTPUT);                     //  
+	mcp_Windows1.pinMode(2, OUTPUT);                     //   
+	mcp_Windows1.pinMode(3, OUTPUT);                     //   
+	mcp_Windows1.pinMode(4, OUTPUT);                     //   
+	mcp_Windows1.pinMode(5, OUTPUT);                     //   
+	mcp_Windows1.pinMode(6, OUTPUT);                     //   
+	mcp_Windows1.pinMode(7, OUTPUT);                     //   
+
+	mcp_Windows1.pinMode(8, OUTPUT);                     //   
+	mcp_Windows1.pinMode(9, OUTPUT);                     //   
+	mcp_Windows1.pinMode(10, OUTPUT);                    //   
+	mcp_Windows1.pinMode(11, OUTPUT);                    //   
+	mcp_Windows1.pinMode(12, OUTPUT);                    //   
+	mcp_Windows1.pinMode(13, OUTPUT);                    //   
+	mcp_Windows1.pinMode(14, OUTPUT);                    //   
+	mcp_Windows1.pinMode(15, OUTPUT);                    //   
+
+	for (int i = 0; i < 16; i++)
+	{
+		mcp_Water.digitalWrite(i, HIGH);
+		mcp_Windows1.digitalWrite(i, HIGH);
+	}
+}
 
 
 
