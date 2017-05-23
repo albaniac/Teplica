@@ -14,7 +14,6 @@ MCP23017 mcp_Windows2;                                       // Назначен
 
 
 
-
 PublishStruct& PublishStruct::operator=(const String& src)
 {
   this->Text = src;
