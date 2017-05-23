@@ -340,6 +340,7 @@ void setup()
  
   // настраиваем все железки
   controller.Setup();
+
    
   // устанавливаем провайдера команд для контроллера
   controller.SetCommandParser(&commandParser);

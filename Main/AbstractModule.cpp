@@ -3,7 +3,6 @@
 #ifdef USE_PH_MODULE
 #include "PHModule.h"
 #endif
-#include "MCP23017.h"
 
 
 MCP23017 mcp_Water;                                          // Назначение портов расширения MCP23017  
@@ -98,7 +97,7 @@ void WorkStatus::setup_mcp()
 	// Настройка расширителя портов
 	Wire.begin();
 
-	mcp_Water.begin(1);                               //  Адрес (1)  первого  расширителя портов
+	mcp_Water.begin(5);                               //  Адрес (4)  первого  расширителя портов
 	mcp_Water.pinMode(0, OUTPUT);                     //   
 	mcp_Water.pinMode(1, OUTPUT);                     //   
 	mcp_Water.pinMode(2, OUTPUT);                     //   
@@ -117,7 +116,7 @@ void WorkStatus::setup_mcp()
 	mcp_Water.pinMode(14, OUTPUT);                    //   
 	mcp_Water.pinMode(15, OUTPUT);                    //   
 
-	mcp_Windows1.begin(2);                               //   
+	mcp_Windows1.begin(4);                               //   
 	mcp_Windows1.pinMode(0, OUTPUT);                     //   
 	mcp_Windows1.pinMode(1, OUTPUT);                     //  
 	mcp_Windows1.pinMode(2, OUTPUT);                     //   
@@ -141,9 +140,8 @@ void WorkStatus::setup_mcp()
 		mcp_Water.digitalWrite(i, HIGH);
 		mcp_Windows1.digitalWrite(i, HIGH);
 	}
+	Serial.println("Setup MCP23017 ok!");
 }
-
-
 
 
 WorkStatus::WorkStatus()
@@ -216,6 +214,7 @@ void WorkStatus::SaveWaterChannelState(byte channel, byte state)
   if(state == RELAY_ON)
     State.WaterChannelsState |= (1 << channel);
 }
+
 void WorkStatus::PinWrite(byte pin, byte level)
 {
   if(pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
@@ -256,6 +255,53 @@ void WorkStatus::PinWrite(byte pin, byte level)
   if(level)
     State.PinsState[byte_num] |= (1 << bit_num);
 }
+void WorkStatus::MCP_PinWrite(byte pin, byte level)
+{
+	if (pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
+	
+		
+		//digitalWrite(pin, level);
+	   mcp_Water.digitalWrite(pin, level);
+
+
+
+
+	// теперь копируем состояние пина во внутреннюю структуру
+	uint8_t byte_num = pin / 8;
+	uint8_t bit_num = pin % 8;
+
+	if (byte_num > 15) // не помещаемся
+		return;
+
+	// тут проверки, чтобы не записывать статус информационных мигающих пинов
+#ifdef USE_READY_DIODE
+	if (pin == DIODE_READY_PIN) // моргает пин индикации работы, игнорируем
+		return;
+#endif
+
+#ifdef USE_WINDOWS_MANUAL_MODE_DIODE
+	if (pin == DIODE_WINDOWS_MANUAL_MODE_PIN) // моргает диод ручного режима работы окон, игнорируем
+		return;
+#endif
+
+#ifdef USE_WATERING_MANUAL_MODE_DIODE
+	if (pin == DIODE_WATERING_MANUAL_MODE_PIN) // моргает диод ручного режима работы полива, игнорируем
+		return;
+#endif
+
+#ifdef USE_LIGHT_MANUAL_MODE_DIODE
+	if (pin == DIODE_LIGHT_MANUAL_MODE_PIN) // моргает диод ручного режима работы досветки, игнорируем
+		return;
+#endif
+
+	// сперва сбрасываем нужный бит
+	State.PinsState[byte_num] &= ~(1 << bit_num);
+
+	// теперь, если нам передали не 0 - устанавливаем нужный бит
+	if (level)
+		State.PinsState[byte_num] |= (1 << bit_num);
+}
+
 void WorkStatus::CopyStatusModes()
 {
   CopyStatusMode(WINDOWS_MODE_BIT);

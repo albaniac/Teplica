@@ -53,6 +53,8 @@ _rtc.begin();
   WORK_STATUS.PinMode(SCK,OUTPUT,false);
 #endif
   
+  WORK_STATUS.setup_mcp();
+
 }
 
 void ModuleController::Log(AbstractModule* mod, const String& message)

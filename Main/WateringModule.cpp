@@ -229,9 +229,13 @@ GlobalSettings* settings = MainController->GetSettings();
   // выключаем реле насоса  
  
 	  WORK_STATUS.PinMode(PUMP1_RELAY_PIN, OUTPUT);
-	  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, RELAY_OFF);
+	  WORK_STATUS.MCP_PinWrite(PUMP1_RELAY_PIN, RELAY_OFF);
+
+	 // WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, RELAY_OFF); 
+
 	  WORK_STATUS.PinMode(PUMP2_RELAY_PIN, OUTPUT);
-	  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
+	//  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
+	  WORK_STATUS.MCP_PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
 
   flags.bPumpIsOn = false;
 #endif
@@ -385,7 +389,8 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
       if(channel->IsChanged() || flags.internalNeedChange)
         for(uint8_t i=0;i<WATER_RELAYS_COUNT;i++)
         {
-          WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов   !!! Заменить на MCP23017
+        //  WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов   !!! Заменить на MCP23017
+		  WORK_STATUS.MCP_PinWrite(WATER_RELAYS[i], state);  // сохраняем статус пинов   !!! Заменить на MCP23017
           WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
         } // for
         
@@ -397,7 +402,8 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
     if(channel->IsChanged() || flags.internalNeedChange)
     {
 	  //mcp_Out1.digitalWrite(WATER_RELAYS[channelIdx], state);
-      WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина   !!! Заменить на MCP23017
+     // WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина   !!! Заменить на MCP23017
+	  WORK_STATUS.MCP_PinWrite(WATER_RELAYS[channelIdx], state); // 
       WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
     }
   
@@ -437,26 +443,39 @@ void WateringModule::HoldPumpState(bool anyChannelActive)
     if(flags.bPumpIsOn) // если был включен - выключаем
     {
       flags.bPumpIsOn = false;
-      WORK_STATUS.PinWrite(PUMP1_RELAY_PIN,RELAY_OFF);
-	  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
+
+	  WORK_STATUS.MCP_PinWrite(PUMP1_RELAY_PIN, RELAY_OFF); // 
+	  WORK_STATUS.MCP_PinWrite(PUMP2_RELAY_PIN, RELAY_OFF); ; // 
+
+   //   WORK_STATUS.PinWrite(PUMP1_RELAY_PIN,RELAY_OFF);   //   
+	  //WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);  //
+
     }
     return; // и не будем ничего больше делать
   }
     if(((bool)flags.bPumpIsOn) != anyChannelActive) // состояние изменилось, пишем в пин только при смене состояния
     {
       flags.bPumpIsOn = anyChannelActive;
+	  WORK_STATUS.MCP_PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
+	  WORK_STATUS.MCP_PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
+
+	 // WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+	 // WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+
 	  if (WATER_RELAYS_COUNT < 8)                  // !! Добавил управление насосом - переделать
 	  {
 		  // пишем в реле насоса1 вкл или выкл в зависимости от настройки "включать насос при поливе"
-		  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+		 // WORK_STATUS.MCP_PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
+		//  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
 	  }
 	  else
 	  {
 		  // пишем в реле насоса2 вкл или выкл в зависимости от настройки "включать насос при поливе"
-		  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+		 // WORK_STATUS.MCP_PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);   // Включать MCP23017
+		 // WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
 
 	  }
-    } 
+    }  
 }
 #endif
 
