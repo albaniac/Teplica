@@ -8,6 +8,8 @@ class ModuleController; // forward declaration
 #include "Globals.h"
 #include "CommandParser.h"
 #include "TinyVector.h"
+#include "MCP23017.h"
+
 
 // структура для публикации
 struct PublishStruct
