@@ -396,6 +396,7 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
     
     if(channel->IsChanged() || flags.internalNeedChange)
     {
+	  //mcp_Out1.digitalWrite(WATER_RELAYS[channelIdx], state);
       WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина   !!! Заменить на MCP23017
       WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
     }

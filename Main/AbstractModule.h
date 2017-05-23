@@ -8,7 +8,12 @@ class ModuleController; // forward declaration
 #include "Globals.h"
 #include "CommandParser.h"
 #include "TinyVector.h"
+#include <Wire.h>
 #include "MCP23017.h"
+
+
+MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  
+MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  
 
 
 // структура для публикации
@@ -309,6 +314,7 @@ class WorkStatus
     bool IsModeChanged();
     void SetModeUnchanged();
     WorkStatus();
+	void setup_mcp();
 
   static const char* ToHex(int i);
   static byte FromHex(const char* buff);
@@ -319,7 +325,7 @@ class WorkStatus
   // если последний парааметр равен false - то с пином ничего не делается, просто его режим копируется в карту занятости.
   void PinMode(byte pinNumber,byte mode, bool setMode=true); 
   void PinWrite(byte pin, byte level); // пишет в пин состояние, заодно копируя его в слепок состояния контроллера
- // void PinWrite(byte pin, byte level); // Переделать для записи в MCP23017
+ // void PinWrite(byte pin, byte level); // !!! Переделать для записи в MCP23017
 
 
   void SaveWindowState(byte channel, byte state);
