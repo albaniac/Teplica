@@ -8,12 +8,11 @@ class ModuleController; // forward declaration
 #include "Globals.h"
 #include "CommandParser.h"
 #include "TinyVector.h"
-#include <Wire.h>
 #include "MCP23017.h"
 
 
-MCP23017 mcp_Out1;                                       // Назначение портов расширения MCP23017  
-MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  
+//MCP23017 mcp_Water;                                       // Назначение портов расширения MCP23017  
+//MCP23017 mcp_Out2;                                       // Назначение портов расширения MCP23017  
 
 
 // структура для публикации
