@@ -317,6 +317,8 @@ class WorkStatus
   // если последний парааметр равен false - то с пином ничего не делается, просто его режим копируется в карту занятости.
   void PinMode(byte pinNumber,byte mode, bool setMode=true); 
   void PinWrite(byte pin, byte level); // пишет в пин состояние, заодно копируя его в слепок состояния контроллера
+ // void PinWrite(byte pin, byte level); // Переделать для записи в MCP23017
+
 
   void SaveWindowState(byte channel, byte state);
   void SaveWaterChannelState(byte channel, byte state);

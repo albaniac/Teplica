@@ -8,22 +8,22 @@
 
 typedef enum
 {
-  wwmAutomatic, // в автоматическом режиме
-  wwmManual // в ручном режиме
+  wwmAutomatic,         // в автоматическом режиме
+  wwmManual             // в ручном режиме
   
-} WateringWorkMode; // режим работы полива
+} WateringWorkMode;     // режим работы полива
 
 
 typedef struct
 {
   
-  bool rel_on : 1; // включено ли реле канала?
+  bool rel_on : 1;      // включено ли реле канала?
   bool last_rel_on : 1; // последнее состояние реле канала
   byte pad : 6;
     
 } WateringChannelState;
 
-class WateringChannel // канал для полива
+class WateringChannel   // канал для полива
 {
   
 private:
@@ -36,31 +36,31 @@ public:
   void SetRelayOn(bool bOn) { state.last_rel_on = state.rel_on; state.rel_on = bOn; }
   bool IsChanged() {return state.last_rel_on != state.rel_on; }
   
-  unsigned long WateringTimer; // таймер полива для канала
-  unsigned long WateringDelta; // дельта дополива
+  unsigned long WateringTimer;           // таймер полива для канала
+  unsigned long WateringDelta;           // дельта дополива
     
 };
 
 typedef struct
 {
-  uint8_t workMode : 5; // текущий режим работы
-  bool bIsRTClockPresent : 1; // флаг наличия модуля часов реального времени
+  uint8_t workMode : 5;                  // текущий режим работы
+  bool bIsRTClockPresent : 1;            // флаг наличия модуля часов реального времени
   bool bPumpIsOn : 1;
   bool internalNeedChange : 1;
   
 } WateringModuleFlags;
 
-class WateringModule : public AbstractModule // модуль управления поливом
+class WateringModule : public AbstractModule                                      // модуль управления поливом
 {
   private:
 
   #if WATER_RELAYS_COUNT > 0
   
-  WateringChannel wateringChannels[WATER_RELAYS_COUNT]; // каналы полива
-  WateringChannel dummyAllChannels; // управляем всеми каналами посредством этой структуры
-  void UpdateChannel(int8_t channelIdx, WateringChannel* channel, uint16_t dt); // обновляем состояние канала
-  void HoldChannelState(int8_t channelIdx, WateringChannel* channel);  // поддерживаем состояние реле для канала.
-  bool IsAnyChannelActive(uint8_t wateringOption); // возвращает true, если хотя бы один из каналов активен
+  WateringChannel wateringChannels[WATER_RELAYS_COUNT];                           // каналы полива
+  WateringChannel dummyAllChannels;                                               // управляем всеми каналами посредством этой структуры
+  void UpdateChannel(int8_t channelIdx, WateringChannel* channel, uint16_t dt);   // обновляем состояние канала
+  void HoldChannelState(int8_t channelIdx, WateringChannel* channel);             // поддерживаем состояние реле для канала.
+  bool IsAnyChannelActive(uint8_t wateringOption);                                // возвращает true, если хотя бы один из каналов активен
 
 
   #endif
@@ -69,13 +69,14 @@ class WateringModule : public AbstractModule // модуль управлени�
  // GlobalSettings* settings; // настройки
 
 
-  int8_t lastAnyChannelActiveFlag; // флаг последнего состояния активности каналов
+  int8_t lastAnyChannelActiveFlag;                   // флаг последнего состояния активности каналов
 
   WateringModuleFlags flags;
    
-  uint8_t lastDOW; // день недели с момента предыдущего опроса
-  uint8_t currentDOW; // текущий день недели
-  uint8_t currentHour; // текущий час
+  uint8_t lastDOW;                                   // день недели с момента предыдущего опроса
+  uint8_t currentDOW;                                // текущий день недели
+  uint8_t currentHour;                               // текущий час
+  uint8_t currentMinute;                             // текущая минута !! добавил
   
 #ifdef USE_WATERING_MANUAL_MODE_DIODE
   BlinkModeInterop blinker;
@@ -84,7 +85,7 @@ class WateringModule : public AbstractModule // модуль управлени�
 
 
 #ifdef USE_PUMP_RELAY   
-   void HoldPumpState(bool anyChannelActive); // поддерживаем состояние реле насоса
+   void HoldPumpState(bool anyChannelActive);        // поддерживаем состояние реле насоса
 #endif
 
     

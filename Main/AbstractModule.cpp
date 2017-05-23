@@ -143,7 +143,7 @@ void WorkStatus::SaveLightChannelState(byte channel, byte state)
 }
 void WorkStatus::SaveWaterChannelState(byte channel, byte state)
 {
-  if(channel > 7)
+  if(channel > 7)     // Уточнить количество каналов
     return;
 
   // сперва сбрасываем нужный бит

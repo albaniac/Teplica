@@ -24,7 +24,7 @@ void WateringModule::Setup()
 GlobalSettings* settings = MainController->GetSettings();
   
    #ifdef USE_DS3231_REALTIME_CLOCK
-    flags.bIsRTClockPresent = true; // есть часы реального времени
+    flags.bIsRTClockPresent = true;                    // есть часы реального времени
     DS3231Clock watch =  MainController->GetClock();
     DS3231Time t =   watch.getTime();
   #else
@@ -125,9 +125,10 @@ GlobalSettings* settings = MainController->GetSettings();
       
     } // if
 
-  lastDOW = t.dayOfWeek; // запоминаем прошлый день недели
-  currentDOW = t.dayOfWeek; // запоминаем текущий день недели
-  currentHour = t.hour; // запоминаем текущий час
+  lastDOW = t.dayOfWeek;      // запоминаем прошлый день недели
+  currentDOW = t.dayOfWeek;   // запоминаем текущий день недели
+  currentHour = t.hour;       // запоминаем текущий час
+  currentMinute = t.minute;   // запоминаем текущую минуту !! Добавил
   
   #else
 
@@ -135,10 +136,11 @@ GlobalSettings* settings = MainController->GetSettings();
   lastDOW = 0; // запоминаем прошлый день недели
   currentDOW = 0; // запоминаем текущий день недели
   currentHour = 0; // запоминаем текущий час
+  currentMinute = 0; // запоминаем текущую минуту !! Добавил
     
   #endif
 
-  lastAnyChannelActiveFlag = -1; // ещё не собирали активность каналов
+  lastAnyChannelActiveFlag = -1;     // ещё не собирали активность каналов
     
   // выключаем все реле
   #if WATER_RELAYS_COUNT > 0
@@ -225,8 +227,12 @@ GlobalSettings* settings = MainController->GetSettings();
 
 #ifdef USE_PUMP_RELAY
   // выключаем реле насоса  
-  WORK_STATUS.PinMode(PUMP_RELAY_PIN,OUTPUT);
-  WORK_STATUS.PinWrite(PUMP_RELAY_PIN,RELAY_OFF);
+ 
+	  WORK_STATUS.PinMode(PUMP1_RELAY_PIN, OUTPUT);
+	  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, RELAY_OFF);
+	  WORK_STATUS.PinMode(PUMP2_RELAY_PIN, OUTPUT);
+	  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
+
   flags.bPumpIsOn = false;
 #endif
 
@@ -296,7 +302,7 @@ void WateringModule::UpdateChannel(int8_t channelIdx, WateringChannel* channel, 
 
 
     // проверяем, установлен ли у нас день недели для полива, и настал ли час, с которого можно поливать
-    bool canWork = bitRead(weekDays,currentDOW-1) && (currentHour >= startWateringTime);
+    bool canWork = bitRead(weekDays,currentDOW-1) && (currentHour >= startWateringTime);   // !! Добавить минуты
   
     if(!canWork)
      { 
@@ -379,7 +385,7 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
       if(channel->IsChanged() || flags.internalNeedChange)
         for(uint8_t i=0;i<WATER_RELAYS_COUNT;i++)
         {
-          WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов
+          WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов   !!! Заменить на MCP23017
           WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
         } // for
         
@@ -390,7 +396,7 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
     
     if(channel->IsChanged() || flags.internalNeedChange)
     {
-      WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина
+      WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина   !!! Заменить на MCP23017
       WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
     }
   
@@ -430,16 +436,25 @@ void WateringModule::HoldPumpState(bool anyChannelActive)
     if(flags.bPumpIsOn) // если был включен - выключаем
     {
       flags.bPumpIsOn = false;
-      WORK_STATUS.PinWrite(PUMP_RELAY_PIN,RELAY_OFF);
+      WORK_STATUS.PinWrite(PUMP1_RELAY_PIN,RELAY_OFF);
+	  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
     }
     return; // и не будем ничего больше делать
   }
     if(((bool)flags.bPumpIsOn) != anyChannelActive) // состояние изменилось, пишем в пин только при смене состояния
     {
       flags.bPumpIsOn = anyChannelActive;
+	  if (WATER_RELAYS_COUNT < 8)                  // !! Добавил управление насосом - переделать
+	  {
+		  // пишем в реле насоса1 вкл или выкл в зависимости от настройки "включать насос при поливе"
+		  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+	  }
+	  else
+	  {
+		  // пишем в реле насоса2 вкл или выкл в зависимости от настройки "включать насос при поливе"
+		  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
 
-     // пишем в реле насоса вкл или выкл в зависимости от настройки "включать насос при поливе"
-      WORK_STATUS.PinWrite(PUMP_RELAY_PIN,flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
+	  }
     } 
 }
 #endif
@@ -452,10 +467,10 @@ void WateringModule::Update(uint16_t dt)
 
 #if WATER_RELAYS_COUNT > 0
 GlobalSettings* settings = MainController->GetSettings();  
-uint8_t wateringOption = settings->GetWateringOption(); // получаем опцию управления поливом
+uint8_t wateringOption = settings->GetWateringOption();             // получаем опцию управления поливом
 bool anyChActive = IsAnyChannelActive(wateringOption);
 
-SAVE_STATUS(WATER_STATUS_BIT, anyChActive ? 1 : 0); // сохраняем состояние полива
+SAVE_STATUS(WATER_STATUS_BIT, anyChActive ? 1 : 0);                 // сохраняем состояние полива
 SAVE_STATUS(WATER_MODE_BIT,flags.workMode == wwmAutomatic ? 1 : 0); // сохраняем режим работы полива
 
 
@@ -486,6 +501,7 @@ SAVE_STATUS(WATER_MODE_BIT,flags.workMode == wwmAutomatic ? 1 : 0); // сохр�
 
     currentDOW = t.dayOfWeek; // сохраняем текущий день недели
     currentHour = t.hour; // сохраняем текущий час
+	currentMinute = t.minute; // сохраняем текущую минуту !! Добавил
        
   #else
 
