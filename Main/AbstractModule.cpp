@@ -111,8 +111,6 @@ void WorkStatus::setup_mcp()
 		mcp_Windows1.digitalWrite(i, HIGH);
 		mcp_Windows2.digitalWrite(i, HIGH);
 	}
-
-
 	Serial.println("Setup MCP23017 ok!");
 }
 
