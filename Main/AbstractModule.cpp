@@ -226,14 +226,14 @@ void WorkStatus::PinWrite(byte pin, byte level)
   if(level)
     State.PinsState[byte_num] |= (1 << bit_num);
 }
-void WorkStatus::MCP_PinWrite(byte pin, byte level)
+void WorkStatus::MCP_PinWrite(char MCP, byte pin, byte level)
 {
 	if (pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
 	
 		
 		//digitalWrite(pin, level);
-	   mcp_Water.digitalWrite(pin, level);
-
+	   MCP.digitalWrite(pin, level);
+	//mcp_Water.digitalWrite(pin, level);
 
 
 
