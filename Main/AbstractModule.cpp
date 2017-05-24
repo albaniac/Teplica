@@ -226,20 +226,19 @@ void WorkStatus::PinWrite(byte pin, byte level)
   if(level)
     State.PinsState[byte_num] |= (1 << bit_num);
 }
-void WorkStatus::MCP_PinWrite(char MCP, byte pin, byte level)
+void WorkStatus::mcp_Water_PinWrite(byte pin, byte level)
 {
 	if (pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
 	
 		
 		//digitalWrite(pin, level);
-	   MCP.digitalWrite(pin, level);
-	//mcp_Water.digitalWrite(pin, level);
+	 mcp_Water.digitalWrite(pin, level);
 
-
+/*
 
 	// теперь копируем состояние пина во внутреннюю структуру
 	uint8_t byte_num = pin / 8;
-	uint8_t bit_num = pin % 8;
+	 
 
 	if (byte_num > 15) // не помещаемся
 		return;
@@ -271,6 +270,7 @@ void WorkStatus::MCP_PinWrite(char MCP, byte pin, byte level)
 	// теперь, если нам передали не 0 - устанавливаем нужный бит
 	if (level)
 		State.PinsState[byte_num] |= (1 << bit_num);
+	*/
 }
 
 void WorkStatus::CopyStatusModes()
