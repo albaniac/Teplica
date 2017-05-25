@@ -1,4 +1,3 @@
-
 #include "Globals.h"
 
 #ifdef _DEBUG
@@ -322,14 +321,13 @@ AlertModule alertsModule;
   ExternalWatchdogSettings watchdogSettings;
 #endif
 
-
 void setup() 
 { 
   Serial.begin(SERIAL_BAUD_RATE); // запускаем Serial на нужной скорости
 
   WORK_STATUS.PinMode(0,INPUT,false);
   WORK_STATUS.PinMode(1,OUTPUT,false);
- 
+
   #ifdef USE_EXTERNAL_WATCHDOG
     WORK_STATUS.PinMode(WATCHDOG_REBOOT_PIN,OUTPUT,true);
     digitalWrite(WATCHDOG_REBOOT_PIN,LOW);
@@ -340,7 +338,6 @@ void setup()
  
   // настраиваем все железки
   controller.Setup();
-
    
   // устанавливаем провайдера команд для контроллера
   controller.SetCommandParser(&commandParser);

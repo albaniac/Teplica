@@ -11,15 +11,21 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
-#ifndef _MCP23017_H_
-#define _MCP23017_H_
+#ifndef _Adafruit_MCP23017_H_
+#define _Adafruit_MCP23017_H_
 
 // Don't forget the Wire library
-class MCP23017 
-{
+#ifdef __AVR_ATtiny85__
+#include <TinyWireM.h>
+#else
+#include <Wire.h>
+#endif
+
+class Adafruit_MCP23017 {
 public:
   void begin(uint8_t addr);
   void begin(void);
+
   void pinMode(uint8_t p, uint8_t d);
   void digitalWrite(uint8_t p, uint8_t d);
   void pullUp(uint8_t p, uint8_t d);
@@ -27,9 +33,30 @@ public:
 
   void writeGPIOAB(uint16_t);
   uint16_t readGPIOAB();
+  uint8_t readGPIO(uint8_t b);
+
+  void setupInterrupts(uint8_t mirroring, uint8_t open, uint8_t polarity);
+  void setupInterruptPin(uint8_t p, uint8_t mode);
+  uint8_t getLastInterruptPin();
+  uint8_t getLastInterruptPinValue();
+
+  uint8_t getAddress() {return i2caddr;}
 
  private:
   uint8_t i2caddr;
+
+  uint8_t bitForPin(uint8_t pin);
+  uint8_t regForPin(uint8_t pin, uint8_t portAaddr, uint8_t portBaddr);
+
+  uint8_t readRegister(uint8_t addr);
+  void writeRegister(uint8_t addr, uint8_t value);
+
+  /**
+   * Utility private method to update a register associated with a pin (whether port A/B)
+   * reads its value, updates the particular bit, and writes its value.
+   */
+  void updateRegisterBit(uint8_t p, uint8_t pValue, uint8_t portAaddr, uint8_t portBaddr);
+
 };
 
 #define MCP23017_ADDRESS 0x20
@@ -59,5 +86,7 @@ public:
 #define MCP23017_INTCAPB 0x11
 #define MCP23017_GPIOB 0x13
 #define MCP23017_OLATB 0x15
+
+#define MCP23017_INT_ERR 255
 
 #endif

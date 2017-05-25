@@ -7,29 +7,29 @@
 typedef enum
 {
   rtUnknown,
-  rtTemp,         // за температурой следим
-  rtLuminosity,   // за освещенностью следим
-  rtHumidity,     // за влажностью следим
-  rtPinState,     // следим за статусом пина
+  rtTemp, // за температурой следим
+  rtLuminosity, // за освещенностью следим
+  rtHumidity, // за влажностью следим
+  rtPinState, // следим за статусом пина
   rtSoilMoisture, // следим за влажностью почвы
-  rtPH            // следим за pH
+  rtPH // следим за pH
   
 } RuleTarget; // за чем следит правило
 
 typedef enum
 {
-  tsPassed,          // следим четко за переданной
+  tsPassed, // следим четко за переданной
   tsOpenTemperature, // берём температуру открытия из настроек
   tsCloseTemperature // берём температуру закрытия из настроек
   
-} RuleDataSource;    // откуда брать настройку для слежения?
+} RuleDataSource; // откуда брать настройку для слежения?
 
 typedef enum
 {
-  roLessThan,        // < меньше чем
-  roGreaterThan,     // > больше чем
-  roLessOrEqual,     // <=
-  roGreaterOrEqual   // >=
+  roLessThan, // < меньше чем
+  roGreaterThan, // > больше чем
+  roLessOrEqual, // <=
+  roGreaterOrEqual // >=
   
 } RuleOperand; // какой операнд использовать
 class AlertModule; // forward declaration
@@ -85,11 +85,11 @@ typedef enum
   commandCloseAllWindows,       // закрыть все окна
   commandLightOn,               // включить досветку
   commandLightOff,              // выключить досветку
-  commandExecCompositeCommand,  // выполнить составную команду
+  commandExecCompositeCommand,   // выполнить составную команду
   commandSetOnePinHigh,         // выставить на одном пине высокий уровень
   commandSetOnePinLow           // выставить на одном пине низкий уровень 
   
-} RuleKnownCommands;            // известные правилу команды, которые оно может перевести в краткую форму
+} RuleKnownCommands; // известные правилу команды, которые оно может перевести в краткую форму
 
 #define RULE_SETT_HEADER1 0x21
 #define RULE_SETT_HEADER2 0x17
@@ -98,9 +98,9 @@ class AlertRule
 {
   private:
 
-    RuleSettings Settings;         // наши настройки
+    RuleSettings Settings; // наши настройки
 
-    char* rawCommand;             // сырая команда, если Settings.TargetCommandType == commandUnparsed, то вся команда будет здесь    
+    char* rawCommand; // сырая команда, если Settings.TargetCommandType == commandUnparsed, то вся команда будет здесь    
     AbstractModule* linkedModule; // модуль, показания которого надо отслеживать
     LinkedRulesToIdxVector linkedRulesIndices; // привязка имён связанных правил к их индексу у родителя
     const char* GetKnownModuleName(uint8_t type);
@@ -131,18 +131,18 @@ class AlertRule
     size_t GetLinkedRulesCount();
     const char* GetLinkedRuleName(uint8_t idx);
 
-    uint8_t Save(uint16_t writeAddr);        // сохраняем себя в EEPROM, возвращаем кол-во записанных байт
-    uint8_t Load(uint16_t readAddr);         // читаем себя из EEPROM, возвращаем кол-во прочитанных байт
+    uint8_t Save(uint16_t writeAddr); // сохраняем себя в EEPROM, возвращаем кол-во записанных байт
+    uint8_t Load(uint16_t readAddr); // читаем себя из EEPROM, возвращаем кол-во прочитанных байт
 
     void Update(uint16_t dt
   #ifdef USE_DS3231_REALTIME_CLOCK 
-     ,uint8_t currentHour                    // текущий час
-     ,uint8_t currentMinute                  // текущая минута
-     ,uint8_t currentDOW                     // текущий день недели
+     ,uint8_t currentHour // текущий час
+     ,uint8_t currentMinute // текущая минута
+     ,uint8_t currentDOW // текущий день недели
   #endif
  );
 
-    bool HasAlert();                        // проверяем, есть ли алерт?
+    bool HasAlert(); // проверяем, есть ли алерт?
 };
 
 typedef Vector<AlertRule*> RulesVector;
@@ -152,7 +152,7 @@ class AlertModule : public AbstractModule
 {
   private:
   
-    RulesVector lastIterationRaisedRules;   // список правил, сработавших на текущей итерации
+    RulesVector lastIterationRaisedRules; // список правил, сработавших на текущей итерации
     bool IsRuleRaisedOnLastIteration(AlertRule* rule);
 
     NamesVector paramsArray; // всякие общие имена храним здесь

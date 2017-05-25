@@ -23,8 +23,7 @@ typedef enum
 typedef enum
 {
   DS18B20,
-  DS18S20,
-  DS1820
+  DS18S20
 } DSSensorType; // тип сенсора
 
 class DS18B20Support

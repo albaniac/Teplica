@@ -24,7 +24,7 @@ void WateringModule::Setup()
 GlobalSettings* settings = MainController->GetSettings();
   
    #ifdef USE_DS3231_REALTIME_CLOCK
-    flags.bIsRTClockPresent = true;                    // есть часы реального времени
+    flags.bIsRTClockPresent = true; // есть часы реального времени
     DS3231Clock watch =  MainController->GetClock();
     DS3231Time t =   watch.getTime();
   #else
@@ -32,7 +32,7 @@ GlobalSettings* settings = MainController->GetSettings();
   #endif 
 
 #ifdef USE_WATERING_MANUAL_MODE_DIODE
-  blinker.begin(DIODE_WATERING_MANUAL_MODE_PIN);//, F("WM"));  // настраиваем блинкер на нужный пин
+  blinker.begin(DIODE_WATERING_MANUAL_MODE_PIN);  // настраиваем блинкер на нужный пин
 #endif
 
   flags.workMode = wwmAutomatic; // автоматический режим работы
@@ -55,47 +55,6 @@ GlobalSettings* settings = MainController->GetSettings();
     volatile uint16_t curReadAddr = WATERING_STATUS_EEPROM_ADDR;
 
     volatile bool needToReadFromEEPROM = true; // считаем, что мы должны читать из EEPROM
-
-    /*
-    if(MainController->HasSDCard())
-    {
-      WTR_LOG(F("[WTR] - read from SD..."));
-
-      char file_name[13] = {0};
-      sprintf_P(file_name,(const char*)F("%u.WTR"),0);
-
-      WTR_LOG(file_name);
-
-      SDFile sdFile = SD.open(file_name,FILE_READ);
-      if(sdFile)
-      {
-        if(sdFile.size() == sizeof(unsigned long) + sizeof(uint8_t))
-        {
-            WTR_LOG(F("[WTR] - file struct OK..."));
-
-            // нормальный размер файла, можем читать
-            sdFile.read(&savedDOW,sizeof(uint8_t));
-            sdFile.read(&savedWorkTime,sizeof(unsigned long));
-
-              WTR_LOG(F("[WTR] - saved data:"));
-              WTR_LOG(savedDOW);
-              WTR_LOG(savedWorkTime);
-
-            needToReadFromEEPROM = false; // прочитали настройки из файла
-        
-        } // if
-        
-        sdFile.close();
-        
-      } // if(sdFile)
-      else
-      {
-        WTR_LOG(F("[WTR] - unable to open file!"));
-      }
-
-    } // if(MainController->HasSDCard())
-    */
-
 
     if(needToReadFromEEPROM)
     {
@@ -125,10 +84,9 @@ GlobalSettings* settings = MainController->GetSettings();
       
     } // if
 
-  lastDOW = t.dayOfWeek;      // запоминаем прошлый день недели
-  currentDOW = t.dayOfWeek;   // запоминаем текущий день недели
-  currentHour = t.hour;       // запоминаем текущий час
-  currentMinute = t.minute;   // запоминаем текущую минуту !! Добавил
+  lastDOW = t.dayOfWeek; // запоминаем прошлый день недели
+  currentDOW = t.dayOfWeek; // запоминаем текущий день недели
+  currentHour = t.hour; // запоминаем текущий час
   
   #else
 
@@ -136,21 +94,32 @@ GlobalSettings* settings = MainController->GetSettings();
   lastDOW = 0; // запоминаем прошлый день недели
   currentDOW = 0; // запоминаем текущий день недели
   currentHour = 0; // запоминаем текущий час
-  currentMinute = 0; // запоминаем текущую минуту !! Добавил
     
   #endif
 
-  lastAnyChannelActiveFlag = -1;     // ещё не собирали активность каналов
+  lastAnyChannelActiveFlag = -1; // ещё не собирали активность каналов
     
   // выключаем все реле
   #if WATER_RELAYS_COUNT > 0
 
   WTR_LOG(F("[WTR] - all relays OFF..."));
-  
+
   for(uint8_t i=0;i<WATER_RELAYS_COUNT;i++)
   {
-    WORK_STATUS.PinMode(WATER_RELAYS[i],OUTPUT);
-    WORK_STATUS.PinWrite(WATER_RELAYS[i],RELAY_OFF);
+    #if WATER_DRIVE_MODE == DRIVE_DIRECT
+      WORK_STATUS.PinMode(WATER_RELAYS[i],OUTPUT);
+      WORK_STATUS.PinWrite(WATER_RELAYS[i],WATER_RELAY_OFF);
+    #elif WATER_DRIVE_MODE == DRIVE_MCP23S17
+        #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+          WORK_STATUS.MCP_SPI_PinMode(WATER_MCP23S17_ADDRESS,WATER_RELAYS[i],OUTPUT);
+          WORK_STATUS.MCP_SPI_PinWrite(WATER_MCP23S17_ADDRESS,WATER_RELAYS[i],WATER_RELAY_OFF);
+        #endif
+    #elif WATER_DRIVE_MODE == DRIVE_MCP23017
+        #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+          WORK_STATUS.MCP_I2C_PinMode(WATER_MCP23017_ADDRESS,WATER_RELAYS[i],OUTPUT);
+          WORK_STATUS.MCP_I2C_PinWrite(WATER_MCP23017_ADDRESS,WATER_RELAYS[i],WATER_RELAY_OFF);
+        #endif
+    #endif
 
     // настраиваем все каналы
     wateringChannels[i].SetRelayOn(false);
@@ -164,41 +133,6 @@ GlobalSettings* settings = MainController->GetSettings();
       savedDOW = 0xFF;
       needToReadFromEEPROM = true;
 
-    /*
-    if(MainController->HasSDCard())
-    {
-      WTR_LOG(F("[WTR] - read channel state from SD..."));
-      char file_name[13] = {0};
-      sprintf_P(file_name,(const char*)F("%u.WTR"),(i+1));
-
-      WTR_LOG(file_name);
-
-      SDFile sdFile = SD.open(file_name,FILE_READ);
-      if(sdFile)
-      {
-        if(sdFile.size() == sizeof(unsigned long) + sizeof(uint8_t))
-        {
-            // нормальный размер файла, можем читать
-            sdFile.read(&savedDOW,sizeof(uint8_t));
-            sdFile.read(&savedWorkTime,sizeof(unsigned long));
-            needToReadFromEEPROM = false; // прочитали настройки из файла
-
-            WTR_LOG(F("[WTR] - saved data:"));
-            WTR_LOG(savedDOW);
-            WTR_LOG(savedWorkTime);
-        
-        } // if
-        
-        sdFile.close();
-        
-      } // if(sdFile)
-      else
-      {
-        WTR_LOG(F("[WTR] - unable to open file!"));
-      }
-    } // if(MainController->HasSDCard())
-    */
-      
       if(needToReadFromEEPROM)
       {
         WTR_LOG(F("[WTR] - read channel state from EEPROM..."));
@@ -227,16 +161,21 @@ GlobalSettings* settings = MainController->GetSettings();
 
 #ifdef USE_PUMP_RELAY
   // выключаем реле насоса  
- 
-	 // WORK_STATUS.PinMode(PUMP1_RELAY_PIN, OUTPUT);
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP1_RELAY_PIN, RELAY_OFF);
-
-	 // WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, RELAY_OFF); 
-
-	 // WORK_STATUS.PinMode(PUMP2_RELAY_PIN, OUTPUT);
-	//  WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);
-
+  #if WATER_PUMP_DRIVE_MODE == DRIVE_DIRECT
+    WORK_STATUS.PinMode(PUMP_RELAY_PIN,OUTPUT);
+    WORK_STATUS.PinWrite(PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+  #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23S17
+    #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+      WORK_STATUS.MCP_SPI_PinMode(WATER_PUMP_MCP23S17_ADDRESS,PUMP_RELAY_PIN,OUTPUT);
+      WORK_STATUS.MCP_SPI_PinWrite(WATER_PUMP_MCP23S17_ADDRESS,PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+    #endif
+  #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23017
+    #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+      WORK_STATUS.MCP_I2C_PinMode(WATER_PUMP_MCP23017_ADDRESS,PUMP_RELAY_PIN,OUTPUT);
+      WORK_STATUS.MCP_I2C_PinWrite(WATER_PUMP_MCP23017_ADDRESS,PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+    #endif
+  #endif
+  
   flags.bPumpIsOn = false;
 #endif
 
@@ -306,7 +245,7 @@ void WateringModule::UpdateChannel(int8_t channelIdx, WateringChannel* channel, 
 
 
     // проверяем, установлен ли у нас день недели для полива, и настал ли час, с которого можно поливать
-    bool canWork = bitRead(weekDays,currentDOW-1) && (currentHour >= startWateringTime);   // !! Добавить минуты
+    bool canWork = bitRead(weekDays,currentDOW-1) && (currentHour >= startWateringTime);
   
     if(!canWork)
      { 
@@ -343,31 +282,6 @@ void WateringModule::UpdateChannel(int8_t channelIdx, WateringChannel* channel, 
           for(int i=0;i<4;i++)
             EEPROM.write(wrAddr++,*readAddr++);
 
-
-          /*
-         // теперь пишем в файл для дублирования, чтобы не потерять настройки при слетании EEPROM
-          if(MainController->HasSDCard())
-          {
-            char file_name[13] = {0};
-            sprintf_P(file_name,(const char*)F("%u.WTR"),(channelIdx+1));
-
-            WTR_LOG(F("[WTR] - write to SD..."));
-            WTR_LOG(file_name);
-      
-            SDFile sdFile = SD.open(file_name,FILE_WRITE | O_TRUNC);
-            if(sdFile)
-            {              
-              sdFile.write(&currentDOW,sizeof(uint8_t));
-              sdFile.write((const uint8_t*) &ttw,sizeof(unsigned long));
-
-              sdFile.flush();
-              sdFile.close();
-               
-            } // if(sdFile)
-
-          } // if(MainController->HasSDCard())
-          */
-      
             
         } // if(channel->IsChannelRelayOn())
 
@@ -381,7 +295,7 @@ void WateringModule::UpdateChannel(int8_t channelIdx, WateringChannel* channel, 
 }
 void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channel)
 {
-    uint8_t state = channel->IsChannelRelayOn() ? RELAY_ON : RELAY_OFF;
+    uint8_t state = channel->IsChannelRelayOn() ? WATER_RELAY_ON : WATER_RELAY_OFF;
 
 
     if(channelIdx == -1) // работаем со всеми каналами, пишем в пин только тогда, когда состояние реле поменялось
@@ -389,8 +303,20 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
       if(channel->IsChanged() || flags.internalNeedChange)
         for(uint8_t i=0;i<WATER_RELAYS_COUNT;i++)
         {
- 		  WORK_STATUS.mcp_Water_PinWrite(WATER_RELAYS[i], state);          // сохраняем статус пинов   !!! Заменить на MCP23017
-          WORK_STATUS.SaveWaterChannelState(i,state);                // сохраняем статус каналов полива     
+          #if WATER_DRIVE_MODE == DRIVE_DIRECT
+            WORK_STATUS.PinWrite(WATER_RELAYS[i],state);  // сохраняем статус пинов
+            WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
+          #elif WATER_DRIVE_MODE == DRIVE_MCP23S17
+            #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+              WORK_STATUS.MCP_SPI_PinWrite(WATER_MCP23S17_ADDRESS,WATER_RELAYS[i],state);  // сохраняем статус пинов
+              WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
+            #endif
+          #elif WATER_DRIVE_MODE == DRIVE_MCP23017
+            #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+              WORK_STATUS.MCP_I2C_PinWrite(WATER_MCP23017_ADDRESS,WATER_RELAYS[i],state);  // сохраняем статус пинов
+              WORK_STATUS.SaveWaterChannelState(i,state); // сохраняем статус каналов полива     
+            #endif
+          #endif
         } // for
         
       return;
@@ -400,10 +326,23 @@ void WateringModule::HoldChannelState(int8_t channelIdx, WateringChannel* channe
     
     if(channel->IsChanged() || flags.internalNeedChange)
     {
-	  WORK_STATUS.mcp_Water_PinWrite(WATER_RELAYS[channelIdx], state);   // Управление на MCP23017
-      WORK_STATUS.SaveWaterChannelState(channelIdx,state);               // сохраняем статус канала полива
+      #if WATER_DRIVE_MODE == DRIVE_DIRECT
+        WORK_STATUS.PinWrite(WATER_RELAYS[channelIdx],state); // сохраняем статус пина
+        WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
+      #elif WATER_DRIVE_MODE == DRIVE_MCP23S17
+        #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+          WORK_STATUS.MCP_SPI_PinWrite(WATER_MCP23S17_ADDRESS,WATER_RELAYS[channelIdx],state); // сохраняем статус пина
+          WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
+        #endif
+      #elif WATER_DRIVE_MODE == DRIVE_MCP23017
+        #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+          WORK_STATUS.MCP_I2C_PinWrite(WATER_MCP23017_ADDRESS,WATER_RELAYS[channelIdx],state); // сохраняем статус пина
+          WORK_STATUS.SaveWaterChannelState(channelIdx,state); // сохраняем статус канала полива
+        #endif
+      #endif
     }
- }
+  
+}
 
 bool WateringModule::IsAnyChannelActive(uint8_t wateringOption)
 {  
@@ -439,40 +378,37 @@ void WateringModule::HoldPumpState(bool anyChannelActive)
     if(flags.bPumpIsOn) // если был включен - выключаем
     {
       flags.bPumpIsOn = false;
-
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP1_RELAY_PIN, RELAY_OFF); // 
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP2_RELAY_PIN, RELAY_OFF); ; // 
-
-   //   WORK_STATUS.PinWrite(PUMP1_RELAY_PIN,RELAY_OFF);   //   
-	  //WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, RELAY_OFF);  //
-
+      #if WATER_PUMP_DRIVE_MODE == DRIVE_DIRECT
+        WORK_STATUS.PinWrite(PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+      #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23S17
+        #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+          WORK_STATUS.MCP_SPI_PinWrite(WATER_PUMP_MCP23S17_ADDRESS,PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+        #endif
+      #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23017
+        #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+          WORK_STATUS.MCP_I2C_PinWrite(WATER_PUMP_MCP23017_ADDRESS,PUMP_RELAY_PIN,WATER_PUMP_RELAY_OFF);
+        #endif
+      #endif
     }
     return; // и не будем ничего больше делать
   }
-    if(((bool)flags.bPumpIsOn) != anyChannelActive)                                         // состояние изменилось, пишем в пин только при смене состояния
+    if(((bool)flags.bPumpIsOn) != anyChannelActive) // состояние изменилось, пишем в пин только при смене состояния
     {
       flags.bPumpIsOn = anyChannelActive;
 
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
-	  WORK_STATUS.mcp_Water_PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
-
-	 // WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
-	 // WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
-
-	 // if (channel->IsChanged() < 8)                  // !! Добавил управление насосом - переделать
-	 // {
-		//  // пишем в реле насоса1 вкл или выкл в зависимости от настройки "включать насос при поливе"
-		// // WORK_STATUS.MCP_PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);    // Включать MCP23017
-		////  WORK_STATUS.PinWrite(PUMP1_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
-	 // }
-	 // else
-	 // {
-		//  // пишем в реле насоса2 вкл или выкл в зависимости от настройки "включать насос при поливе"
-		// // WORK_STATUS.MCP_PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);   // Включать MCP23017
-		// // WORK_STATUS.PinWrite(PUMP2_RELAY_PIN, flags.bPumpIsOn ? RELAY_ON : RELAY_OFF);
-
-	 // }
-    }  
+     // пишем в реле насоса вкл или выкл в зависимости от настройки "включать насос при поливе"
+     #if WATER_PUMP_DRIVE_MODE == DRIVE_DIRECT
+        WORK_STATUS.PinWrite(PUMP_RELAY_PIN,flags.bPumpIsOn ? WATER_PUMP_RELAY_ON : WATER_PUMP_RELAY_OFF);
+     #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23S17
+        #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+          WORK_STATUS.MCP_SPI_PinWrite(WATER_PUMP_MCP23S17_ADDRESS,PUMP_RELAY_PIN,flags.bPumpIsOn ? WATER_PUMP_RELAY_ON : WATER_PUMP_RELAY_OFF);
+        #endif
+     #elif WATER_PUMP_DRIVE_MODE == DRIVE_MCP23017
+        #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+          WORK_STATUS.MCP_I2C_PinWrite(WATER_PUMP_MCP23017_ADDRESS,PUMP_RELAY_PIN,flags.bPumpIsOn ? WATER_PUMP_RELAY_ON : WATER_PUMP_RELAY_OFF);
+        #endif
+     #endif
+    } 
 }
 #endif
 
@@ -484,10 +420,10 @@ void WateringModule::Update(uint16_t dt)
 
 #if WATER_RELAYS_COUNT > 0
 GlobalSettings* settings = MainController->GetSettings();  
-uint8_t wateringOption = settings->GetWateringOption();             // получаем опцию управления поливом
+uint8_t wateringOption = settings->GetWateringOption(); // получаем опцию управления поливом
 bool anyChActive = IsAnyChannelActive(wateringOption);
 
-SAVE_STATUS(WATER_STATUS_BIT, anyChActive ? 1 : 0);                 // сохраняем состояние полива
+SAVE_STATUS(WATER_STATUS_BIT, anyChActive ? 1 : 0); // сохраняем состояние полива
 SAVE_STATUS(WATER_MODE_BIT,flags.workMode == wwmAutomatic ? 1 : 0); // сохраняем режим работы полива
 
 
@@ -518,7 +454,6 @@ SAVE_STATUS(WATER_MODE_BIT,flags.workMode == wwmAutomatic ? 1 : 0); // сохр�
 
     currentDOW = t.dayOfWeek; // сохраняем текущий день недели
     currentHour = t.hour; // сохраняем текущий час
-	currentMinute = t.minute; // сохраняем текущую минуту !! Добавил
        
   #else
 
@@ -640,11 +575,11 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
           if(argsCount > 5)
           {
               // парсим параметры
-              uint8_t wateringOption = (uint8_t) atoi(command.GetArg(1)); //String(command.GetArg(1)).toInt();
-              uint8_t wateringWeekDays = (uint8_t) atoi(command.GetArg(2)); //String(command.GetArg(2)).toInt();
-              uint16_t wateringTime = (uint16_t) atoi(command.GetArg(3)); //String(command.GetArg(3)).toInt();
-              uint8_t startWateringTime = (uint8_t) atoi(command.GetArg(4)); //String(command.GetArg(4)).toInt();
-              uint8_t turnOnPump = (uint8_t) atoi(command.GetArg(5)); //String(command.GetArg(5)).toInt();
+              uint8_t wateringOption = (uint8_t) atoi(command.GetArg(1)); 
+              uint8_t wateringWeekDays = (uint8_t) atoi(command.GetArg(2)); 
+              uint16_t wateringTime = (uint16_t) atoi(command.GetArg(3)); 
+              uint8_t startWateringTime = (uint8_t) atoi(command.GetArg(4)); 
+              uint8_t turnOnPump = (uint8_t) atoi(command.GetArg(5));
 
               GlobalSettings* settings = MainController->GetSettings();
               

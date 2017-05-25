@@ -4,15 +4,6 @@
 #include "PHModule.h"
 #endif
 
-
-MCP23017 mcp_Water;                                          // Назначение портов расширения MCP23017  
-MCP23017 mcp_Windows1;                                       // Назначение портов расширения MCP23017  
-MCP23017 mcp_Windows2;                                       // Назначение портов расширения MCP23017  
-
-
-
-
-
 PublishStruct& PublishStruct::operator=(const String& src)
 {
   this->Text = src;
@@ -92,36 +83,106 @@ PublishStruct& PublishStruct::operator<<(long src)
   return *this;      
 }
 
-void WorkStatus::setup_mcp()
-{
-	// Настройка расширителя портов
-	Wire.begin();
-
-	mcp_Windows1.begin(1);                               //   
-	mcp_Windows2.begin(2);                               //   
-	mcp_Water.begin(5);                                  //  Адрес (5)  первого  расширителя портов
-
-	for (int i = 0; i < 16; i++)
-	{
-		mcp_Water.pinMode(i, OUTPUT);                   //
-		mcp_Windows1.pinMode(i, OUTPUT);                //
-		mcp_Windows2.pinMode(i, OUTPUT);
-
-		mcp_Water.digitalWrite(i, HIGH);
-		mcp_Windows1.digitalWrite(i, HIGH);
-		mcp_Windows2.digitalWrite(i, HIGH);
-	}
-	Serial.println("Setup MCP23017 ok!");
-}
-
-
 WorkStatus::WorkStatus()
 {
   memset(statuses,0,sizeof(uint8_t)*STATUSES_BYTES);
   memset(lastStatuses,0,sizeof(uint8_t)*STATUSES_BYTES);
   memset(&State,0,sizeof(State));
   memset(&UsedPins,0,sizeof(UsedPins));
+  #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+    InitMcpSPIExtenders();
+  #endif
+  #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+    InitMcpI2CExtenders();
+  #endif
 }
+
+#if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+void WorkStatus::InitMcpI2CExtenders()
+{
+  byte mcp_addresses[] = {MCP23017_ADDRESSES};
+  
+  for(byte i=0;i<COUNT_OF_MCP23017_EXTENDERS;i++)
+  {
+    Adafruit_MCP23017* bank = new Adafruit_MCP23017;
+    bank->begin(mcp_addresses[i]);
+    mcpI2CExtenders[i] = bank;
+  }  
+}
+Adafruit_MCP23017* WorkStatus::GetMCP_I2C_ByAddress(byte addr)
+{
+  for(byte i=0;i<COUNT_OF_MCP23017_EXTENDERS;i++)
+  {
+    Adafruit_MCP23017* bank = mcpI2CExtenders[i];
+    if(bank->getAddress() == addr)
+      return bank;
+  }
+
+  return NULL;  
+}
+void WorkStatus::MCP_I2C_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
+{
+  Adafruit_MCP23017* bank = GetMCP_I2C_ByAddress(mcpAddress);
+  if(!bank)
+    return;
+
+  bank->pinMode(mpcChannel,mode);
+  
+}
+void WorkStatus::MCP_I2C_PinWrite(byte mcpAddress, byte mpcChannel, byte level)
+{
+  Adafruit_MCP23017* bank = GetMCP_I2C_ByAddress(mcpAddress);
+  if(!bank)
+    return;  
+
+  bank->digitalWrite(mpcChannel,level);
+}
+
+#endif
+
+#if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+void WorkStatus::InitMcpSPIExtenders()
+{
+  byte mcp_addresses[] = {MCP23S17_ADDRESSES};
+  
+  for(byte i=0;i<COUNT_OF_MCP23S17_EXTENDERS;i++)
+  {
+    MCP23S17* bank = new MCP23S17(&SPI,MCP23S17_CS_PIN,mcp_addresses[i]);
+    bank->begin();
+    mcpSPIExtenders[i] = bank;
+  }
+}
+void WorkStatus::MCP_SPI_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
+{
+  MCP23S17* bank = GetMCP_SPI_ByAddress(mcpAddress);
+  if(!bank)
+    return;
+
+  bank->pinMode(mpcChannel,mode);
+  
+}
+void WorkStatus::MCP_SPI_PinWrite(byte mcpAddress, byte mpcChannel, byte level)
+{
+  MCP23S17* bank = GetMCP_SPI_ByAddress(mcpAddress);
+  if(!bank)
+    return;  
+
+  bank->digitalWrite(mpcChannel,level);
+}
+
+MCP23S17* WorkStatus::GetMCP_SPI_ByAddress(byte addr)
+{
+  for(byte i=0;i<COUNT_OF_MCP23S17_EXTENDERS;i++)
+  {
+    MCP23S17* bank = mcpSPIExtenders[i];
+    if(bank->getAddress() == addr)
+      return bank;
+  }
+
+  return NULL;
+}
+#endif
+
 void WorkStatus::PinMode(byte pinNumber,byte mode, bool setMode)
 {
 
@@ -175,7 +236,7 @@ void WorkStatus::SaveLightChannelState(byte channel, byte state)
 }
 void WorkStatus::SaveWaterChannelState(byte channel, byte state)
 {
-  if(channel > 7)     // Уточнить количество каналов
+  if(channel > 7)
     return;
 
   // сперва сбрасываем нужный бит
@@ -185,7 +246,6 @@ void WorkStatus::SaveWaterChannelState(byte channel, byte state)
   if(state == RELAY_ON)
     State.WaterChannelsState |= (1 << channel);
 }
-
 void WorkStatus::PinWrite(byte pin, byte level)
 {
   if(pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
@@ -226,53 +286,6 @@ void WorkStatus::PinWrite(byte pin, byte level)
   if(level)
     State.PinsState[byte_num] |= (1 << bit_num);
 }
-void WorkStatus::mcp_Water_PinWrite(byte pin, byte level)
-{
-	if (pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
-	
-		
-		//digitalWrite(pin, level);
-	 mcp_Water.digitalWrite(pin, level);
-
-/*
-
-	// теперь копируем состояние пина во внутреннюю структуру
-	uint8_t byte_num = pin / 8;
-	 
-
-	if (byte_num > 15) // не помещаемся
-		return;
-
-	// тут проверки, чтобы не записывать статус информационных мигающих пинов
-#ifdef USE_READY_DIODE
-	if (pin == DIODE_READY_PIN) // моргает пин индикации работы, игнорируем
-		return;
-#endif
-
-#ifdef USE_WINDOWS_MANUAL_MODE_DIODE
-	if (pin == DIODE_WINDOWS_MANUAL_MODE_PIN) // моргает диод ручного режима работы окон, игнорируем
-		return;
-#endif
-
-#ifdef USE_WATERING_MANUAL_MODE_DIODE
-	if (pin == DIODE_WATERING_MANUAL_MODE_PIN) // моргает диод ручного режима работы полива, игнорируем
-		return;
-#endif
-
-#ifdef USE_LIGHT_MANUAL_MODE_DIODE
-	if (pin == DIODE_LIGHT_MANUAL_MODE_PIN) // моргает диод ручного режима работы досветки, игнорируем
-		return;
-#endif
-
-	// сперва сбрасываем нужный бит
-	State.PinsState[byte_num] &= ~(1 << bit_num);
-
-	// теперь, если нам передали не 0 - устанавливаем нужный бит
-	if (level)
-		State.PinsState[byte_num] |= (1 << bit_num);
-	*/
-}
-
 void WorkStatus::CopyStatusModes()
 {
   CopyStatusMode(WINDOWS_MODE_BIT);

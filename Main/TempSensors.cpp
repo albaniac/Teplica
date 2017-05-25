@@ -29,10 +29,10 @@ bool WindowState::ChangePosition(uint8_t dir, unsigned long newPos)
 {
   bool bRet = false;
   
-  if(IsBusy())                    // заняты сменой позиции
+  if(IsBusy()) // заняты сменой позиции
     return bRet;
 
-  if(CurrentPosition == newPos)  // та же самая позиция запрошена, ничего не делаем
+  if(CurrentPosition == newPos) // та же самая позиция запрошена, ничего не делаем
     return bRet;
 
   
@@ -58,7 +58,7 @@ bool WindowState::ChangePosition(uint8_t dir, unsigned long newPos)
   else
   if(dir == dirCLOSE)
   {
-      if(newPos > CurrentPosition)            // запросили закрыть вперёд - невозможно
+      if(newPos > CurrentPosition) // запросили закрыть вперёд - невозможно
       {
        // do Nothing();
       }
@@ -91,9 +91,9 @@ void WindowState::SwitchRelays(uint8_t rel1State, uint8_t rel2State)
 void WindowState::UpdateState(uint16_t dt)
 {
   
-    if(!flags.OnMyWay)         // ничего не делаем
+    if(!flags.OnMyWay) // ничего не делаем
     {
-      SwitchRelays();          // держим реле выключенными
+      SwitchRelays(); // держим реле выключенными
       return;
     }
 
@@ -123,12 +123,12 @@ void WindowState::UpdateState(uint16_t dt)
    } // switch
 
     TimerTicks += dt;
-    if(TimerTicks >= TimerInterval)                // отработали, выключаем
+    if(TimerTicks >= TimerInterval) // отработали, выключаем
     {
-        CurrentPosition = RequestedPosition;       // сохранили текущую позицию
-        TimerInterval = 0;                         // обнуляем интервал
-        TimerTicks = 0;                            // и таймер
-        flags.Direction = dirNOTHING;              // уже никуда не движемся
+        CurrentPosition = RequestedPosition; // сохранили текущую позицию
+        TimerInterval = 0; // обнуляем интервал
+        TimerTicks = 0; // и таймер
+        flags.Direction = dirNOTHING; // уже никуда не движемся
 
         //ВЫКЛЮЧАЕМ РЕЛЕ
         SwitchRelays();
@@ -163,8 +163,8 @@ void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ Р�
   if(!hasChanges)
     return;
 
-
-  //Serial.print("Writing to shift register: ");
+/*
+  Serial.print("Writing to shift register: ");
   
   for(uint8_t i=0;i<shiftRegisterDataSize;i++) {
     byte b = shiftRegisterData[i];
@@ -177,7 +177,7 @@ void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ Р�
   }
     
   Serial.println("");
-
+*/
    if(shiftRegisterDataSize > 0)
    {
     
@@ -191,7 +191,7 @@ void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ Р�
 
     // проталкиваем все байты один за другим, начиная со старшего к младшему
       uint8_t i=shiftRegisterDataSize;
-    // !! Переделать фрагмент для управления с помощью MCP23017
+    
       do
       {    
         // проталкиваем байт в регистр
