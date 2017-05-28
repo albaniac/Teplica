@@ -3069,40 +3069,40 @@ void setup()
 	Serial.begin(9600); 
 	Serial1.begin(115200);
 	Serial.println("Start setup");
-	SPI.begin();
+	//SPI.begin();
 
-	pinMode(MCPS_CS, OUTPUT);
-	digitalWrite(MCPS_CS, HIGH);
-	mcps_3.begin();                                // MC№3
-	mcps_6.begin();                                // MC№6
-    mcps_13.begin();                               //  U13  
-	
-		for (int i = 0; i < 16; i++)
-		 {
-			 mcps_3.pinMode(i, OUTPUT);
-			 mcps_3.digitalWrite(i, LOW);
-			 mcps_6.pinMode(i,  OUTPUT);
-			 mcps_6.digitalWrite(i,LOW);
-			 mcps_13.pinMode(i, INPUT_PULLUP);  
-		 }  
-		
-	Wire.begin();
-	setup_mcp();
+	//pinMode(MCPS_CS, OUTPUT);
+	//digitalWrite(MCPS_CS, HIGH);
+	//mcps_3.begin();                                // MC№3
+	//mcps_6.begin();                                // MC№6
+ //   mcps_13.begin();                               //  U13  
+	//
+	//	for (int i = 0; i < 16; i++)
+	//	 {
+	//		 mcps_3.pinMode(i, OUTPUT);
+	//		 mcps_3.digitalWrite(i, LOW);
+	//		 mcps_6.pinMode(i,  OUTPUT);
+	//		 mcps_6.digitalWrite(i,LOW);
+	//		 mcps_13.pinMode(i, INPUT_PULLUP);  
+	//	 }  
+	//	
+	//Wire.begin();
+	//setup_mcp();
 
-	if (!RTC.begin())
-		{
-			Serial.println("RTC failed");
-			while(1);
-		}; 
+	//if (!RTC.begin())
+	//	{
+	//		Serial.println("RTC failed");
+	//		while(1);
+	//	}; 
 	//DateTime set_time = DateTime(16, 3, 15, 10, 19, 0);      // Занести данные о времени в строку "set_time" год, месяц, число, время...
 	//RTC.adjust(set_time);                                    // Записать дату
 
 	Serial.println(" ");
 	//set_time();
-	serial_print_date();
+	//serial_print_date();
 //	MsTimer2::set(300, flash_time);                       // 300ms период таймера прерывани
     pinMode(ledPin13, OUTPUT);  
-	setup_regModbus();
+//	setup_regModbus();
 	myGLCD.InitLCD();
 	myGLCD.clrScr();
 	myGLCD.setFont(BigFont);
@@ -3120,7 +3120,7 @@ void setup()
    
 void loop() 
 {    
-    // AnalogClock();
+   //  AnalogClock();
 	swichMenu();
     // test_mcp();
 	// print_serial_date();
