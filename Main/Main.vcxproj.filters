@@ -93,9 +93,6 @@
     <ClInclude Include="MCP23017.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MCP23S17.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -127,9 +124,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Settings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SHT1x.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Si7021Support.h">
@@ -169,6 +163,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ZeroStreamListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MCP23S17.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SHT1x.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -239,9 +239,6 @@
     <ClCompile Include="MCP23017.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MCP23S17.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -270,9 +267,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Settings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SHT1x.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Si7021Support.cpp">
@@ -309,6 +303,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ZeroStreamListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MCP23S17.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SHT1x.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
