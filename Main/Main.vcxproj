@@ -48,7 +48,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Arduino 1.6.7\hardware\arduino\avr\libraries\Wire;C:\Arduino 1.6.7\libraries\SD\src;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\SPI;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\EEPROM;$(ProjectDir)libraries\OneWire;C:\Arduino 1.6.7\libraries\Ethernet\src;$(ProjectDir)libraries\U8glib;$(ProjectDir)libraries\RF24;C:\Arduino 1.6.7\libraries\Ethernet\src\utility;$(ProjectDir)libraries\RF24\utility;C:\Arduino 1.6.7\libraries\SD\src\utility;$(ProjectDir)libraries\U8glib\utility;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\Wire\utility;C:\Arduino 1.6.7\libraries;C:\Arduino 1.6.7\hardware\arduino\avr\libraries;$(ProjectDir)libraries;C:\Arduino 1.6.7\hardware\arduino\avr\cores\arduino;C:\Arduino 1.6.7\hardware\arduino\avr\variants\mega;$(ProjectDir)..\Main;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\avr\;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.8.1\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.2\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Arduino 1.6.7\hardware\arduino\avr\libraries\Wire;C:\Arduino 1.6.7\libraries\SD\src;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\SPI;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\EEPROM;$(ProjectDir)libraries\OneWire;C:\Arduino 1.6.7\libraries\Ethernet\src;$(ProjectDir)libraries\U8glib;$(ProjectDir)libraries\RF24;C:\Arduino 1.6.7\libraries;C:\Arduino 1.6.7\hardware\arduino\avr\libraries;$(ProjectDir)libraries;C:\Arduino 1.6.7\hardware\arduino\avr\cores\arduino;C:\Arduino 1.6.7\hardware\arduino\avr\variants\mega;$(ProjectDir)..\Main;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\avr\;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.8.1\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.2\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.Main.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=10607;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -119,6 +119,12 @@
     <ClInclude Include="Globals.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="HTTPInterfaces.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HttpModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClInclude Include="HTU21D.h">
       <FileType>CppCode</FileType>
     </ClInclude>
@@ -153,6 +159,9 @@
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="MCP23S17.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
       <FileType>CppCode</FileType>
     </ClInclude>
     <ClInclude Include="ModuleController.h">
@@ -245,6 +254,7 @@
     <ClCompile Include="DS3231Support.cpp" />
     <ClCompile Include="Encoder.cpp" />
     <ClCompile Include="EthernetModule.cpp" />
+    <ClCompile Include="HttpModule.cpp" />
     <ClCompile Include="HTU21D.cpp" />
     <ClCompile Include="HumidityModule.cpp" />
     <ClCompile Include="InteropStream.cpp" />
@@ -256,6 +266,7 @@
     <ClCompile Include="LuminosityModule.cpp" />
     <ClCompile Include="MCP23017.cpp" />
     <ClCompile Include="MCP23S17.cpp" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="ModuleController.cpp" />
     <ClCompile Include="NextionController.cpp" />
     <ClCompile Include="NextionModule.cpp" />

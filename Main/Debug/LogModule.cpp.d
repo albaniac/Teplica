@@ -32,4 +32,5 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\LogMod
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\ModuleController.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settings.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\AlarmDispatcher.h \
- C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\AlertModule.h
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\AlertModule.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HTTPInterfaces.h

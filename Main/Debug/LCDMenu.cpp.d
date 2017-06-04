@@ -38,4 +38,5 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\LCDMen
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/SdInfo.h \
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/FatStructs.h \
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/SdFatUtil.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HTTPInterfaces.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\InteropStream.h

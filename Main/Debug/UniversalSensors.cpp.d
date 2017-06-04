@@ -34,8 +34,9 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Univer
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/FatStructs.h \
  C:\Arduino\ 1.6.7\hardware\arduino\avr\cores\arduino/Print.h \
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/SdFatUtil.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HTTPInterfaces.h \
  D:\2\ SVN\ Teplica\trunk\Main\libraries\OneWire/OneWire.h \
- C:\Arduino\ 1.6.7\hardware\arduino\avr\libraries\EEPROM/EEPROM.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Memory.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\InteropStream.h \
  D:\2\ SVN\ Teplica\trunk\Main\libraries\RF24/RF24.h \
  D:\2\ SVN\ Teplica\trunk\Main\libraries\RF24/RF24_config.h \

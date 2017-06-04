@@ -70,7 +70,7 @@
   (component RESC1608X50A_R15 (place R15 105.25340 -11.75700 front -90))
   (component RESC1608X50A_R16 (place R16 105.48200 -9.44540 front 90))
   (component RESC1608X50A_R24 (place R24 103.22140 -7.84560 front -90))
-  (component SD_TFT_J16 (place J16 135.09900 36.55480 front 90))
+  (component SD_TFT_J16 (place J16 134.89580 66.50140 front 90))
   (component "CONN-SIL10_J11" (place J11 87.62580 -25.29520 front 0))
   (component "CSTCE12M0G55Z-R0_X1" (place X1 95.86640 -14.62720 front 180))
   (component CRYSTAL_32768_X2 (place X2 104.18660 -2.61300 front 90))
@@ -229,7 +229,11 @@
   (component RESC1608X50A_R170 (place R170 82.14360 -56.33730 front 270))
   (component RESC1608X50A_R171 (place R171 91.69400 -56.33730 front 270))
   (component RESC1608X50A_R172 (place R172 100.60940 -56.33730 front 270))
-  (component RESC1608X50A_R164 (place R164 -22.75840 -38.73500 front 180))
+  (component RESC1608X50A_R164 (place R164 38.30000 -38.90000 front 180))
+  (component CON_POWER_J30 (place J30 134.41680 33.27400 front 270))
+  (component "TBLOCK-I2_J62" (place J62 143.66240 44.22140 front 90))
+  (component "CONN-SIL2_J61" (place J61 20.32000 -40.64000 front 180))
+  (component ST7920_LCD1 (place LCD1 -40.23360 -35.34880 back 0))
  )
  (library
   (image "CONN-SIL8_J25" (side front)
@@ -1697,6 +1701,49 @@
    (pin PS6 (rotate 0) 0 0.00000 0.00000)
    (pin PS6 (rotate 0) 1 1.60000 0.00000)
   )
+  (image CON_POWER_J30 (side front)
+   (outline (rect TOP -6.27640 -1.67640 4.48120 14.43160))
+   (pin PS31 (rotate 0) 0 0.00000 0.00000)
+   (pin PS31 (rotate -90) 1 0.00000 7.30000)
+   (pin PS31 (rotate 0) 2 -4.60000 3.70000)
+  )
+  (image "TBLOCK-I2_J62" (side front)
+   (outline (rect TOP -2.64160 -5.18160 7.72160 5.18160))
+   (pin PS32 (rotate 0) 0 0.00000 0.00000)
+   (pin PS32 (rotate 0) 1 5.08000 0.00000)
+  )
+  (image "CONN-SIL2_J61" (side front)
+   (outline (rect TOP -1.37160 -1.37160 3.91160 1.37160))
+   (pin PS0 (rotate 0) 0 0.00000 0.00000)
+   (pin PS0 (rotate 0) 1 2.54000 0.00000)
+  )
+  (image ST7920_LCD1 (side back)
+   (outline (rect TOP -62.20160 -3.10160 31.15020 67.01880))
+   (pin PS0 (rotate 0) 0 0.00000 0.00000)
+   (pin PS0 (rotate 0) 1 -2.54000 0.00000)
+   (pin PS0 (rotate 0) 2 -5.08000 0.00000)
+   (pin PS0 (rotate 0) 3 -7.62000 0.00000)
+   (pin PS0 (rotate 0) 4 -10.16000 0.00000)
+   (pin PS0 (rotate 0) 5 -12.70000 0.00000)
+   (pin PS0 (rotate 0) 6 -15.24000 0.00000)
+   (pin PS0 (rotate 0) 7 -17.78000 0.00000)
+   (pin PS0 (rotate 0) 8 -20.32000 0.00000)
+   (pin PS0 (rotate 0) 9 -22.86000 0.00000)
+   (pin PS0 (rotate 0) 10 -25.40000 0.00000)
+   (pin PS0 (rotate 0) 11 -27.94000 0.00000)
+   (pin PS0 (rotate 0) 12 -30.48000 0.00000)
+   (pin PS0 (rotate 0) 13 -33.02000 0.00000)
+   (pin PS0 (rotate 0) 14 -35.56000 0.00000)
+   (pin PS0 (rotate 0) 15 -38.10000 0.00000)
+   (pin PS0 (rotate 0) 16 -40.64000 0.00000)
+   (pin PS0 (rotate 0) 17 -43.18000 0.00000)
+   (pin PS0 (rotate 0) 18 -45.72000 0.00000)
+   (pin PS0 (rotate 0) 19 -48.26000 0.00000)
+   (pin PS1 (rotate 0) 20 -59.50000 -0.50000)
+   (pin PS1 (rotate 0) 21 -59.50000 64.50000)
+   (pin PS1 (rotate 0) 22 28.50000 64.50000)
+   (pin PS1 (rotate 0) 23 28.50000 -0.50000)
+  )
   (padstack PS0 (absolute on)
    (shape (rect TOP -1.01600 -1.01600 1.01600 1.01600))
    (shape (rect I1 -1.01600 -1.01600 1.01600 1.01600))
@@ -1898,6 +1945,42 @@
   )
   (padstack PS29 (absolute on) (shape (rect TOP -0.54610 -0.82550 0.54610 0.82550)))
   (padstack PS30 (absolute on) (shape (rect TOP -0.31750 -1.01600 0.31750 1.01600)))
+  (padstack PS31 (absolute on)
+   (shape (circle TOP 3.35280 0 0))
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape )
+   (shape (circle BOT 3.35280 0 0))
+  )
+  (padstack PS32 (absolute on)
+   (shape (circle TOP 3.04800 0 0))
+   (shape (circle I1 3.04800 0 0))
+   (shape (circle I2 3.04800 0 0))
+   (shape (circle I3 3.04800 0 0))
+   (shape (circle I4 3.04800 0 0))
+   (shape (circle I5 3.04800 0 0))
+   (shape (circle I6 3.04800 0 0))
+   (shape (circle I7 3.04800 0 0))
+   (shape (circle I8 3.04800 0 0))
+   (shape (circle I9 3.04800 0 0))
+   (shape (circle I10 3.04800 0 0))
+   (shape (circle I11 3.04800 0 0))
+   (shape (circle I12 3.04800 0 0))
+   (shape (circle I13 3.04800 0 0))
+   (shape (circle I14 3.04800 0 0))
+   (shape (circle BOT 3.04800 0 0))
+  )
   (padstack $VIA_POWER (absolute on)
    (shape (circle TOP 0.76200 0 0))
    (shape (circle I1 0.76200 0 0))
@@ -2258,63 +2341,56 @@
    )
    (pins)
   )
-  (net "#00489"
+  (net "#00490"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00492"
+  (net "#00493"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00494"
+  (net "#00495"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00496"
+  (net "#00497"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00503"
+  (net "#00504"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00508"
+  (net "#00509"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00518"
+  (net "#00519"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00680"
-   (circuit
-    (use_layer TOP BOT)
-    (use_via $VIA_SIGNAL)
-   )
-   (pins)
-  )
-  (net "#00682"
+  (net "#00681"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2328,7 +2404,7 @@
    )
    (pins)
   )
-  (net "#00685"
+  (net "#00684"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2342,7 +2418,7 @@
    )
    (pins)
   )
-  (net "#00688"
+  (net "#00687"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2356,7 +2432,7 @@
    )
    (pins)
   )
-  (net "#00691"
+  (net "#00690"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2370,7 +2446,7 @@
    )
    (pins)
   )
-  (net "#00694"
+  (net "#00693"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2384,7 +2460,7 @@
    )
    (pins)
   )
-  (net "#00697"
+  (net "#00696"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2398,7 +2474,7 @@
    )
    (pins)
   )
-  (net "#00700"
+  (net "#00699"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2412,7 +2488,7 @@
    )
    (pins)
   )
-  (net "#00703"
+  (net "#00702"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2426,7 +2502,7 @@
    )
    (pins)
   )
-  (net "#00706"
+  (net "#00705"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2440,7 +2516,7 @@
    )
    (pins)
   )
-  (net "#00709"
+  (net "#00708"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2454,7 +2530,7 @@
    )
    (pins)
   )
-  (net "#00712"
+  (net "#00711"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2468,21 +2544,21 @@
    )
    (pins)
   )
-  (net "#00715"
+  (net "#00714"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00740"
+  (net "#00716"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00742"
+  (net "#00741"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2496,7 +2572,7 @@
    )
    (pins)
   )
-  (net "#00745"
+  (net "#00744"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2510,7 +2586,7 @@
    )
    (pins)
   )
-  (net "#00748"
+  (net "#00747"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2524,14 +2600,14 @@
    )
    (pins)
   )
-  (net "#00751"
+  (net "#00750"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00817"
+  (net "#00752"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2545,14 +2621,14 @@
    )
    (pins)
   )
-  (net "#00822"
+  (net "#00819"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00826"
+  (net "#00823"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2566,7 +2642,7 @@
    )
    (pins)
   )
-  (net "#00844"
+  (net "#00828"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2587,14 +2663,14 @@
    )
    (pins)
   )
-  (net "#00850"
+  (net "#00847"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00854"
+  (net "#00851"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2608,7 +2684,7 @@
    )
    (pins)
   )
-  (net "#00872"
+  (net "#00856"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2629,14 +2705,14 @@
    )
    (pins)
   )
-  (net "#00878"
+  (net "#00875"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00882"
+  (net "#00879"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2650,7 +2726,7 @@
    )
    (pins)
   )
-  (net "#00900"
+  (net "#00884"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2671,14 +2747,14 @@
    )
    (pins)
   )
-  (net "#00906"
+  (net "#00903"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00910"
+  (net "#00907"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2692,7 +2768,7 @@
    )
    (pins)
   )
-  (net "#00928"
+  (net "#00912"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2713,14 +2789,14 @@
    )
    (pins)
   )
-  (net "#00934"
+  (net "#00931"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00938"
+  (net "#00935"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2734,7 +2810,7 @@
    )
    (pins)
   )
-  (net "#00956"
+  (net "#00940"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2755,14 +2831,14 @@
    )
    (pins)
   )
-  (net "#00962"
+  (net "#00959"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#00966"
+  (net "#00963"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2776,7 +2852,7 @@
    )
    (pins)
   )
-  (net "#00984"
+  (net "#00968"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2797,14 +2873,14 @@
    )
    (pins)
   )
-  (net "#00990"
+  (net "#00987"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01061"
+  (net "#00991"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2832,91 +2908,91 @@
    )
    (pins)
   )
-  (net "#01067"
+  (net "#01065"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01095"
+  (net "#01068"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins U12-8 U13-13)
+   (pins)
   )
   (net "#01096"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins U12-10 U13-10 U14-10 U15-10)
+   (pins U12-8 U13-13)
   )
   (net "#01097"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
+   (pins U12-10 U13-10 U14-10 U15-10)
+  )
+  (net "#01098"
+   (circuit
+    (use_layer TOP BOT)
+    (use_via $VIA_SIGNAL)
+   )
    (pins U12-11 U13-11 U14-11 U15-11)
   )
-  (net "#01100"
+  (net "#01101"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins U12-12 U13-12 U14-12 U15-12 R164-1)
   )
-  (net "#01111"
+  (net "#01112"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins U13-8 U14-13)
   )
-  (net "#01122"
+  (net "#01123"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins U14-8 U15-13)
   )
-  (net "#01188"
+  (net "#01189"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins L4-0 R36-1 C114-0 R35-1)
   )
-  (net "#01196"
+  (net "#01197"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01201"
+  (net "#01202"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01203"
+  (net "#01204"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01207"
-   (circuit
-    (use_layer TOP BOT)
-    (use_via $VIA_SIGNAL)
-   )
-   (pins)
-  )
-  (net "#01212"
+  (net "#01208"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2930,7 +3006,7 @@
    )
    (pins)
   )
-  (net "#01240"
+  (net "#01214"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2944,7 +3020,7 @@
    )
    (pins)
   )
-  (net "#01243"
+  (net "#01242"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2972,14 +3048,14 @@
    )
    (pins)
   )
-  (net "#01255"
+  (net "#01247"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01258"
+  (net "#01256"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -2993,7 +3069,7 @@
    )
    (pins)
   )
-  (net "#01265"
+  (net "#01260"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -3007,28 +3083,28 @@
    )
    (pins)
   )
-  (net "#01268"
+  (net "#01267"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01271"
+  (net "#01269"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01301"
+  (net "#01272"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01303"
+  (net "#01302"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -3042,19 +3118,26 @@
    )
    (pins)
   )
-  (net "#01307"
+  (net "#01305"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
   )
-  (net "#01322"
+  (net "#01308"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
    (pins)
+  )
+  (net "#01323"
+   (circuit
+    (use_layer TOP BOT)
+    (use_via $VIA_SIGNAL)
+   )
+   (pins J61-0)
   )
   (net "#01325"
    (circuit
@@ -3084,7 +3167,7 @@
    )
     (pins J1_RJ45-7 J2_RJ45-7 J3_RJ45-7 J4_RJ45-7 J5_RJ45-7 J6_RJ45-7 J7_RJ45-7 J8_RJ45-7
      J9_RJ45-7 J10_RJ45-7 J12_RJ45-7 J13_RJ45-7 J14_RJ45-7 J15_RJ45-7 J16_RJ45-7 J11_RJ45-7
-    J17_RJ45-7 J18_RJ45-7 J19_RJ45-7 J20_RJ45-7)
+    J17_RJ45-7 J18_RJ45-7 J19_RJ45-7 J20_RJ45-7 J30-0 J62-0)
   )
   (net "+3V3"
    (circuit
@@ -3121,14 +3204,14 @@
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins)
+   (pins LCD1-18)
   )
   (net "45"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins)
+   (pins LCD1-3)
   )
   (net "46"
    (circuit
@@ -3156,14 +3239,14 @@
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins)
+   (pins LCD1-4)
   )
   (net "52"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
    )
-   (pins)
+   (pins LCD1-5)
   )
   (net "A0"
    (circuit
@@ -3968,16 +4051,10 @@
      C109-1 C110-1 C111-1 J9-4 J9-5 J9-6 J9-7 J9-8 D1-0 J27-4 J27-5 J27-6 J27-7 J27-8
      D8-0 C82-0 J1_RJ45-2 J2_RJ45-2 J3_RJ45-2 J4_RJ45-2 J5_RJ45-2 J6_RJ45-2 J7_RJ45-2
      J8_RJ45-2 J9_RJ45-2 J10_RJ45-2 J12_RJ45-2 J13_RJ45-2 J14_RJ45-2 J15_RJ45-2 J16_RJ45-2
-    J11_RJ45-2 J17_RJ45-2 J18_RJ45-2 J19_RJ45-2 J20_RJ45-2 U12-7 U13-7 U14-7 U15-7)
+     J11_RJ45-2 J17_RJ45-2 J18_RJ45-2 J19_RJ45-2 J20_RJ45-2 U12-7 U13-7 U14-7 U15-7 J30-1
+    J30-2 J62-1 LCD1-0 LCD1-14 LCD1-19 LCD1-20 LCD1-21 LCD1-22 LCD1-23)
   )
   (net "GREEN"
-   (circuit
-    (use_layer TOP BOT)
-    (use_via $VIA_SIGNAL)
-   )
-   (pins)
-  )
-  (net "IN+"
    (circuit
     (use_layer TOP BOT)
     (use_via $VIA_SIGNAL)
@@ -5777,7 +5854,8 @@
     (pins J21-2 J24-0 J24-1 C11-0 J70-2 J75-1 J14-1 R46-0 J1_RJ45-3 J2_RJ45-3 J3_RJ45-3
      J4_RJ45-3 J5_RJ45-3 J6_RJ45-3 J7_RJ45-3 J8_RJ45-3 J9_RJ45-3 J10_RJ45-3 J12_RJ45-3
      J13_RJ45-3 J14_RJ45-3 J15_RJ45-3 J16_RJ45-3 J11_RJ45-3 J17_RJ45-3 J18_RJ45-3 J19_RJ45-3
-    J20_RJ45-3 U12-9 U12-15 U13-9 U13-15 U14-9 U14-15 U15-9 U15-15 R164-0)
+     J20_RJ45-3 U12-9 U12-15 U13-9 U13-15 U14-9 U14-15 U15-9 U15-15 R164-0 J61-1 LCD1-1
+   )
   )
   (net "VDDANA"
    (circuit
@@ -5955,120 +6033,120 @@
    "#00457"
    "#00463"
    "#00464"
-   "#00489"
-   "#00492"
-   "#00494"
-   "#00496"
-   "#00503"
-   "#00508"
-   "#00518"
-   "#00680"
-   "#00682"
+   "#00490"
+   "#00493"
+   "#00495"
+   "#00497"
+   "#00504"
+   "#00509"
+   "#00519"
+   "#00681"
    "#00683"
-   "#00685"
+   "#00684"
    "#00686"
-   "#00688"
+   "#00687"
    "#00689"
-   "#00691"
+   "#00690"
    "#00692"
-   "#00694"
+   "#00693"
    "#00695"
-   "#00697"
+   "#00696"
    "#00698"
-   "#00700"
+   "#00699"
    "#00701"
-   "#00703"
+   "#00702"
    "#00704"
-   "#00706"
+   "#00705"
    "#00707"
-   "#00709"
+   "#00708"
    "#00710"
-   "#00712"
+   "#00711"
    "#00713"
-   "#00715"
-   "#00740"
-   "#00742"
+   "#00714"
+   "#00716"
+   "#00741"
    "#00743"
-   "#00745"
+   "#00744"
    "#00746"
-   "#00748"
+   "#00747"
    "#00749"
-   "#00751"
-   "#00817"
+   "#00750"
+   "#00752"
    "#00818"
-   "#00822"
-   "#00826"
+   "#00819"
+   "#00823"
    "#00827"
-   "#00844"
+   "#00828"
    "#00845"
    "#00846"
-   "#00850"
-   "#00854"
+   "#00847"
+   "#00851"
    "#00855"
-   "#00872"
+   "#00856"
    "#00873"
    "#00874"
-   "#00878"
-   "#00882"
+   "#00875"
+   "#00879"
    "#00883"
-   "#00900"
+   "#00884"
    "#00901"
    "#00902"
-   "#00906"
-   "#00910"
+   "#00903"
+   "#00907"
    "#00911"
-   "#00928"
+   "#00912"
    "#00929"
    "#00930"
-   "#00934"
-   "#00938"
+   "#00931"
+   "#00935"
    "#00939"
-   "#00956"
+   "#00940"
    "#00957"
    "#00958"
-   "#00962"
-   "#00966"
+   "#00959"
+   "#00963"
    "#00967"
-   "#00984"
+   "#00968"
    "#00985"
    "#00986"
-   "#00990"
-   "#01061"
+   "#00987"
+   "#00991"
    "#01062"
    "#01063"
    "#01064"
-   "#01067"
-   "#01095"
+   "#01065"
+   "#01068"
    "#01096"
    "#01097"
-   "#01100"
-   "#01111"
-   "#01122"
-   "#01188"
-   "#01196"
-   "#01201"
-   "#01203"
-   "#01207"
-   "#01212"
+   "#01098"
+   "#01101"
+   "#01112"
+   "#01123"
+   "#01189"
+   "#01197"
+   "#01202"
+   "#01204"
+   "#01208"
    "#01213"
-   "#01240"
+   "#01214"
    "#01241"
-   "#01243"
+   "#01242"
    "#01244"
    "#01245"
    "#01246"
-   "#01255"
-   "#01258"
+   "#01247"
+   "#01256"
    "#01259"
-   "#01265"
+   "#01260"
    "#01266"
-   "#01268"
-   "#01271"
-   "#01301"
-   "#01303"
+   "#01267"
+   "#01269"
+   "#01272"
+   "#01302"
    "#01304"
-   "#01307"
-   "#01322"
+   "#01305"
+   "#01308"
+   "#01323"
    "#01325"
    "#01330"
    "#01331"
@@ -6197,7 +6275,6 @@
    "FB"
    "F_CS"
    "GREEN"
-   "IN+"
    "INT_E"
    "IRQ"
    "J1-1"

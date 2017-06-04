@@ -34,4 +34,5 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Waterf
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/FatStructs.h \
  C:\Arduino\ 1.6.7\hardware\arduino\avr\cores\arduino/Print.h \
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/SdFatUtil.h \
- C:\Arduino\ 1.6.7\hardware\arduino\avr\libraries\EEPROM/EEPROM.h
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HTTPInterfaces.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Memory.h

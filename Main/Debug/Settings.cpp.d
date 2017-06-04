@@ -13,4 +13,4 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Settin
  C:\Arduino\ 1.6.7\hardware\arduino\avr\cores\arduino/Arduino.h \
  C:\Arduino\ 1.6.7\hardware\arduino\avr\variants\mega/pins_arduino.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Globals.h \
- C:\Arduino\ 1.6.7\hardware\arduino\avr\libraries\EEPROM/EEPROM.h
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Memory.h

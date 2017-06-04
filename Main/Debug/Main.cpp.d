@@ -35,7 +35,10 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Main.c
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/FatStructs.h \
  C:\Arduino\ 1.6.7\hardware\arduino\avr\cores\arduino/Print.h \
  C:\Arduino\ 1.6.7\libraries\SD\src/utility/SdFatUtil.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HTTPInterfaces.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\ZeroStreamListener.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Memory.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\HttpModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PinModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\StatModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\TempSensors.h \
@@ -58,5 +61,6 @@ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\Main.c
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\EthernetModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\ReservationModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\TimerModule.h \
+ C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\PHModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\IoTModule.h \
  C:\Users\Александр\AppData\Local\Temp\VMBuilds\Main\mega_atmega2560\Debug\IoT.h
