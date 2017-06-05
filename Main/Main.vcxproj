@@ -1,0 +1,300 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
+    <RootNamespace>
+    </RootNamespace>
+    <ProjectName>Main</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>
+    </PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>
+    </PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Arduino 1.6.7\hardware\arduino\avr\libraries\Wire;C:\Arduino 1.6.7\libraries\SD\src;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\SPI;$(ProjectDir)libraries\OneWire;C:\Arduino 1.6.7\libraries\Ethernet\src;$(ProjectDir)libraries\U8glib;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\EEPROM;$(ProjectDir)libraries\RF24;C:\Arduino 1.6.7\libraries\Ethernet\src\utility;$(ProjectDir)libraries\RF24\utility;C:\Arduino 1.6.7\libraries\SD\src\utility;$(ProjectDir)libraries\U8glib\utility;C:\Arduino 1.6.7\hardware\arduino\avr\libraries\Wire\utility;C:\Arduino 1.6.7\libraries;C:\Arduino 1.6.7\hardware\arduino\avr\libraries;$(ProjectDir)libraries;C:\Arduino 1.6.7\hardware\arduino\avr\cores\arduino;C:\Arduino 1.6.7\hardware\arduino\avr\variants\mega;$(ProjectDir)..\Main;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\;C:\Arduino 1.6.7\hardware\tools\avr\avr\include\avr\;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.8.1\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.2\include;C:\Arduino 1.6.7\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.Main.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=10607;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="VisualMicro" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Main.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AbstractModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="AlarmDispatcher.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="AlertModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="CommandBuffer.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="CommandParser.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="CompositeCommandsModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="DeltaModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="DHTSupport.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="DS18B20Query.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="DS3231Support.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Encoder.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="EthernetModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HTTPInterfaces.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HttpModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HTU21D.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HumidityGlobals.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="HumidityModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="InteropStream.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="IoT.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="IoTModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="LCDMenu.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="LCDModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="LogModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="LuminosityModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="MCP23017.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="MCP23S17.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="ModuleController.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="NextionController.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="NextionModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="PDUClasses.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="PHModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="PinModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="PushButton.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="RemoteModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="ReservationModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="rus6x10.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Settings.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="SHT1x.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Si7021Support.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="SMSModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="SoilMoistureModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="StatModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="TCPClient.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="TempSensors.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="TimerModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="TinyVector.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="UniversalSensors.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="WaterflowModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="WateringModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="WiFiModule.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="ZeroStreamListener.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="__vm\.Main.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AbstractModule.cpp" />
+    <ClCompile Include="AlarmDispatcher.cpp" />
+    <ClCompile Include="AlertModule.cpp" />
+    <ClCompile Include="CommandBuffer.cpp" />
+    <ClCompile Include="CommandParser.cpp" />
+    <ClCompile Include="CompositeCommandsModule.cpp" />
+    <ClCompile Include="DeltaModule.cpp" />
+    <ClCompile Include="DHTSupport.cpp" />
+    <ClCompile Include="DS18B20Query.cpp" />
+    <ClCompile Include="DS3231Support.cpp" />
+    <ClCompile Include="Encoder.cpp" />
+    <ClCompile Include="EthernetModule.cpp" />
+    <ClCompile Include="HttpModule.cpp" />
+    <ClCompile Include="HTU21D.cpp" />
+    <ClCompile Include="HumidityModule.cpp" />
+    <ClCompile Include="InteropStream.cpp" />
+    <ClCompile Include="IoT.cpp" />
+    <ClCompile Include="IoTModule.cpp" />
+    <ClCompile Include="LCDMenu.cpp" />
+    <ClCompile Include="LCDModule.cpp" />
+    <ClCompile Include="LogModule.cpp" />
+    <ClCompile Include="LuminosityModule.cpp" />
+    <ClCompile Include="MCP23017.cpp" />
+    <ClCompile Include="MCP23S17.cpp" />
+    <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="ModuleController.cpp" />
+    <ClCompile Include="NextionController.cpp" />
+    <ClCompile Include="NextionModule.cpp" />
+    <ClCompile Include="PDUClasses.cpp" />
+    <ClCompile Include="PHModule.cpp" />
+    <ClCompile Include="PinModule.cpp" />
+    <ClCompile Include="PushButton.cpp" />
+    <ClCompile Include="RemoteModule.cpp" />
+    <ClCompile Include="ReservationModule.cpp" />
+    <ClCompile Include="Settings.cpp" />
+    <ClCompile Include="SHT1x.cpp" />
+    <ClCompile Include="Si7021Support.cpp" />
+    <ClCompile Include="SMSModule.cpp" />
+    <ClCompile Include="SoilMoistureModule.cpp" />
+    <ClCompile Include="StatModule.cpp" />
+    <ClCompile Include="TCPClient.cpp" />
+    <ClCompile Include="TempSensors.cpp" />
+    <ClCompile Include="TimerModule.cpp" />
+    <ClCompile Include="UniversalSensors.cpp" />
+    <ClCompile Include="WaterflowModule.cpp" />
+    <ClCompile Include="WateringModule.cpp" />
+    <ClCompile Include="WiFiModule.cpp" />
+    <ClCompile Include="ZeroStreamListener.cpp" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
