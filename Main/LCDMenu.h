@@ -4,6 +4,18 @@
 #include <Arduino.h>
 #include "Globals.h"
 
+ enum // папки, в которых хранятся привязки датчиков для экрана ожидания
+ {
+    DIR_TEMP,
+    DIR_HUMIDITY,
+    DIR_LUMINOSITY,
+    DIR_SOIL,
+    DIR_PH,
+
+    DIR_DUMMY_LAST_DIR // заглушка - признак окончания конца списка
+  
+ }; 
+
 #ifdef USE_LCD_MODULE
 
 #include "U8glib.h"
@@ -137,6 +149,7 @@ const unsigned char WINDOW_ICON[] U8G_PROGMEM = {
 0x00,0x00
  };
 #endif
+
 #ifdef USE_WATERING_MODULE
 const unsigned char WATERING_ICON[] U8G_PROGMEM = {
 0x00,0x00,
@@ -155,6 +168,48 @@ const unsigned char WATERING_ICON[] U8G_PROGMEM = {
 0xC0,0x03,
 0x00,0x00,
 0x00,0x00
+ };
+#endif
+
+#if defined(USE_WATERING_MODULE) && defined(WATER_CHANNELS_SCREEN_ENABLED)
+const unsigned char WATERING_CHANNELS_ICON[] U8G_PROGMEM = {
+0X00,0X00,
+0X00,0X00,
+0X60,0X30,
+0X60,0X38,
+0X60,0X28,
+0XF0,0X2C,
+0XB8,0X3D,
+0X78,0X21,
+0X7C,0X03,
+0XFC,0X02,
+0X7C,0X03,
+0X7C,0X03,
+0XF8,0X01,
+0XF0,0X00,
+0X00,0X00,
+0X00,0X00
+ };
+#endif
+
+#if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
+const unsigned char WINDOWS_CHANNELS_ICON[] U8G_PROGMEM = {
+0X00,0X00,
+0X00,0X00,
+0XFC,0X3F,
+0X04,0X22,
+0X04,0X22,
+0XF4,0X22,
+0X14,0X3E,
+0XF4,0X22,
+0X84,0X22,
+0X94,0X22,
+0XF4,0X22,
+0X04,0X22,
+0X04,0X22,
+0XFC,0X3F,
+0X00,0X00,
+0X00,0X00,
  };
 #endif
 
@@ -255,9 +310,27 @@ class LCDMenu; // forward declaration
     
  };
 
+typedef struct
+{
+    bool linkedToSD: 1; // флаг, что мы читаем привязки с SD-карты
+    bool sdSettingsInited: 1;
+    int8_t currentSensorsDirectory : 6;
+  
+} IdlePageMenuItemFlags;
+
 class IdlePageMenuItem : public AbstractLCDMenuItem // класс экрана ожидания
 {
   private:
+
+#ifdef SENSORS_SETTINGS_ON_SD_ENABLED
+    IdlePageMenuItemFlags idleFlags;
+    void SelectNextSDSensor(LCDMenu* menu);
+    void RequestSDSensorData(LCDMenu* menu);
+    File workDir, workFile;
+    bool SelectNextDirectory(LCDMenu* menu);
+    void OpenCurrentSDDirectory(LCDMenu* menu);
+    char* ReadCurrentFile();
+#endif
 
     unsigned long rotationTimer;
     int8_t currentSensorIndex;
@@ -280,12 +353,19 @@ class IdlePageMenuItem : public AbstractLCDMenuItem // класс экрана �
     
 };
 #ifdef USE_TEMP_SENSORS
+
+typedef struct
+{
+    bool isWindowsOpen : 1;
+    bool isWindowsAutoMode : 1;
+    byte pad : 6;
+  
+} WindowMenuItemFlags;
+
 class WindowMenuItem : public AbstractLCDMenuItem // класс меню управления окнами
 {
   private:
-    bool isWindowsOpen;
-    bool isWindowsAutoMode;
-  
+      WindowMenuItemFlags windowsFlags;
    public:
     WindowMenuItem();
     virtual void draw(DrawContext* dc);
@@ -296,13 +376,22 @@ class WindowMenuItem : public AbstractLCDMenuItem // класс меню упр�
   
 };
 #endif
+
 #ifdef USE_WATERING_MODULE
+
+typedef struct
+{
+    bool isWateringOn : 1;
+    bool isWateringAutoMode : 1;
+    byte pad : 6;
+      
+} WateringMenuItemFlags;
+
 class WateringMenuItem : public AbstractLCDMenuItem // класс меню управления поливом
 {
   private:
   
-    bool isWateringOn;
-    bool isWateringAutoMode;
+    WateringMenuItemFlags waterFlags;
 
    public:
     WateringMenuItem();
@@ -314,14 +403,56 @@ class WateringMenuItem : public AbstractLCDMenuItem // класс меню уп�
 };
 #endif
 
+#if defined(USE_WATERING_MODULE) && defined(WATER_CHANNELS_SCREEN_ENABLED)
+class WateringChannelsMenuItem : public AbstractLCDMenuItem // класс меню управления каналами полива
+{
+  private:
+
+  int8_t currentSelectedChannel;
+  
+   public:
+    WateringChannelsMenuItem();
+    virtual void draw(DrawContext* dc);
+    virtual void init(LCDMenu* parent);
+    virtual bool OnEncoderPositionChanged(int dir, LCDMenu* menu);
+    virtual void update(uint16_t dt, LCDMenu* menu);
+  
+};
+#endif
+
+#if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
+class WindowsChannelsMenuItem : public AbstractLCDMenuItem // класс меню управления каналами полива
+{
+  private:
+
+  int8_t currentSelectedChannel;
+  
+   public:
+    WindowsChannelsMenuItem();
+    virtual void draw(DrawContext* dc);
+    virtual void init(LCDMenu* parent);
+    virtual bool OnEncoderPositionChanged(int dir, LCDMenu* menu);
+    virtual void update(uint16_t dt, LCDMenu* menu);
+  
+};
+#endif
+
 #ifdef USE_LUMINOSITY_MODULE
+
+typedef struct
+{
+  bool isLightOn : 1;
+  bool isLightAutoMode : 1;
+  byte pad : 6; 
+  
+} LuminosityMenuItemFlags;
+
 class LuminosityMenuItem : public AbstractLCDMenuItem // класс меню управления досветкой
 {
   private:
   
-    bool isLightOn;
-    bool isLightAutoMode;
-
+    LuminosityMenuItemFlags lumFlags;
+    
    public:
     LuminosityMenuItem();
     virtual void draw(DrawContext* dc);
@@ -350,6 +481,15 @@ class SettingsMenuItem : public AbstractLCDMenuItem // класс меню уп�
 }; 
 
  typedef Vector<AbstractLCDMenuItem*> MenuItems;
+
+ typedef struct
+ {
+    bool backlightIsOn : 1;
+    bool backlightCheckingEnabled : 1;
+    bool needRedraw : 1; // флаг, что нам надо перерисовать экран
+    byte pad : 5;
+    
+ } LCDMenuFlags;
  
 class LCDMenu : public DrawContext
 {
@@ -363,6 +503,15 @@ class LCDMenu : public DrawContext
     void update(uint16_t dt); // обновляем меню
     void selectNextMenu(int encoderDirection); // выбирает следующее меню в списке
     void enterSubMenu(); // входим внутрь выбранного экрана
+
+    // функции взаимодействия с настройками на SD
+    byte GetFilesCount(byte directory); // возвращает кол-во файлов в папке
+    bool HasSensorsSettingsOnSD(); // проверяет, есть ли хоть одна привязка датчиков на SD-карте
+    String GetFileContent(byte directory,byte fileIndex, int& resultSensorIndex); // возвращает содержимое файла нужной директории
+    String GetFolderName(byte directory);
+
+    void ClearSDSensors();
+    void AddSDSensor(byte folder,byte sensorIndex,const String& strCaption);
 
   protected:
 
@@ -379,7 +528,15 @@ class LCDMenu : public DrawContext
 #endif    
 #ifdef USE_LUMINOSITY_MODULE
     friend class LuminosityMenuItem;
-#endif    
+#endif  
+
+#if defined(USE_WATERING_MODULE) && defined(WATER_CHANNELS_SCREEN_ENABLED)
+    friend class WateringChannelsMenuItem;
+#endif   
+
+#if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
+    friend class WindowsChannelsMenuItem;
+#endif  
 
    void wantRedraw(); // ставим флаг необходимости перерисовки 
    void resetTimer(); // сбрасываем таймер перехода в меню ожидания
@@ -387,14 +544,17 @@ class LCDMenu : public DrawContext
 
    private:
 
-   bool backlightIsOn;
+   void DoRemoveFiles(const String& dirName);
+
+   LCDMenuFlags flags;
+ 
    void backlight(bool en=true); // управление подсветкой
    uint16_t backlightCounter; // выключаем досветку, когда ничего не делается и накопили в этой переменной нужный интервал
-   bool backlightCheckingEnabled;
+   
 
    size_t selectedMenuItem; // какой пункт меню выбран?
    MenuItems items;
-   bool needRedraw; // флаг, что нам надо перерисовать экран
+   
 
    uint16_t gotLastCommmandAt; // время с момента получения последней команды
 };

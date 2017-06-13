@@ -30,6 +30,9 @@
     <ClInclude Include="AlertModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AT24CX.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CommandBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -189,6 +192,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AlertModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AT24CX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CommandBuffer.cpp">
