@@ -1,8 +1,10 @@
 #include "HttpModule.h"
 #include "ModuleController.h"
 #include "InteropStream.h"
+#include "TempSensors.h"
+#include "Globals.h"
 //--------------------------------------------------------------------------------------------------------------------------------
-#define HTTP_START_OF_HEADERS F("POST /check_commands.php HTTP/1.1\r\nConnection: close\r\nContent-Type: application/x-www-form-urlencoded\r\nHost: ")
+#define HTTP_START_OF_HEADERS F("POST /check HTTP/1.1\r\nConnection: close\r\nContent-Type: application/x-www-form-urlencoded\r\nHost: ")
 #define HTTP_CONTENT_LENGTH_HEADER F("Content-Length: ")
 #define HTTP_END_OF_HEADER F("\r\n")
 #define HTTP_START_OF_COMMAND F("[~]")
@@ -36,12 +38,26 @@
 #define HTTP_COMMAND_LIGHT_OFF 10
 #define HTTP_COMMAND_PIN_ON 11
 #define HTTP_COMMAND_PIN_OFF 12
+#define HTTP_COMMAND_AUTO_MODE 13
+#define HTTP_COMMAND_RULES_ON 14
+#define HTTP_COMMAND_RULES_OFF 15
+#define HTTP_COMMAND_ALARMS_ON 16
+#define HTTP_COMMAND_ALARMS_OFF 17
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void HttpModule::Setup()
 {
   // настройка модуля тут
   flags.inProcessQuery = false;
   flags.currentAction = HTTP_ASK_FOR_COMMANDS; // пытаемся запросить команды
+  flags.isEnabled = MainController->GetSettings()->IsHttpApiEnabled();
+
+  // инициализируем провайдеров нулями
+  providers[0] = NULL;
+  providers[1] = NULL;
+
+  flags.isFirstUpdateCall = true;
+  flags.currentProviderNumber = 0;
 
   commandsCheckTimer = 0;
   waitTimer = 0;
@@ -49,7 +65,19 @@ void HttpModule::Setup()
 //--------------------------------------------------------------------------------------------------------------------------------
 void HttpModule::CheckForIncomingCommands(byte wantedAction)
 {
-  HTTPQueryProvider* prov = MainController->GetHTTPProvider();
+  HTTPQueryProvider* prov = providers[flags.currentProviderNumber];//MainController->GetHTTPProvider();
+  if(!prov)
+  {
+   #ifdef HTTP_DEBUG
+    Serial.println(F("HTTP check for commands - NO PROVIDER!!!"));
+   #endif
+    return;
+  }
+
+   #ifdef HTTP_DEBUG
+    Serial.print(F("HTTP current provider: "));
+    Serial.println(flags.currentProviderNumber);
+   #endif
 
    // выставляем флаг, что мы в процессе обработки запроса
    flags.inProcessQuery = true;
@@ -71,6 +99,414 @@ void HttpModule::OnAskForHost(String& host)
   host = F(HTTP_SERVER_IP);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+uint8_t HttpModule::MapFraction(uint8_t fraction)
+{
+  uint16_t tmp = 15*fraction;
+  return tmp/100;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void HttpModule::CollectControllerStatus(String* data)
+{
+  *data += F("&w=");
+
+  ControllerState state = WORK_STATUS.GetState();
+
+  /* 
+   Тут собираем состояние контроллера.
+    структура такая:
+    первый байт - кол-во окон (младшие 6 бит). Если старший бит установлен (0x80) - то есть информация по окнам,
+    тогда следом идёт N байт состояния окон, например, для 8 окон - 1 байт, для 16 окон - два байта и т.п.
+    каналы нумеруются слева-направо, т.е. младший бит первого байта - это первое окно, младший бит второго
+    байта - девятое окно и т.п.
+
+    Седьмой бит первого байта (0x40) - режим работы: 1 - автоматический, 0 - ручной)
+
+     после кол-ва окон идёт информация о каналах полива. структура - такая же, как и у окон.
+
+     потом - идёт информация о каналах досветки, аналогичной структуры.
+
+     далее - состояние модуля pH, один байт:
+
+     бит 0x80 - есть модуль pH
+     первый бит - насос заполнения бака pH включен
+     второй бит - насос перемешивания pH работает
+     третий бит - насос повышения pH работает
+     четвёртый бит - насос понижения pH работае
+     
+   */
+
+    // собираем состояние окон
+    byte windowsCount = SUPPORTED_WINDOWS;
+    
+    #if  defined(USE_TEMP_SENSORS) && (SUPPORTED_WINDOWS > 0)
+    
+      // есть модуль окон в прошивке, устанавливаем старший бит
+      windowsCount |= 0x80;
+      
+      if(WORK_STATUS.GetStatus(WINDOWS_MODE_BIT)) // автоматический режим работы, устанавливаем седьмой бит
+        windowsCount |= 0x40;
+      
+    #endif // USE_TEMP_SENSORS
+
+    // пишем кол-во окон
+    *data += WorkStatus::ToHex(windowsCount);
+
+    #if  defined(USE_TEMP_SENSORS) && (SUPPORTED_WINDOWS > 0)
+      // теперь пишем состояние окон по каналам
+      // вычисляем кол-во байт, в которых будет храниться состояние окон
+      byte bytesNeeded = SUPPORTED_WINDOWS/8;
+      if(bytesNeeded < 1)
+        bytesNeeded = 1;
+        
+      if(SUPPORTED_WINDOWS > 8 && SUPPORTED_WINDOWS%8)
+        bytesNeeded++;
+
+      // получили кол-во байт, теперь создаём массив и пишем в него состояние
+      byte* currentWindowsState = new byte[bytesNeeded];
+      memset(currentWindowsState,0,bytesNeeded);
+      
+      for(byte i=0;i<SUPPORTED_WINDOWS;i++)
+      {
+        byte byteNum = i/8;
+        byte bitNum = i%8;
+        if(WindowModule->IsWindowOpen(i))
+          currentWindowsState[byteNum] = currentWindowsState[byteNum] | (1 << bitNum);
+      } // for
+
+      // теперь пишем это дело в строку
+      for(byte i=0;i<bytesNeeded;i++)
+      {
+        *data += WorkStatus::ToHex(currentWindowsState[i]);
+      }
+
+      // и не забываем чистить за собой
+      delete [] currentWindowsState;
+    #endif // USE_TEMP_SENSORS
+
+    // теперь собираем состояние каналов полива
+    byte waterChannelsCount = WATER_RELAYS_COUNT;
+
+    #if defined(USE_WATERING_MODULE) && (WATER_RELAYS_COUNT > 0)
+      // есть модуль полива в прошивке, устанавливаем старший бит
+      waterChannelsCount |= 0x80;
+      
+      if(WORK_STATUS.GetStatus(WATER_MODE_BIT)) // автоматический режим работы, устанавливаем седьмой бит
+        waterChannelsCount |= 0x40;      
+      
+    #endif // USE_WATERING_MODULE
+
+    // пишем в поток
+    *data += WorkStatus::ToHex(waterChannelsCount);
+
+    #if defined(USE_WATERING_MODULE) && (WATER_RELAYS_COUNT > 0)
+      // теперь пишем состояние полива по каналам
+      // вычисляем кол-во байт, в которых будет храниться состояние каналов полива
+      byte waterBytesNeeded = WATER_RELAYS_COUNT/8;
+      if(waterBytesNeeded < 1)
+        waterBytesNeeded = 1;
+        
+      if(WATER_RELAYS_COUNT > 8 && WATER_RELAYS_COUNT%8)
+        waterBytesNeeded++;
+
+      // получили кол-во байт, теперь создаём массив и пишем в него состояние
+      byte* currentWaterState = new byte[waterBytesNeeded];
+      memset(currentWaterState,0,waterBytesNeeded);
+      
+      for(byte i=0;i<WATER_RELAYS_COUNT;i++)
+      {
+        byte byteNum = i/8;
+        byte bitNum = i%8;
+        if(state.WaterChannelsState & (1 << i) )
+          currentWaterState[byteNum] = currentWaterState[byteNum] | (1 << bitNum);
+      } // for
+
+      // теперь пишем это дело в строку
+      for(byte i=0;i<waterBytesNeeded;i++)
+      {
+        *data += WorkStatus::ToHex(currentWaterState[i]);
+      }
+
+      // и не забываем чистить за собой
+      delete [] currentWaterState;
+    #endif // USE_WATERING_MODULE
+
+
+ // теперь собираем состояние каналов досветки
+    byte lightChannelsCount = LAMP_RELAYS_COUNT;
+
+    #if defined(USE_LUMINOSITY_MODULE) && (LAMP_RELAYS_COUNT > 0)
+      // есть модуль полива в прошивке, устанавливаем старший бит
+      lightChannelsCount |= 0x80;
+      
+      if(WORK_STATUS.GetStatus(LIGHT_MODE_BIT)) // автоматический режим работы, устанавливаем седьмой бит
+        lightChannelsCount |= 0x40;      
+      
+    #endif // USE_LUMINOSITY_MODULE
+
+    // пишем в поток
+    *data += WorkStatus::ToHex(lightChannelsCount);
+
+    #if defined(USE_LUMINOSITY_MODULE) && (LAMP_RELAYS_COUNT > 0)
+      // теперь пишем состояние полива по каналам
+      // вычисляем кол-во байт, в которых будет храниться состояние каналов полива
+      byte lightBytesNeeded = LAMP_RELAYS_COUNT/8;
+      if(lightBytesNeeded < 1)
+        lightBytesNeeded = 1;
+        
+      if(LAMP_RELAYS_COUNT > 8 && LAMP_RELAYS_COUNT%8)
+        lightBytesNeeded++;
+
+      // получили кол-во байт, теперь создаём массив и пишем в него состояние
+      byte* currentLightState = new byte[lightBytesNeeded];
+      memset(currentLightState,0,lightBytesNeeded);
+      
+      for(byte i=0;i<LAMP_RELAYS_COUNT;i++)
+      {
+        byte byteNum = i/8;
+        byte bitNum = i%8;
+        if(state.LightChannelsState & (1 << i) )
+          currentLightState[byteNum] = currentLightState[byteNum] | (1 << bitNum);
+      } // for
+
+      // теперь пишем это дело в строку
+      for(byte i=0;i<lightBytesNeeded;i++)
+      {
+        *data += WorkStatus::ToHex(currentLightState[i]);
+      }
+
+      // и не забываем чистить за собой
+      delete [] currentLightState;
+    #endif // USE_LUMINOSITY_MODULE    
+
+
+    // теперь пишем состояние модуля pH
+    /*
+     далее - состояние модуля pH, один байт:
+
+     бит 0x80 - есть модуль pH
+     первый бит - насос заполнения бака pH включен
+     второй бит - насос перемешивания pH работает
+     третий бит - насос повышения pH работает
+     четвёртый бит - насос понижения pH работае
+     */
+     byte phState = 0;
+
+     #ifdef USE_PH_MODULE
+        phState |= 0x80;
+        if(WORK_STATUS.GetStatus(PH_FLOW_ADD_BIT))
+          phState |= 1;
+          
+        if(WORK_STATUS.GetStatus(PH_MIX_PUMP_BIT))
+          phState |= 2;
+          
+        if(WORK_STATUS.GetStatus(PH_PLUS_PUMP_BIT))
+          phState |= 4;
+
+        if(WORK_STATUS.GetStatus(PH_MINUS_PUMP_BIT))
+          phState |= 8;
+     #endif
+
+     // пишем в поток
+     *data += WorkStatus::ToHex(phState);
+
+     // теперь пишем состояние пинов
+     for(size_t i=0;i<sizeof(state.PinsState);i++)
+     {
+        *data += WorkStatus::ToHex(state.PinsState[i]);
+     }
+   
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void HttpModule::CollectSensorsData(String* data)
+{
+  // тут собираем данные с датчиков
+  // порядок следования датчиков:
+  // температура|влажность|освещённость|влажность почвы|показания pH
+    *data += F("&s=");
+
+
+    ///////////////////////////////////////////////////////////
+    // собираем показания датчиков температуры
+    ///////////////////////////////////////////////////////////
+    AbstractModule* mod = MainController->GetModuleByID("STATE");
+    if(mod)
+    {
+       int cnt = mod->State.GetStateCount(StateTemperature);
+       *data += WorkStatus::ToHex(cnt);
+
+       for(int i=0;i<cnt;i++)
+       {
+          OneState* os = mod->State.GetStateByOrder(StateTemperature,i);
+          if(os->HasData()) // есть показания
+          {
+            TemperaturePair tp = *os;
+            int8_t wholePart = tp.Current.Value;
+            uint8_t fractionPart = MapFraction(tp.Current.Fract);
+            
+            *data += WorkStatus::ToHex(wholePart);
+            // для дробной части у нас всего один символ, поэтому берём только второй из перекодированных в HEX, т.к. первый символ там будет всё равно 0
+            const char* fractPtr = WorkStatus::ToHex(fractionPart);
+            fractPtr++;
+            *data += fractPtr;
+            
+          }
+          else // нет показаний
+          {
+            *data += F("-");
+          }
+       } // for
+    }
+    else
+      *data += F("00"); // не найдено модуля
+
+
+    ///////////////////////////////////////////////////////////
+    // собираем показания датчиков влажности
+    ///////////////////////////////////////////////////////////
+    mod = MainController->GetModuleByID("HUMIDITY");
+    if(mod)
+    {
+       int cnt = mod->State.GetStateCount(StateHumidity);
+       *data += WorkStatus::ToHex(cnt);
+
+       for(int i=0;i<cnt;i++)
+       {
+          OneState* os = mod->State.GetStateByOrder(StateHumidity,i);
+          OneState* os2 = mod->State.GetStateByOrder(StateTemperature,i);
+          if(os->HasData() && os2->HasData()) // есть показания
+          {
+            // показания влажности
+            HumidityPair tp = *os;
+            int8_t wholePart = tp.Current.Value;
+            uint8_t fractionPart = MapFraction(tp.Current.Fract);
+            
+            *data += WorkStatus::ToHex(wholePart);
+            const char* fractPtr = WorkStatus::ToHex(fractionPart);
+            fractPtr++;
+            *data += fractPtr;
+
+            // показания температуры
+            TemperaturePair tp2 = *os2;
+            wholePart = tp2.Current.Value;
+            fractionPart = MapFraction(tp2.Current.Fract);
+            
+            *data += WorkStatus::ToHex(wholePart);
+            fractPtr = WorkStatus::ToHex(fractionPart);
+            fractPtr++;
+            *data += fractPtr;
+            
+          }
+          else // нет показаний
+          {
+            *data += F("-");
+          }
+       } // for
+    }
+    else
+      *data += F("00"); // не найдено модуля
+
+   ///////////////////////////////////////////////////////////
+    // собираем показания датчиков освещённости
+    ///////////////////////////////////////////////////////////
+    mod = MainController->GetModuleByID("LIGHT");
+    if(mod)
+    {
+       int cnt = mod->State.GetStateCount(StateLuminosity);
+       *data += WorkStatus::ToHex(cnt);
+
+       for(int i=0;i<cnt;i++)
+       {
+          OneState* os = mod->State.GetStateByOrder(StateLuminosity,i);
+          if(os->HasData()) // есть показания
+          {
+            LuminosityPair tp = *os;
+            long sensorData = tp.Current;
+            byte* b = (byte*) &sensorData;
+            
+            // копируем 4 байта показаний датчика, как есть
+            for(byte kk=0; kk < 4; kk++)
+              *data += WorkStatus::ToHex(*b++);          
+          }
+          else // нет показаний
+          {
+            *data += F("-");
+          }
+       } // for
+    }
+    else
+      *data += F("00"); // не найдено модуля
+
+    ///////////////////////////////////////////////////////////
+    // собираем показания датчиков влажности почвы
+    ///////////////////////////////////////////////////////////
+    mod = MainController->GetModuleByID("SOIL");
+    if(mod)
+    {
+       int cnt = mod->State.GetStateCount(StateSoilMoisture);
+       *data += WorkStatus::ToHex(cnt);
+
+       for(int i=0;i<cnt;i++)
+       {
+          OneState* os = mod->State.GetStateByOrder(StateSoilMoisture,i);
+          if(os->HasData()) // есть показания
+          {
+            HumidityPair tp = *os;
+            int8_t wholePart = tp.Current.Value;
+            uint8_t fractionPart = MapFraction(tp.Current.Fract);
+            
+            *data += WorkStatus::ToHex(wholePart);
+            // для дробной части у нас всего один символ, поэтому берём только второй из перекодированных в HEX, т.к. первый символ там будет всё равно 0
+            const char* fractPtr = WorkStatus::ToHex(fractionPart);
+            fractPtr++;
+            *data += fractPtr;
+            
+          }
+          else // нет показаний
+          {
+            *data += F("-");
+          }
+       } // for
+    }
+    else
+      *data += F("00"); // не найдено модуля          
+
+    ///////////////////////////////////////////////////////////
+    // собираем показания датчиков pH
+    ///////////////////////////////////////////////////////////
+    mod = MainController->GetModuleByID("PH");
+    if(mod)
+    {
+       int cnt = mod->State.GetStateCount(StatePH);
+       *data += WorkStatus::ToHex(cnt);
+
+       for(int i=0;i<cnt;i++)
+       {
+          OneState* os = mod->State.GetStateByOrder(StatePH,i);
+          if(os->HasData()) // есть показания
+          {
+            HumidityPair tp = *os;
+            int8_t wholePart = tp.Current.Value;
+            uint8_t fractionPart = MapFraction(tp.Current.Fract);
+            
+            *data += WorkStatus::ToHex(wholePart);
+            // для дробной части у нас всего один символ, поэтому берём только второй из перекодированных в HEX, т.к. первый символ там будет всё равно 0
+            const char* fractPtr = WorkStatus::ToHex(fractionPart);
+            fractPtr++;
+            *data += fractPtr;
+            
+          }
+          else // нет показаний
+          {
+            *data += F("-");
+          }
+       } // for
+    }
+    else
+      *data += F("00"); // не найдено модуля          
+
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void HttpModule::OnAskForData(String* data)
 {
   #ifdef HTTP_DEBUG
@@ -89,11 +525,43 @@ void HttpModule::OnAskForData(String* data)
           Serial.println(F("Asking for commands..."));
         #endif 
 
-        // формируем запрос
+        // формируем запрос:
+
+        GlobalSettings* sett = MainController->GetSettings();
 
         // для начала подсчитываем длину контента
-        String key = MainController->GetSettings()->GetHttpApiKey(); // ключ доступа к API
-        int contentLength = 2 + key.length(); // 2 - на имя переменной и знак равно, т.е. k=ТУТ_КЛЮЧ_API
+        String key = sett->GetHttpApiKey(); // ключ доступа к API
+        String tz = String((int) sett->GetTimezone());
+
+        int addedLength = 0;
+        #ifdef USE_DS3231_REALTIME_CLOCK
+          addedLength = 6;
+          DS3231Clock rtc = MainController->GetClock();
+          DS3231Time tm = rtc.getTime();
+          String dateStr = rtc.getDateStr(tm);
+          String timeStr = rtc.getTimeStr(tm);
+
+          addedLength += dateStr.length();
+          addedLength += timeStr.length();
+          
+        #endif
+
+        String sensorsData;
+        bool canSendSensorsData = sett->CanSendSensorsDataToHTTP();
+        if(canSendSensorsData)
+        {
+          // можем посылать данные датчиков
+          CollectSensorsData(&sensorsData);
+        }
+
+        String controllerStatus;
+        bool canSendControllerStatus = sett->CanSendControllerStatusToHTTP();
+        if(canSendControllerStatus)
+        {
+          CollectControllerStatus(&controllerStatus);
+        }
+                
+        int contentLength = 2 + key.length() + 3 + tz.length() + addedLength + sensorsData.length() + controllerStatus.length(); // 2 - на имя переменной и знак равно, т.е. k=ТУТ_КЛЮЧ_API
 
         // теперь начинаем формировать запрос
         *data = HTTP_START_OF_HEADERS;
@@ -106,6 +574,25 @@ void HttpModule::OnAskForData(String* data)
         *data += HTTP_END_OF_HEADER;
         *data += F("k=");
         *data += key;
+
+        // передаём таймзону
+        *data += F("&z=");
+        *data += tz;
+
+        // тут передаём локальное время контроллера
+        #ifdef USE_DS3231_REALTIME_CLOCK
+          *data += F("&d=");
+          *data += dateStr;
+          *data += F("&t=");
+          *data += timeStr;                  
+        #endif
+
+        if(canSendSensorsData)
+          *data += sensorsData;
+
+        if(canSendControllerStatus)
+          *data += controllerStatus;
+
 
         // запрос сформирован
 
@@ -124,13 +611,31 @@ void HttpModule::OnAskForData(String* data)
           Serial.println(F("Report to server..."));
         #endif 
 
+        GlobalSettings* sett = MainController->GetSettings();
+
         // сначала получаем ID команды
         String* commandId = commandsToReport[commandsToReport.size()-1];
         commandsToReport.pop(); // удаляем из списка
 
         // теперь формируем запрос
-        String key = MainController->GetSettings()->GetHttpApiKey(); // ключ доступа к API
-        int contentLength = 2 + key.length(); // 2 - на имя переменной и знак равно, т.е. k=ТУТ_КЛЮЧ_API
+        String key = sett->GetHttpApiKey(); // ключ доступа к API
+        String tz = String((int)sett->GetTimezone());
+
+        int addedLength = 0;
+
+        #ifdef USE_DS3231_REALTIME_CLOCK
+          addedLength = 6;
+          DS3231Clock rtc = MainController->GetClock();
+          DS3231Time tm = rtc.getTime();
+          String dateStr = rtc.getDateStr(tm);
+          String timeStr = rtc.getTimeStr(tm);
+
+          addedLength += dateStr.length();
+          addedLength += timeStr.length();
+        #endif
+
+        
+        int contentLength = 2 + key.length() + 3 + tz.length() + addedLength; // 2 - на имя переменной и знак равно, т.е. k=ТУТ_КЛЮЧ_API
         contentLength += 4; // на переменную &r=1, т.е. сообщаем серверу, что этот запрос - со статусом выполнения команды
         contentLength += 3; // на переменную &c=, содержащую ID команды
         contentLength += commandId->length(); // ну и, собственно, длину ID команды тоже считаем
@@ -149,6 +654,20 @@ void HttpModule::OnAskForData(String* data)
         *data += F("&r=1&c=");
         *data += *commandId;
 
+        // передаём таймзону
+        *data += F("&z=");
+        *data += tz;
+
+        // тут передаём локальное время контроллера
+        #ifdef USE_DS3231_REALTIME_CLOCK
+          *data += F("&d=");
+          
+          *data += dateStr;
+          *data += F("&t=");
+          *data += timeStr;
+                     
+        #endif
+
         delete commandId; // не забываем чистить за собой
 
         // запрос сформирован        
@@ -163,7 +682,7 @@ void HttpModule::OnAskForData(String* data)
 void HttpModule::OnAnswerLineReceived(String& line, bool& enough)
 { 
   // ищем - не пришёл ли конец команды, если пришёл - говорим, что нам хватит
-  enough = line.startsWith(F("[CMDEND]"));
+  enough = line.startsWith(F("[CMDEND]")) || line.endsWith(F("CLOSED"));
 
   if(!line.length()) // пустая строка, нечего обрабатывать
     return;
@@ -376,7 +895,42 @@ void HttpModule::OnAnswerLineReceived(String& line, bool& enough)
             ModuleInterop.QueryCommand(ctSET, c, false);            
           }
           break;
+
+          case HTTP_COMMAND_AUTO_MODE:
+          {
+            // переходим в автоматический режим работы
+            ModuleInterop.QueryCommand(ctSET, F("0|AUTO"), false);
+          }
+          break;
           
+          case HTTP_COMMAND_RULES_ON:
+          {
+            // включаем правила
+            ModuleInterop.QueryCommand(ctSET, F("ALERT|RULE_STATE|ALL|ON"), false);
+          }
+          break;
+          
+          case HTTP_COMMAND_RULES_OFF:
+          {
+            // выключаем правила
+            ModuleInterop.QueryCommand(ctSET, F("ALERT|RULE_STATE|ALL|OFF"), false);
+          }
+          break;
+
+          case HTTP_COMMAND_ALARMS_ON:
+          {
+            // включаем тревожные правила
+            ModuleInterop.QueryCommand(ctSET, F("ALERT|RULE_ALERT|ALL|ON"), false);
+          }
+          break;
+          
+          case HTTP_COMMAND_ALARMS_OFF:
+          {
+            // выключаем тревожные правила
+            ModuleInterop.QueryCommand(ctSET, F("ALERT|RULE_ALERT|ALL|OFF"), false);
+          }
+          break;
+
         } // switch
       
     } // if short command format
@@ -446,13 +1000,44 @@ void HttpModule::OnHTTPResult(uint16_t statusCode)
     commandsCheckTimer = HTTP_POLL_INTERVAL;
     commandsCheckTimer *= 1000;
     waitTimer = 5000;
-  }
+
+    
+  } // if
 
   if(flags.currentAction == HTTP_REPORT_TO_SERVER)
   {
     // после каждого репорта дадим поработать другим командам
     waitTimer = 5000;
   }
+
+  if(statusCode != HTTP_REQUEST_COMPLETED)
+  {
+
+    // тут проверяем - можем ли мы сменить провайдера и повторить запрос через другого? ести текущий результат - неудачен?
+  #ifdef HTTP_DEBUG
+    Serial.println(F("HTTP FAIL - try to change provider..."));
+  #endif
+    
+    byte curProviderIndex = flags.currentProviderNumber;
+    if(curProviderIndex == 1)
+      curProviderIndex = 0;
+    else
+      curProviderIndex = 1;
+
+    if(providers[curProviderIndex])
+    {
+      // можем сменить, поэтому меняем 
+      #ifdef HTTP_DEBUG
+        Serial.print(F("HTTP - provider changed from "));
+        Serial.print(flags.currentProviderNumber);
+        Serial.print(F(" to "));
+        Serial.println(curProviderIndex);
+      #endif
+
+      flags.currentProviderNumber = curProviderIndex;
+    } // if  
+
+  } // status bad
   
   
   flags.currentAction = HTTP_ASK_FOR_COMMANDS;
@@ -460,7 +1045,18 @@ void HttpModule::OnHTTPResult(uint16_t statusCode)
 //--------------------------------------------------------------------------------------------------------------------------------
 void HttpModule::Update(uint16_t dt)
 { 
-  if(flags.inProcessQuery) // занимаемся обработкой запроса
+
+  // сначала получаем всех провайдеров
+  if(flags.isFirstUpdateCall)
+  {
+    flags.isFirstUpdateCall = false;
+    providers[0] = MainController->GetHTTPProvider(0);
+    providers[1] = MainController->GetHTTPProvider(1);
+    // теперь мы можем работать с обеими провайдерами
+  }
+
+  
+  if(flags.inProcessQuery || !flags.isEnabled) // занимаемся обработкой запроса или выключены
     return;
 
   commandsCheckTimer += dt; // прибавляем время простоя
@@ -471,8 +1067,31 @@ void HttpModule::Update(uint16_t dt)
     return;
 
   waitTimer = 0; // сбрасываем таймер ожидания
-  
 
+  // тут выясняем, какой провайдер на текущий момент может выполнить запрос
+  bool wifiReady = providers[0] && providers[0]->CanMakeQuery();
+  bool gsmReady = providers[1] && providers[1]->CanMakeQuery();
+
+  // если ни один из провайдеров не может выполнить запрос - вываливаемся и пытаемся повторить позже
+  if(!(wifiReady || gsmReady))
+  {
+    #ifdef HTTP_DEBUG
+      Serial.println(F("HTTP - providers busy, try again after 5 seconds..."));
+    #endif 
+       
+    waitTimer = 5000; // через 5 секунд повторим
+    return;    
+    
+  }
+
+  // мы здесь, потому что какой-то из провайдеров может выполнить запрос.
+  // проверяем, какой - и сохраняем его номер для последующей с ним работы
+  if(wifiReady)
+    flags.currentProviderNumber = 0;
+  else if(gsmReady)
+    flags.currentProviderNumber = 1;
+  
+  /*
   HTTPQueryProvider* prov = MainController->GetHTTPProvider();
   
   if(!prov)
@@ -481,12 +1100,13 @@ void HttpModule::Update(uint16_t dt)
   if(!prov->CanMakeQuery()) // провайдер не может выполнить запрос
   {
     #ifdef HTTP_DEBUG
-      Serial.println(F("WIFI - busy, try again after 5 seconds..."));
+      Serial.println(F("HTTP - busy, try again after 5 seconds..."));
     #endif 
        
     waitTimer = 5000; // через 5 секунд повторим
     return;    
   }
+  */
 
     // а теперь проверяем, есть ли у нас репорт для команд
     if(commandsToReport.size())
@@ -540,15 +1160,37 @@ bool  HttpModule::ExecCommand(const Command& command, bool wantAnswer)
       else
       {
         String which = command.GetArg(0);
-        if(which == F("KEY")) // установка ключа API, CTSET=HTTP|KEY|here
+        if(which == F("KEY")) // установка ключа API, CTSET=HTTP|KEY|here|enabled|timezone|sendSensorsData|sendControllerStatus
         {
-          MainController->GetSettings()->SetHttpApiKey(command.GetArg(1));
+          GlobalSettings* sett = MainController->GetSettings();
+          sett->SetHttpApiKey(command.GetArg(1));
+
+          if(argsCnt > 2) {
+              bool en = (bool) atoi(command.GetArg(2));
+              flags.isEnabled = en;
+              sett->SetHttpApiEnabled(en);
+          }
+
+          if(argsCnt > 3) {
+              int16_t tz = (int16_t) atoi(command.GetArg(3));
+              sett->SetTimezone(tz);
+          } 
+          if(argsCnt > 4) {
+               bool en = (bool) atoi(command.GetArg(4));
+              sett->SetSendSensorsDataFlag(en);
+          }                     
+          if(argsCnt > 5) {
+               bool en = (bool) atoi(command.GetArg(5));
+              sett->SetSendControllerStatusFlag(en);
+          }                     
+          
           PublishSingleton.Status = true;
           PublishSingleton = which;
           PublishSingleton << PARAM_DELIMITER;
           PublishSingleton << REG_SUCC;
 
-        }
+        } // which == F("KEY")
+
       } // else
   }
   else // получение свойств
@@ -563,10 +1205,19 @@ bool  HttpModule::ExecCommand(const Command& command, bool wantAnswer)
 
         if(which == F("KEY")) // запрос ключа API, CTGET=HTTP|KEY
         {
+          GlobalSettings* sett = MainController->GetSettings();
           PublishSingleton.Status = true;
           PublishSingleton = which;
           PublishSingleton << PARAM_DELIMITER;
-          PublishSingleton << (MainController->GetSettings()->GetHttpApiKey());
+          PublishSingleton << (sett->GetHttpApiKey());
+          PublishSingleton << PARAM_DELIMITER;
+          PublishSingleton << (sett->IsHttpApiEnabled() ? 1 : 0);
+          PublishSingleton << PARAM_DELIMITER;
+          PublishSingleton << (sett->GetTimezone());
+          PublishSingleton << PARAM_DELIMITER;
+          PublishSingleton << (sett->CanSendSensorsDataToHTTP() ? 1 : 0);
+          PublishSingleton << PARAM_DELIMITER;
+          PublishSingleton << (sett->CanSendControllerStatusToHTTP() ? 1 : 0);
           
         } // if(which == F("KEY"))
         

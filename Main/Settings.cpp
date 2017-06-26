@@ -517,6 +517,86 @@ void GlobalSettings::Save()
   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+bool GlobalSettings::IsHttpApiEnabled()
+{
+  uint16_t addr = HTTP_API_KEY_ADDRESS + 34;
+  byte en = MemRead(addr);
+  if(en == 0xFF)
+    en = 0; // если ничего не записано - считаем, что API выключено
+
+  return en ? true : false;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void GlobalSettings::SetHttpApiEnabled(bool val)
+{
+  uint16_t addr = HTTP_API_KEY_ADDRESS + 34;
+  MemWrite(addr,val ? 1 : 0);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+int16_t GlobalSettings::GetTimezone()
+{
+  int16_t result = 0;
+  uint16_t addr = TIMEZONE_ADDRESS;
+  
+  byte header1 = MemRead(addr++);
+  byte header2 = MemRead(addr++);
+
+  if(header1 == SETT_HEADER1 && header2 == SETT_HEADER2)
+  {
+      byte* b = (byte*) &result;
+      *b++ = MemRead(addr++);
+      *b++ = MemRead(addr++);
+
+      if(0xFFFF == (uint16_t)result)
+        result = 0;
+  }
+
+  return result;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void GlobalSettings::SetTimezone(int16_t val)
+{
+  uint16_t addr = TIMEZONE_ADDRESS;
+  
+  MemWrite(addr++,SETT_HEADER1);
+  MemWrite(addr++,SETT_HEADER2);
+
+  byte* b = (byte*) &val;
+
+  MemWrite(addr++,*b++);
+  MemWrite(addr++,*b++);
+  
+    
+}
+//--------------------------------------------------------------------------------------------------------------------------------------        
+bool GlobalSettings::CanSendSensorsDataToHTTP()
+{
+  byte en = MemRead(HTTP_SEND_SENSORS_DATA_ADDRESS);
+  if(en == 0xFF)
+    en = 1; // если ничего не записано - считаем, что можем отсылать данные
+
+  return en ? true : false;  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void GlobalSettings::SetSendSensorsDataFlag(bool val)
+{
+   MemWrite(HTTP_SEND_SENSORS_DATA_ADDRESS, val ? 1 : 0); 
+}
+//--------------------------------------------------------------------------------------------------------------------------------------        
+bool GlobalSettings::CanSendControllerStatusToHTTP()
+{
+  byte en = MemRead(HTTP_SEND_STATUS_ADDRESS);
+  if(en == 0xFF)
+    en = 1; // если ничего не записано - считаем, что можем отсылать данные
+
+  return en ? true : false;  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void GlobalSettings::SetSendControllerStatusFlag(bool val)
+{
+   MemWrite(HTTP_SEND_STATUS_ADDRESS, val ? 1 : 0); 
+}
+//--------------------------------------------------------------------------------------------------------------------------------------        
 String GlobalSettings::GetHttpApiKey()
 {
   String result;

@@ -10,7 +10,9 @@ struct HttpModuleFlags
 {
   bool inProcessQuery: 1;
   byte currentAction: 2;
-  byte pad: 5;
+  byte isEnabled: 1;
+  bool isFirstUpdateCall: 1;
+  byte currentProviderNumber: 3;
 };
 //--------------------------------------------------------------------------------------------------------------------------------
 enum
@@ -24,6 +26,9 @@ typedef Vector<String*> HTTPReportList;
 class HttpModule : public AbstractModule, public HTTPRequestHandler
 {
   private:
+
+
+   HTTPQueryProvider* providers[2]; // наши провайдеры - Wi-Fi и GSM
   
    long waitTimer;
    unsigned long commandsCheckTimer;
@@ -32,6 +37,9 @@ class HttpModule : public AbstractModule, public HTTPRequestHandler
    HTTPReportList commandsToReport;
    
    void CheckForIncomingCommands(byte wantedAction);
+   void CollectSensorsData(String* data);
+   void CollectControllerStatus(String* data);
+   uint8_t MapFraction(uint8_t fraction);
   
   public:
     HttpModule() : AbstractModule("HTTP") {}

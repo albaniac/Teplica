@@ -2193,6 +2193,48 @@ void UniNRFGate::SetChannel(byte channel)
   radio.startListening();
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
+int UniNRFGate::ScanChannel(byte channel)
+{
+  
+  if(!nRFInited)
+    return -1;
+
+    int level = 0;
+
+    radio.stopListening();
+    radio.setAutoAck(
+      #ifdef NRF_AUTOACK_INVERTED
+        true
+      #else
+      false
+      #endif
+      );
+    radio.setChannel(channel);   
+    radio.startListening();
+
+    for(int i=0;i<1000;i++)
+    {
+        if(radio.testRPD())
+          level++;
+
+         delayMicroseconds(50);
+    }
+
+    radio.stopListening();
+    radio.setAutoAck(
+      #ifdef NRF_AUTOACK_INVERTED
+        false
+      #else
+      true
+      #endif
+      );
+    radio.setChannel(UniDispatcher.GetRFChannel());   
+    radio.startListening();
+
+    return level;
+    
+}
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
 void UniNRFGate::initNRF()
 {
   #ifdef NRF_DEBUG
@@ -2220,7 +2262,13 @@ void UniNRFGate::initNRF()
     radio.setRetries(15,15);
     radio.setPayloadSize(PAYLOAD_SIZE); // у нас 30 байт на пакет
     radio.setCRCLength(RF24_CRC_16);
-    radio.setAutoAck(true);
+    radio.setAutoAck(
+      #ifdef NRF_AUTOACK_INVERTED
+        false
+      #else
+        true
+      #endif
+      );
   
     // открываем трубу, в которую будем писать состояние контроллера
     radio.openWritingPipe(controllerStatePipe);

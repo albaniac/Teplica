@@ -178,7 +178,17 @@ class GlobalSettings
 
     String GetHttpApiKey();
     void SetHttpApiKey(const char* val);
+    bool IsHttpApiEnabled();
+    void SetHttpApiEnabled(bool val);
 
+    int16_t GetTimezone();
+    void SetTimezone(int16_t val);
+
+    bool CanSendSensorsDataToHTTP();
+    void SetSendSensorsDataFlag(bool val);
+
+    bool CanSendControllerStatusToHTTP();
+    void SetSendControllerStatusFlag(bool val);
     
     
 };
