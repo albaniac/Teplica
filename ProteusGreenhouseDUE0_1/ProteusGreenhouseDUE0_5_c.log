@@ -1,4 +1,4 @@
-# Writing all output to: D:\2 SVN Teplica\trunk\ProteusGreenhouseDUE0_1\ProteusGreenhouseDUE0_5.log
+# Writing all output to: D:\2 SVN Teplica\trunk\ProteusGreenhouseDUE0_1\ProteusGreenhouseDUE0_5_c.log
 set pad_wire_necking on
 bus diagonal
 fanout 5
