@@ -57,15 +57,14 @@ bool HTU21D::begin(void)
 {
   Wire.begin();
 #endif
- /*
- Wire.setClock(400000UL);                //experimental! i2c bus speed: AVR 31kHz..400kHz/31000UL..400000UL, ESP8266 100kHz..400kHz/100000UL..400000UL
+  Wire.setClock(400000UL);                //experimental! i2c bus speed: AVR 31kHz..400kHz/31000UL..400000UL, ESP8266 100kHz..400kHz/100000UL..400000UL
   Wire.beginTransmission(HTU21D_ADDRESS);
 
   if (Wire.endTransmission(true) != 0)    //safety check - make sure the sensor is connected
   {
     return false;
   }
-*/
+
   setResolution(_HTU21D_Resolution);
   setHeater(HTU21D_OFF);
   return true;
@@ -228,7 +227,6 @@ float HTU21D::readHumidity(HTU21D_humdOperationMode sensorOperationMode)
     if (pollCounter > 0)
     {
       delay(8);
-      yield();
     }
     else
     {
@@ -334,7 +332,6 @@ float HTU21D::readTemperature(HTU21D_tempOperationMode sensorOperationMode)
     if (pollCounter > 0)
     {
       delay(16);
-      yield();
     }
     else
     {

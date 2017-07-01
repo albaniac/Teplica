@@ -113,7 +113,7 @@ void WateringChannel::LoadState()
     DoLoadState(offset);
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void WateringChannel::SaveState()
+void WateringChannel::SaveState(unsigned long wateringTimer)
 {
     WTR_LOG(F("Save state: channel - "));
     WTR_LOG(flags.index);
@@ -138,7 +138,7 @@ void WateringChannel::SaveState()
       break;
     }  
 
-    DoSaveState(offset);
+    DoSaveState(offset, wateringTimer);
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void WateringChannel::On()
@@ -205,6 +205,9 @@ void WateringChannel::Update(uint16_t _dt,WateringWorkMode currentWorkMode, cons
      // получаем время начала полива, в минутах от начала суток
      uint16_t startWateringTime = currentWateringOption == wateringWeekDays ? settings->GetStartWateringTime() : settings->GetChannelStartWateringTime(flags.index);
      unsigned long timeToWatering = currentWateringOption == wateringWeekDays ? settings->GetWateringTime() : settings->GetChannelWateringTime(flags.index); // время полива (в минутах!)
+     int8_t sensorIndex = currentWateringOption == wateringWeekDays ? settings->GetWateringSensorIndex() : settings->GetChannelWateringSensorIndex(flags.index);
+     int8_t stopBorder = currentWateringOption == wateringWeekDays ? settings->GetWateringStopBorder() : settings->GetChannelWateringStopBorder(flags.index);
+     
 
       // переход через день недели мы фиксируем однократно, поэтому нам важно его не пропустить.
       // можем ли мы работать или нет - неважно, главное - правильно обработать переход через день недели.
@@ -234,6 +237,25 @@ void WateringChannel::Update(uint16_t _dt,WateringWorkMode currentWorkMode, cons
     // проверяем, установлен ли у нас день недели для полива, и настала ли минута, с которого можно поливать
     uint16_t currentTimeInMinutes = currentTime.hour*60 + currentTime.minute;
     bool canWork = bitRead(weekDays,currentTime.dayOfWeek-1) && (currentTimeInMinutes >= startWateringTime);
+
+    if(canWork)
+    {
+      // проверяем, можем ли мы работать по условию с датчика влажности почвы
+      if(sensorIndex > -1 && stopBorder > 0)
+      {
+        AbstractModule* mod = MainController->GetModuleByID("SOIL");
+        if(mod)
+        {
+           OneState* os = mod->State.GetState(StateSoilMoisture,sensorIndex);
+           if(os && os->HasData())
+           {
+              HumidityPair hp = *os;
+              if(hp.Current.Value >= stopBorder) // показания с датчика больше или равны порогу выключения
+                canWork = false;
+           }
+        }
+      } // if
+    }
   
     if(!canWork)
      { 
@@ -244,6 +266,17 @@ void WateringChannel::Update(uint16_t _dt,WateringWorkMode currentWorkMode, cons
       // можем работать, смотрим, не вышли ли мы за пределы установленного интервала
 
       flags.wateringTimer += dt; // прибавляем время работы
+
+      // тут смотрим, не надо ли сохранить время полива, по шагам (например, каждую минуту)
+      if(flags.lastSavedStateMinute != -1  && flags.lastSavedStateMinute != currentTime.minute && !(currentTime.minute % WATERING_STATUS_SAVE_INTERVAL))
+      {       
+        // надо сохранить время полива
+        if(IsActive())
+        {
+          flags.lastSavedStateMinute = currentTime.minute;
+          SaveState(flags.wateringTimer);
+        }
+      }
   
       // проверяем, можем ли мы ещё работать
       // если полив уже отработал, и юзер прибавит минуту - мы должны поливать ещё минуту,
@@ -277,6 +310,7 @@ void WateringChannel::DoLoadState(byte addressOffset)
 {
    // сперва сбрасываем настройки времени полива и дополива
    flags.wateringTimer = flags.wateringDelta = 0;
+   flags.lastSavedStateMinute = -1;
   
 #ifdef USE_DS3231_REALTIME_CLOCK
 
@@ -284,6 +318,8 @@ void WateringChannel::DoLoadState(byte addressOffset)
     DS3231Clock watch =  MainController->GetClock();
     DS3231Time t =   watch.getTime();
     uint8_t today = t.dayOfWeek; // текущий день недели
+
+    flags.lastSavedStateMinute = t.minute;
   
     WTR_LOG(F("[WTR] - load state for channel "));
     WTR_LOG(flags.index);
@@ -311,15 +347,22 @@ void WateringChannel::DoLoadState(byte addressOffset)
       {
         flags.wateringTimer = savedWorkTime + 1;
       }
+      else
+        flags.wateringTimer = 0; // сбрасываем таймер
       
-    } // if    
+    } // if
+    else
+    {
+      // нет сохранённых настроек, сбрасываем по умолчанию
+      flags.wateringTimer = 0;    
+    }
  #else
     WTR_LOG(F("[WTR] - NO state for channel - no realtime clock!\r\n"));
  #endif // USE_DS3231_REALTIME_CLOCK
 
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void WateringChannel::DoSaveState(byte addressOffset)
+void WateringChannel::DoSaveState(byte addressOffset,unsigned long wateringTimer)
 {  
 #ifdef USE_DS3231_REALTIME_CLOCK
 
@@ -336,7 +379,15 @@ void WateringChannel::DoSaveState(byte addressOffset)
 
     // получаем время полива на канале. Логика простая: если addressOffset == 0 - у нас опция полива по дням недели, все каналы одновременно,
     // иначе - раздельное управление каналами по дням недели. Соответственно, мы либо получаем время полива для всех каналов, либо - для нужного.
-    unsigned long timeToWatering = addressOffset == 0 ? settings->GetWateringTime() : settings->GetChannelWateringTime(flags.index); // время полива (в минутах!)
+    unsigned long timeToWatering = 0;
+    
+    if(wateringTimer > 0) // если передали время полива - сохраняем
+      timeToWatering = wateringTimer;
+    else // иначе - пишем полное время полива
+    {
+      timeToWatering = addressOffset == 0 ? settings->GetWateringTime() : settings->GetChannelWateringTime(flags.index); // время полива (в минутах!)
+      timeToWatering *= 60000;
+    }
 
      //Тут сохранение в EEPROM статуса, что мы на сегодня уже полили сколько-то времени на канале
     uint16_t wrAddr = WATERING_STATUS_EEPROM_ADDR + addressOffset*5; // адрес записи
@@ -345,8 +396,7 @@ void WateringChannel::DoSaveState(byte addressOffset)
     MemWrite(wrAddr++,today);
     
     // сохраняем в EEPROM значение таймера канала
-    unsigned long ttw = timeToWatering*60000; // запишем полное время полива на сегодня
-    byte* readAddr = (byte*) &ttw;
+    byte* readAddr = (byte*) &timeToWatering;
     for(int i=0;i<4;i++)
       MemWrite(wrAddr++,*readAddr++);
     
@@ -784,6 +834,15 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
               uint16_t startWateringTime = (uint16_t) atoi(command.GetArg(4)); 
               uint8_t turnOnPump = (uint8_t) atoi(command.GetArg(5));
 
+              int8_t wateringSensorIndex = -1;
+              if(argsCount > 6)
+                wateringSensorIndex = (int8_t) atoi(command.GetArg(6));
+
+             uint8_t wateringStopBorder = 0;
+              if(argsCount > 7)
+                wateringStopBorder = (uint8_t) atoi(command.GetArg(7));
+             
+
               GlobalSettings* settings = MainController->GetSettings();
 
               byte oldWateringOption = settings->GetWateringOption();
@@ -794,9 +853,8 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
               settings->SetWateringTime(wateringTime);
               settings->SetStartWateringTime(startWateringTime);
               settings->SetTurnOnPump(turnOnPump);
-      
-              // сохраняем настройки
-              settings->Save();
+              settings->SetWateringSensorIndex(wateringSensorIndex);
+              settings->SetWateringStopBorder(wateringStopBorder);
 
               if(oldWateringOption != wateringOption)
               {
@@ -845,11 +903,21 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
                   uint16_t wTime =(uint16_t) atoi(command.GetArg(3));
                   uint16_t sTime = (uint16_t) atoi(command.GetArg(4));
 
+                  int8_t wateringSensorIndex = -1;
+                  if(argsCount > 5)
+                    wateringSensorIndex = (int8_t) atoi(command.GetArg(5));
+    
+                  uint8_t wateringStopBorder = 0;
+                  if(argsCount > 6)
+                    wateringStopBorder = (uint8_t) atoi(command.GetArg(6));
+
                   GlobalSettings* settings = MainController->GetSettings();
                   
                   settings->SetChannelWateringWeekDays(channelIdx,wDays);
                   settings->SetChannelWateringTime(channelIdx,wTime);
                   settings->SetChannelStartWateringTime(channelIdx,sTime);
+                  settings->SetChannelWateringSensorIndex(channelIdx,wateringSensorIndex);
+                  settings->SetChannelWateringStopBorder(channelIdx,wateringStopBorder);
                   
                   PublishSingleton.Status = true;
                   PublishSingleton = WATER_CHANNEL_SETTINGS; 
@@ -1023,7 +1091,9 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
           PublishSingleton << (settings->GetWateringWeekDays()) << PARAM_DELIMITER;
           PublishSingleton << (settings->GetWateringTime()) << PARAM_DELIMITER;
           PublishSingleton << (settings->GetStartWateringTime()) << PARAM_DELIMITER;
-          PublishSingleton << (settings->GetTurnOnPump());
+          PublishSingleton << (settings->GetTurnOnPump()) << PARAM_DELIMITER;
+          PublishSingleton << (settings->GetWateringSensorIndex()) << PARAM_DELIMITER;
+          PublishSingleton << (settings->GetWateringStopBorder());
         }
         else
         if(t == WATER_CHANNELS_COUNT_COMMAND)
@@ -1089,7 +1159,9 @@ bool  WateringModule::ExecCommand(const Command& command, bool wantAnswer)
                     PublishSingleton << PARAM_DELIMITER << (command.GetArg(1)) << PARAM_DELIMITER 
                     << (settings->GetChannelWateringWeekDays(idx)) << PARAM_DELIMITER
                     << (settings->GetChannelWateringTime(idx)) << PARAM_DELIMITER
-                    << (settings->GetChannelStartWateringTime(idx));
+                    << (settings->GetChannelStartWateringTime(idx)) << PARAM_DELIMITER
+                    << (settings->GetChannelWateringSensorIndex(idx)) << PARAM_DELIMITER
+                    << (settings->GetChannelWateringStopBorder(idx));
                   }
                   else
                   {

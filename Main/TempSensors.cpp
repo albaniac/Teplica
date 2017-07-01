@@ -289,7 +289,7 @@ void TempSensors::Setup()
    workMode = wmAutomatic; // автоматический режим работы по умолчанию
    
 #ifdef USE_WINDOWS_MANUAL_MODE_DIODE
-  blinker.begin(DIODE_WINDOWS_MANUAL_MODE_PIN);//,F("SM"));  // настраиваем блинкер на нужный пин
+  blinker.begin(DIODE_WINDOWS_MANUAL_MODE_PIN); // настраиваем блинкер на нужный пин
 #endif  
 
 
@@ -600,7 +600,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 
         sett->SetOpenTemp(tOpen);
         sett->SetCloseTemp(tClose);
-        sett->Save();
+//        sett->Save();
         
         PublishSingleton.Status = true;
         if(wantAnswer) 
@@ -662,7 +662,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
               {
                 //СОХРАНЕНИЕ ИНТЕРВАЛА В НАСТРОЙКАХ
                 sett->SetOpenInterval(newInt);
-                sett->Save();
+//                sett->Save();
                 
                 PublishSingleton.Status = true;
                 if(wantAnswer) 

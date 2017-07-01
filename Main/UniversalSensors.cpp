@@ -458,10 +458,10 @@ void UniRS485Gate::Update(uint16_t dt)
                             #endif
 
                           if(states.State1)
-                            states.State1->Update(&t);
+                            states.State1->Update(&h);
 
                           if(states.State2)
-                            states.State2->Update(&h);
+                            states.State2->Update(&t);
                             
                         } // if                        
                       }
@@ -762,7 +762,7 @@ void UniExecutionModuleClient::Update(UniRawScratchpad* scratchpad, bool isModul
 NextionUniClient::NextionUniClient()
 {
   updateTimer = 0;
-  tempChanged = false;
+  //tempChanged = false;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 void NextionUniClient::Register(UniRawScratchpad* scratchpad)
@@ -892,7 +892,7 @@ void NextionUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
       ++tmp;  
 
     MainController->GetSettings()->SetOpenTemp(tmp);
-    tempChanged = true;
+    //tempChanged = true;
   }
 
   if(bitRead(ourScratch.nextionStatus2,5))
@@ -905,7 +905,7 @@ void NextionUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
       --tmp;  
 
     MainController->GetSettings()->SetOpenTemp(tmp);
-    tempChanged = true;
+   // tempChanged = true;
   }
 
   if(bitRead(ourScratch.nextionStatus2,6))
@@ -918,7 +918,7 @@ void NextionUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
       ++tmp;  
 
     MainController->GetSettings()->SetCloseTemp(tmp);
-    tempChanged = true;
+    //tempChanged = true;
   }
 
   if(bitRead(ourScratch.nextionStatus2,7))
@@ -931,17 +931,17 @@ void NextionUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
       --tmp;  
 
     MainController->GetSettings()->SetCloseTemp(tmp);
-    tempChanged = true;
+    //tempChanged = true;
   }
 
   if(bitRead(ourScratch.controllerStatus,6)) // дисплей заснул, можно сохранять настройки
   {
     bitWrite(ourScratch.controllerStatus,6,0); 
   //  Serial.println("enter sleep");
-    if(tempChanged)
-      MainController->GetSettings()->Save();
+    //if(tempChanged)
+  //   MainController->GetSettings()->Save();
 
-    tempChanged = false;
+  //  tempChanged = false;
   }
 
   // теперь проверяем, надо ли нам записывать настройки немедленно
@@ -1057,6 +1057,7 @@ void SensorsUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
     UniSensorsScratchpad* ourScratch = (UniSensorsScratchpad*) &(scratchpad->data);
     UniSensorState states;
     
+    
     for(byte i=0;i<MAX_UNI_SENSORS;i++)
     {
 
@@ -1078,12 +1079,17 @@ void SensorsUniClient::Update(UniRawScratchpad* scratchpad, bool isModuleOnline,
 
     // тут запускаем конвертацию, чтобы при следующем вызове вычитать актуальные данные.
     // конвертацию не стоит запускать чаще, чем в 5, скажем, секунд.
-    if(receivedThrough == ssOneWire)
+    if(receivedThrough == ssOneWire && isModuleOnline)
     {
       // работаем таким образом только по шине 1-Wire, в остальном вызывающая сторона разберётся, что делать со скратчпадом
       unsigned long curMillis = millis();
       if(curMillis - measureTimer > 5000)
       {
+        #ifdef UNI_DEBUG
+          Serial.print(F("Start measure on 1-Wire pin "));
+          Serial.println(pin);
+         #endif    
+        
         measureTimer = curMillis;
         UniScratchpad.begin(pin,scratchpad);
         UniScratchpad.startMeasure();
@@ -1230,6 +1236,10 @@ void UniPermanentLine::Update(uint16_t dt)
     lastClient = UniFactory.GetClient(&SHARED_SCRATCHPAD);
     lastClient->SetPin(pin); // назначаем тот же самый пин, что у нас    
     lastClient->Update(&SHARED_SCRATCHPAD,true, ssOneWire);
+
+    // вот здесь получается следующая ситуация - может отправиться команда на старт измерений, и, одновременно - 
+    // команда на чтение скратчпада. команда на старт измерений требует времени, поэтому, если
+    // сразу после запуска конвертации пытаться читать - получится бяка.
     
   } // if
   else
@@ -1469,6 +1479,7 @@ void UniRegDispatcher::Setup()
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t UniRegDispatcher::GetRFChannel() // возвращает текущий канал для nRF
 {
+  rfChannel = MemRead(UNI_SENSOR_INDICIES_EEPROM_ADDR + 4);
   return rfChannel;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1598,6 +1609,9 @@ void UniRegDispatcher::SaveState()
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 bool UniRegDispatcher::GetRegisteredStates(UniSensorType type, uint8_t sensorIndex, UniSensorState& resultStates)
 {
+  resultStates.State1 = NULL;
+  resultStates.State2 = NULL;
+  
    // смотрим тип сенсора, получаем состояния
    switch(type)
    {
@@ -1622,10 +1636,10 @@ bool UniRegDispatcher::GetRegisteredStates(UniSensorType type, uint8_t sensorInd
         if(!humidityModule)
           return false; // нет модуля влажности в прошивке
 
-       resultStates.State1 = humidityModule->State.GetState(StateTemperature,hardCodedHumidityCount + sensorIndex);
-       resultStates.State2 = humidityModule->State.GetState(StateHumidity,hardCodedHumidityCount + sensorIndex);
+       resultStates.State1 = humidityModule->State.GetState(StateHumidity,hardCodedHumidityCount + sensorIndex);
+       resultStates.State2 = humidityModule->State.GetState(StateTemperature,hardCodedHumidityCount + sensorIndex);
 
-       return (resultStates.State1 != NULL);
+       return (resultStates.State1 != NULL && resultStates.State2 != NULL);
 
     }
     break;
