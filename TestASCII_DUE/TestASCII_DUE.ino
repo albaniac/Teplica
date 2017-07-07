@@ -40,15 +40,19 @@ unsigned long previousMillis = 0;        // will store last time LED was updated
 const long interval = 400;           // interval at which to blink (milliseconds)
 
 
-#define Serial SerialUSB
+//#define Serial SerialUSB
 
 
 void setup() {
 	//Initialize serial and wait for port to open:
-	Serial.begin(115200);
+	Serial.begin(9600);
 	//while (!Serial) {
 	//	; // wait for serial port to connect. Needed for native USB port only
 	//}
+	Serial1.begin(9600);
+	Serial2.begin(9600);
+	Serial3.begin(9600);
+
 	pinMode(ledPin, OUTPUT);
 	pinMode(ledPinA0, OUTPUT);
 	pinMode(ledPinA1, OUTPUT);
