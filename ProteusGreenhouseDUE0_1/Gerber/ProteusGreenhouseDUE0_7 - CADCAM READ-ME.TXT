@@ -4,7 +4,7 @@ LABCENTER PROTEUS TOOL INFORMATION FILE
 In case of difficulty, please e-mail support@labcenter.co.uk
 
 Tool set up for Proteus layout 'ProteusGreenhouseDUE0_7.pdsprj'.
-CADCAM generated at 16:06:05 on 17 июля 2017 г..
+CADCAM generated at 19:59:23 on 19 июля 2017 г..
 
 File List
 ---------
