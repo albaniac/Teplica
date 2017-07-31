@@ -23722,18 +23722,26 @@ Source: http://www.semiconductors.philips.com/acrobat_download/datasheets/74HC_H
 </variantdefs>
 <classes>
 <class number="0" name="default" width="0.2032" drill="0.4064">
-<clearance class="0" value="0.2032"/>
+<clearance class="0" value="0.205"/>
 </class>
 <class number="1" name="USB" width="0.2032" drill="0.4064">
-<clearance class="1" value="0.2032"/>
+<clearance class="0" value="0.205"/>
+<clearance class="1" value="0.205"/>
 </class>
 <class number="2" name="gnd" width="0.2032" drill="0.4064">
 <clearance class="2" value="0.2032"/>
 </class>
 <class number="3" name="usbvcc" width="0.2032" drill="0.4064">
-<clearance class="3" value="0.2032"/>
+<clearance class="0" value="0.205"/>
+<clearance class="1" value="0.205"/>
+<clearance class="2" value="0.205"/>
+<clearance class="3" value="0.205"/>
 </class>
 <class number="4" name="USBpair" width="0.254" drill="0.4064">
+<clearance class="0" value="0.205"/>
+<clearance class="1" value="0.205"/>
+<clearance class="2" value="0.205"/>
+<clearance class="3" value="0.205"/>
 <clearance class="4" value="0.6096"/>
 </class>
 </classes>
@@ -23937,7 +23945,6 @@ Source: http://www.semiconductors.philips.com/acrobat_download/datasheets/74HC_H
 <part name="D5" library="SmartPrj" deviceset="SS1P3L" device=""/>
 <part name="R99" library="SmartPrj" deviceset="R-EU_" device="R0402" value="10K"/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
-<part name="GND21" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -24616,7 +24623,6 @@ Use of the Arduino name must be compliant with http://www.arduino.cc/en/Main/Pol
 <instance part="P+1" gate="1" x="426.72" y="360.68" smashed="yes">
 <attribute name="VALUE" x="428.625" y="363.22" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="GND21" gate="1" x="109.22" y="381"/>
 </instances>
 <busses>
 </busses>
