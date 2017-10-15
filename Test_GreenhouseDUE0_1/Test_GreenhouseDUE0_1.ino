@@ -92,9 +92,9 @@ USB Native	        Native port USB
 адр6	MCP23S17	A1 - USE_WINDOWS_MANUAL_MODE_DIODE
 адр6	MCP23S17	A2 - USE_WATERING_MANUAL_MODE_DIODE
 адр6	MCP23S17	A3 - USE_LIGHT_MANUAL_MODE_DIODE
-адр6	MCP23S17	A4 - USE_GSM_RED_DIODE
-адр6	MCP23S17	A5 - USE_GSM_BLUE_DIODE
-адр6	MCP23S17	A6 - USE_GSM_GREEN_DIODE
+адр6	MCP23S17	A4 - USE_GSM_BLUE_DIODE
+адр6	MCP23S17	A5 - USE_GSM_GREEN_DIODE
+адр6	MCP23S17	A6 - USE_GSM_RED_DIODE
 адр6	MCP23S17	A7 - SOUNDER (пищалка)
 
 
@@ -105,12 +105,13 @@ USB Native	        Native port USB
 #include <SD.h>
 #include "RF24.h"
 #include <MCP23S17.h>
-
+#include <DueTimer.h>
 
 const int ledPin13 = 13;
 const int power_nRF24 = 60;
 const uint8_t chipSelect_MCP = 46;
-
+const int timer_pin = 66;
+bool timer_set = false;
 // set up variables using the SD utility library functions:
 Sd2Card card;
 SdVolume volume;
@@ -122,6 +123,36 @@ SdFile root;
 // Sparkfun SD shield: pin 8
 // MKRZero SD: SDCARD_SS_PIN
 const int chipSelect_SD = 52;
+
+
+
+
+
+
+
+
+#define ESP8266 Serial1
+String SSID = "WiFi-Repeater";
+String PASSWORD = "panasonic";
+
+int Power_ESP8266 = 59;
+boolean FAIL_8266 = false;
+
+
+
+void clearESP8266SerialBuffer(String title = "")
+{
+	Serial.println("= clearESP8266SerialBuffer(" + title + ") =");
+	while (ESP8266.available() > 0) {
+		char a = ESP8266.read();
+		Serial.write(a);
+	}
+	Serial.println("==============================");
+}
+
+
+
+
 
 
 /****************** User Config ***************************/
@@ -144,6 +175,134 @@ MCP23S17 Bank3(&SPI, chipSelect_MCP, 3);
 MCP23S17 Bank4(&SPI, chipSelect_MCP, 4);
 MCP23S17 Bank5(&SPI, chipSelect_MCP, 5);
 MCP23S17 Bank6(&SPI, chipSelect_MCP, 6);
+
+
+/*
+Shift Register Example
+for 74HC595 shift register
+
+Created 22 May 2009
+Created 23 Mar 2010
+by Tom Igoe
+
+*/
+
+//Пин подключен к ST_CP входу 74HC595
+int latchPin = 42;
+//Пин подключен к SH_CP входу 74HC595
+int clockPin = 44;
+//Пин подключен к DS входу 74HC595
+int dataPin = 43;
+int OE_Pin = 45;
+char inputString[2];
+
+
+
+
+
+
+#define SIM800CSerial Serial2
+#define con Serial
+
+
+
+#define PWR_On           5                              // Включение питания модуля SIM800
+#define SIM800_RESET_PIN 6                              // Сброс модуля SIM800
+#define LED13           13                              // Индикация светодиодом
+#define NETLIGHT         3                              // Индикация NETLIGHT
+#define STATUS           9                              // Индикация STATUS
+#define analog_dev1      A5                             // Аналоговый вход 1
+#define digital_inDev2   12                             // Цифровой вход 12
+#define digital_outDev3  A4                             // Цифровой выход управления внешним устройством
+
+
+
+//#define COMMON_ANODE                                  // Если светодиод с общим катодом - раскомментировать
+#define LED_RED      6                                 // Индикация светодиодом RED
+#define LED_BLUE     4                                 // Индикация светодиодом BLUE
+#define LED_GREEN    5                                 // Индикация светодиодом GREEN
+
+#define COLOR_NONE LOW, LOW, LOW                        // Отключить все светодиоды
+#define COLOR_GREEN LOW, HIGH, LOW                      // Включить зеленый светодиод
+#define COLOR_BLUE LOW, LOW, HIGH                       // Включить синий светодиод
+#define COLOR_RED HIGH, LOW, LOW                        // Включить красный светодиод
+volatile int stateLed = LOW;                            // Состояние светодиода при прерывистой индикации на старте
+volatile int state_device = 0;                          // Состояние модуля при запуске 
+
+
+														// 1 - Не зарегистрирован в сети, поиск
+														// 2 - Зарегистрировано в сети
+														// 3 - GPRS связь установлена
+volatile int metering_NETLIGHT = 0;
+volatile unsigned long metering_temp = 0;
+volatile int count_blink1 = 0;                           // Счетчик попыток подключиться к базовой станции
+volatile int count_blink2 = 0;                           // Счетчик попыток подключиться к базовой станции
+bool send_ok = false;                                    // Признак успешной передачи данных
+bool count_All_reset = false;                            // Признак выполнения команды сброса счетчика ошибок.
+bool temp_dev3 = false;                                  // Переменная для временного хранения состояния исполнительного устройства
+String imei = "861445030362268";                         // Тест IMEI
+String SIMCCID = "";
+
+//CGPRS_SIM800 gprs;
+int count = 0;
+//unsigned int errors           = 0;
+#define DELIM "&"
+
+unsigned long previousMillis = 0;                        //  
+unsigned long interval = 60;                             // Интервал передачи данных 5 минут
+bool time_set = false;                                   // Фиксировать интервал заданный СМС
+bool ssl_set = true;                                     // Признак шифрования 
+unsigned long time_ping = 380;                           // Интервал проверки ping 6 минут. 
+unsigned long previousPing = 0;                          // Временный Интервал проверки ping
+
+int Address_tel1 = 100;                                  // Адрес в EEPROM телефона 1
+int Address_ssl = 120;                                   // Адрес в EEPROM признака шифрования
+											             //int Address_errorAll      = 160;                        // Адрес в EEPROM счетчика общих ошибок
+int Address_interval = 200;                              // Адрес в EEPROM величины интервала
+int Address_SMS_center = 220;                            // Адрес в EEPROM SMS центра
+//int Address_Dev3 = 260;                                  // Адрес в EEPROM состояния исполнительного устройства Dev
+//int Address_Dev3_ind = 264;                              // Адрес в EEPROM признак управления сполнительного устройства Dev
+//int Address_num_site_ping = 268;                         // Адрес в EEPROM признак управления сполнительного устройства Dev
+//int Address_watchdog = 270;                              // Адрес в EEPROM счетчик проверки Watchdog
+//int Address_EEPROM_off = 280;                            // Адрес в EEPROM запрет записи в EEPROM
+//byte dev3 = 0;                                           // признак управления исполнительного устройства Dev3
+
+
+void setColor(bool red, bool green, bool blue)        // Включение цвета свечения трехцветного светодиода.
+{
+#ifdef COMMON_ANODE                              // Если светодиод с общим катодом
+	red = !red;
+	green = !green;
+	blue = !blue;
+#endif 
+
+	Bank6.digitalWrite(LED_RED, red);
+	Bank6.digitalWrite(LED_GREEN, green);
+	Bank6.digitalWrite(LED_BLUE, blue);
+}
+
+
+
+void firstHandler() {
+	//Serial.println("[-  ] First Handler!");
+	digitalWrite(timer_pin, timer_set);
+	timer_set = !timer_set;
+
+}
+
+void secondHandler() {
+	Serial.println("[ - ] Second Handler!");
+}
+
+void thirdHandler() {
+	Serial.println("[  -] Third Handler!");
+}
+
+
+
+
+
+
 
 void setup_SD_Fat()
 {
@@ -366,19 +525,241 @@ void test_MCP()
 	}
 }
 
+void setup_ESP8266()
+{
+	Serial.println("--- Start ---");
+
+	do {
+		Serial.println("--- Reset ---");
+		//  ESP8266.println("AT+RST");
+
+		ESP8266.println("AT+CWMODE=1");
+		delay(5000);
+		if (ESP8266.find("OK"))
+		{
+			Serial.println("Module is ready");
+			ESP8266.println("AT+CWMODE=1");
+			delay(3000);
+
+			if (cwJoinAP())
+			{
+				Serial.println("CWJAP Success");
+				FAIL_8266 = false;
+				// Тут должно быть достаточно времени что бы подключиться к роутеру
+				delay(5000);
+
+				//Получение и вывод IP адреса
+				sendESP8266Cmdln("AT+CIFSR", 1000);
+				//Выбрать режима множественного подключения
+				sendESP8266Cmdln("AT+CIPMUX=1", 1000);
+				//Установка сервера на порт 80
+				sendESP8266Cmdln("AT+CIPSERVER=1,80", 1000);
+
+				Serial.println("Server setup finish");
+			}
+			else {
+				Serial.println("CWJAP Fail");
+				delay(500);
+				FAIL_8266 = true;
+			}
+		}
+		else {
+			Serial.println("Module have no response.");
+			delay(500);
+			FAIL_8266 = true;
+		}
+	} while (FAIL_8266);
+
+
+
+}
+
+void sendHTTPResponse(int id, String content)
+{
+	String response;
+	response = "HTTP/1.1 200 OK\r\n";
+	response += "Content-Type: text/html; charset=UTF-8\r\n";
+	response += "Content-Length: ";
+	response += content.length();
+	response += "\r\n";
+	response += "Connection: close\r\n\r\n";
+	response += content;
+
+	String cmd = "AT+CIPSEND=";
+	cmd += id;
+	cmd += ",";
+	cmd += response.length();
+
+	Serial.println("--- AT+CIPSEND ---");
+	sendESP8266Cmdln(cmd, 1000);
+
+	Serial.println("--- data ---");
+	sendESP8266Data(response, 1000);
+}
+
+boolean waitOKfromESP8266(int timeout)
+{
+	do {
+		Serial.println("wait OK...");
+		delay(1000);
+		if (ESP8266.find("OK"))
+		{
+			return true;
+		}
+
+	} while ((timeout--)>0);
+	return false;
+}
+
+boolean cwJoinAP()
+{
+	String cmd = "AT+CWJAP=\"" + SSID + "\",\"" + PASSWORD + "\"";
+	ESP8266.println(cmd);
+	return waitOKfromESP8266(10);
+}
+
+//Отправка команд на ESP8266, предположительный ответ OK, без проверок ошибок
+//wait some time and display respond
+void sendESP8266Cmdln(String cmd, int waitTime)
+{
+	ESP8266.println(cmd);
+	delay(waitTime);
+	clearESP8266SerialBuffer("sendESP8266Cmdln");
+}
+
+//То же что и sendESP8266Cmdln()
+//Но используется ESP8266.print() вместо ESP8266.println()
+void sendESP8266Data(String data, int waitTime)
+{
+	ESP8266.print(data);
+	delay(waitTime);
+	clearESP8266SerialBuffer("sendESP8266Data");
+}
+void test_ESP8266()
+{
+	if (ESP8266.available())
+	{
+		Serial.println("Something received");
+		delay(1000);
+		if (ESP8266.find("+IPD,"))
+		{
+			String action;
+
+			Serial.println("+IPD, found");
+			int connectionId = ESP8266.read() - 48;
+			Serial.println("connectionId: " + String(connectionId));
+
+			ESP8266.find("led=");
+			char s = ESP8266.read();
+			if (s == '0') {
+				action = "led=0";
+				digitalWrite(ledPin13, LOW);
+			}
+			else if (s == '1') {
+				action = "led=1";
+				digitalWrite(ledPin13, HIGH);
+			}
+			else {
+				action = "led=?";
+			}
+
+			Serial.println(action);
+			sendHTTPResponse(connectionId, action);
+
+			//Закрытие TCP/UDP
+			String cmdCIPCLOSE = "AT+CIPCLOSE=";
+			cmdCIPCLOSE += connectionId;
+			sendESP8266Cmdln(cmdCIPCLOSE, 1000);
+		}
+	}
+
+
+}
+
+void registerWrite(int whichPin, int whichState) 
+{
+	// для хранения 16 битов используем unsigned int
+	unsigned int bitsToSend = 0;
+
+	// выключаем светодиоды на время передачи битов
+	digitalWrite(latchPin, LOW);
+
+	// устанавливаем HIGH в соответствующий бит
+	bitWrite(bitsToSend, whichPin, whichState);
+
+	// разбиваем наши 16 бит на два байта
+	// для записи в первый и второй регистр
+	byte registerOne = highByte(bitsToSend);
+	byte registerTwo = lowByte(bitsToSend);
+
+	// "проталкиваем" байты в регистры
+	shiftOut(dataPin, clockPin, MSBFIRST, registerTwo);
+	shiftOut(dataPin, clockPin, MSBFIRST, registerOne);
+
+	// "защелкиваем" регистр, чтобы биты появились на выходах регистра
+	digitalWrite(latchPin, HIGH);
+}
+void test_74HC595()
+{
+	// проходим циклом по всем 16 выходам двух регистров
+	for (int thisLed = 0; thisLed < 16; thisLed++) 
+	{
+		// записываем сигнал в регистр для очередного светодиода
+		registerWrite(thisLed, HIGH);
+		// если это не первый светодиод, то отключаем предыдущий
+		if (thisLed > 0) {
+			registerWrite(thisLed - 1, LOW);
+		}
+		// если это первый светодиод, то отключаем последний
+		else {
+			registerWrite(15, LOW);
+		}
+		// делаем паузу перед следующией итерацией
+		delay(50);
+	}
+}
+
+
 void setup()
 {
 	Serial.begin(115200);
-
+	ESP8266.begin(115200);
 	pinMode(ledPin13, OUTPUT);
 	digitalWrite(ledPin13, HIGH);
 	pinMode(power_nRF24, OUTPUT);
 	digitalWrite(power_nRF24, LOW);
+	pinMode(timer_pin, OUTPUT);
+	digitalWrite(timer_pin, HIGH);
+	pinMode(Power_ESP8266, OUTPUT);
+	digitalWrite(Power_ESP8266, LOW);
+
+	pinMode(latchPin, OUTPUT);
+	pinMode(dataPin, OUTPUT);
+	pinMode(clockPin, OUTPUT);
+	pinMode(OE_Pin, OUTPUT);
+	digitalWrite(OE_Pin, LOW);
 
 	setup_SD_Fat();
 	setup_nRF24();
 	setup_MCP();
-	test_MCP();
+	//test_MCP();
+	//setup_ESP8266();
+
+	Timer3.attachInterrupt(firstHandler).start(3000000); // Every 1000ms
+	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
+	//Timer5.attachInterrupt(thirdHandler).setFrequency(10);
+	//Timer5.start();
+	setColor(COLOR_RED);
+	delay(300);
+	setColor(COLOR_GREEN);
+	delay(300);
+	setColor(COLOR_BLUE);
+	delay(300);
+
+	setColor(COLOR_GREEN);                                      // Включить зеленый светодиод
+	//test_ESP8266();
+	Serial.println("Setup Ok!");
+
 }
 
 void loop()
@@ -386,6 +767,6 @@ void loop()
 
 	//test_nRF24();
 	//test_MCP();
-
+	//test_74HC595();
 	delay(100);
 }
