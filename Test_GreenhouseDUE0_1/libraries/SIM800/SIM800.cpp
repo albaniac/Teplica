@@ -10,12 +10,14 @@
 bool CGPRS_SIM800::init()
 {
     SIM_SERIAL.begin(115200);
-    pinMode(SIM800_RESET_PIN, OUTPUT);
+ /*   pinMode(SIM800_RESET_PIN, OUTPUT);
+
     digitalWrite(SIM800_RESET_PIN, HIGH);
-    delay(10);
+    delay(100);
     digitalWrite(SIM800_RESET_PIN, LOW);
     delay(100);
     digitalWrite(SIM800_RESET_PIN, HIGH);
+	*/
     delay(3000);
     if (sendCommand("AT")) {
         sendCommand("AT+IPR=115200");

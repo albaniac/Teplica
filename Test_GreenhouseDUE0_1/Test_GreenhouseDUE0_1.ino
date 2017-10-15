@@ -10,7 +10,7 @@
 6	D6	            PWM6  Utouch тачскрин   D_CLK
 7	D7	            PWM7  ST7920 BLA(19)
 8	D8	            PWM8 SIM800C NETLIGHT (attachInterrupt (8) DUE)
-9	D9	            PWM8 SIM800C STATUS (attachInterrupt (9) DUE)
+9	D9	            PWM9 SIM800C STATUS (attachInterrupt (9) DUE)
 10	D10	            PWM10 WL5100
 11	D11	            PWM11  Счетчик воды №1
 12	D12            	PWM12  Счетчик воды №2
@@ -66,7 +66,7 @@
 62	A8 / D62	    Encoder Vin+  (1)
 63	A9 / D63	    Encoder Vin-  (3)
 64	A10 / D64	    Encoder SW2  (5)
-65	A11 / D65	    Power  ON/OFF SIM800C
+65	A11 / D65	    ПитаниеSIM800C  Power  ON/OFF SIM800C
 66	D66/DAC0	    Сброс сторожевого таймера
 67	D67/DAC1	    PWRKEY   SIM800C
 68	D68 / CANRX0	RX/TX RS485
@@ -106,6 +106,8 @@ USB Native	        Native port USB
 #include "RF24.h"
 #include <MCP23S17.h>
 #include <DueTimer.h>
+#include "SIM800.h"
+
 
 const int ledPin13 = 13;
 const int power_nRF24 = 60;
@@ -206,16 +208,23 @@ char inputString[2];
 
 
 
-#define PWR_On           5                              // Включение питания модуля SIM800
-#define SIM800_RESET_PIN 6                              // Сброс модуля SIM800
-#define LED13           13                              // Индикация светодиодом
-#define NETLIGHT         3                              // Индикация NETLIGHT
-#define STATUS           9                              // Индикация STATUS
-#define analog_dev1      A5                             // Аналоговый вход 1
-#define digital_inDev2   12                             // Цифровой вход 12
-#define digital_outDev3  A4                             // Цифровой выход управления внешним устройством
+#define PWR_SIM800       65                              // Включение питания модуля SIM800
+//#define SIM800_RESET_PIN 67                              // Сброс модуля SIM800
+#define LED13           13                               // Индикация светодиодом
+#define NETLIGHT         8                               // Индикация NETLIGHT
+#define STATUS           9                               // Индикация STATUS
+//#define analog_dev1      A5                             // Аналоговый вход 1
+//#define digital_inDev2   12                             // Цифровой вход 12
+//#define digital_outDev3  A4                             // Цифровой выход управления внешним устройством
 
 
+#define APN "connect"
+#define con Serial
+static const char* url = "http://trm7.xyz/r.php";
+
+CGPRS_SIM800 gprs;
+uint32_t count = 0;
+uint32_t errors = 0;
 
 //#define COMMON_ANODE                                  // Если светодиод с общим катодом - раскомментировать
 #define LED_RED      6                                 // Индикация светодиодом RED
@@ -244,7 +253,7 @@ String imei = "861445030362268";                         // Тест IMEI
 String SIMCCID = "";
 
 //CGPRS_SIM800 gprs;
-int count = 0;
+//int count = 0;
 //unsigned int errors           = 0;
 #define DELIM "&"
 
@@ -719,6 +728,118 @@ void test_74HC595()
 	}
 }
 
+void setup_SIM800()
+{
+	//Serial.begin(9600);
+	//while (!con);
+
+	Serial.println("SIM800 TEST");
+	gprs.init();
+	for (;;) 
+	{
+		Serial.print("Resetting...");
+		while (!gprs.init()) 
+		{
+			Serial.write('.');
+		}
+		Serial.println("OK");
+
+		Serial.print("Setting up network...");
+		byte ret = gprs.setup(APN);
+		if (ret == 0)
+			break;
+		Serial.print("Error code:");
+		Serial.println(ret);
+		Serial.println(gprs.buffer);
+	}
+	Serial.println("OK");
+	delay(3000);
+
+	if (gprs.getOperatorName()) {
+		Serial.print("Operator:");
+		Serial.println(gprs.buffer);
+	}
+	int ret = gprs.getSignalQuality();
+	if (ret) {
+		Serial.print("Signal:");
+		Serial.print(ret);
+		Serial.println("dB");
+	}
+	for (;;) {
+		if (gprs.httpInit()) break;
+		Serial.println(gprs.buffer);
+		gprs.httpUninit();
+		delay(1000);
+	}
+	delay(3000);
+
+}
+void test_SIM800()
+{
+
+	char mydata[16];
+	//sprintf(mydata, "t=%lu", millis());
+
+	Serial.print("Requesting ");
+	Serial.print(url);
+	Serial.print('?');
+	Serial.println(mydata);
+	gprs.httpConnect(url, mydata);
+	count++;
+	while (gprs.httpIsConnected() == 0) {
+		// can do something here while waiting
+		Serial.write('.');
+		for (byte n = 0; n < 25 && !gprs.available(); n++) {
+			delay(10);
+		}
+	}
+	if (gprs.httpState == HTTP_ERROR) {
+		Serial.println("Connect error");
+		errors++;
+		delay(3000);
+		return;
+	}
+	Serial.println();
+	gprs.httpRead();
+	int ret;
+	while ((ret = gprs.httpIsRead()) == 0) {
+		// can do something here while waiting
+	}
+	if (gprs.httpState == HTTP_ERROR) {
+		Serial.println("Read error");
+		errors++;
+		delay(3000);
+		return;
+	}
+
+	// now we have received payload
+	Serial.print("[Payload]");
+	Serial.println(gprs.buffer);
+
+	// show position
+	GSM_LOCATION loc;
+	if (gprs.getLocation(&loc)) {
+		Serial.print("LAT:");
+		Serial.print(loc.lat, 6);
+		Serial.print(" LON:");
+		Serial.print(loc.lon, 6);
+		Serial.print(" TIME:");
+		Serial.print(loc.hour);
+		Serial.print(':');
+		Serial.print(loc.minute);
+		Serial.print(':');
+		Serial.println(loc.second);
+	}
+
+	// show stats  
+	Serial.print("Total Requests:");
+	Serial.print(count);
+	if (errors) {
+		Serial.print(" Errors:");
+		Serial.print(errors);
+	}
+	Serial.println();
+}
 
 void setup()
 {
@@ -739,13 +860,33 @@ void setup()
 	pinMode(OE_Pin, OUTPUT);
 	digitalWrite(OE_Pin, LOW);
 
-	setup_SD_Fat();
-	setup_nRF24();
+	pinMode(PWR_SIM800, OUTPUT);
+	//pinMode(SIM800_RESET_PIN, OUTPUT);
+	pinMode(NETLIGHT, INPUT);
+	
+
+	digitalWrite(PWR_SIM800, LOW);
+	//digitalWrite(SIM800_RESET_PIN, HIGH);
+	delay(2000);
+	digitalWrite(NETLIGHT, HIGH);
+	//digitalWrite(STATUS, HIGH);
+
+	pinMode(SIM800_RESET_PIN, OUTPUT);
+
+	digitalWrite(SIM800_RESET_PIN, HIGH);
+	delay(100);
+	digitalWrite(SIM800_RESET_PIN, LOW);
+	delay(100);
+	digitalWrite(SIM800_RESET_PIN, HIGH);
+
+
+	//setup_SD_Fat();
+	//setup_nRF24();
 	setup_MCP();
 	//test_MCP();
 	//setup_ESP8266();
 
-	Timer3.attachInterrupt(firstHandler).start(3000000); // Every 1000ms
+	//Timer3.attachInterrupt(firstHandler).start(3000000); // Every 1000ms
 	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
 	//Timer5.attachInterrupt(thirdHandler).setFrequency(10);
 	//Timer5.start();
@@ -756,7 +897,10 @@ void setup()
 	setColor(COLOR_BLUE);
 	delay(300);
 
-	setColor(COLOR_GREEN);                                      // Включить зеленый светодиод
+	setup_SIM800();
+	delay(1000);
+	test_SIM800();
+	setColor(COLOR_NONE);                                      // Включить зеленый светодиод
 	//test_ESP8266();
 	Serial.println("Setup Ok!");
 
@@ -764,9 +908,20 @@ void setup()
 
 void loop()
 {
+	//delay(1000);
+	//digitalWrite(PWR_SIM800, LOW);
+	//delay(1000);
+	//digitalWrite(SIM800_RESET_PIN, LOW);
+	//delay(100);
+	//digitalWrite(SIM800_RESET_PIN, HIGH);
+	//delay(200);
+	//digitalWrite(SIM800_RESET_PIN, LOW);
 
+	//delay(3000);
+	//digitalWrite(PWR_SIM800, HIGH);
 	//test_nRF24();
 	//test_MCP();
 	//test_74HC595();
-	delay(100);
+	//test_SIM800();
+	delay(3000);
 }
