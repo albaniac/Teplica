@@ -360,9 +360,9 @@ void test_MCP()
 	for (int i = 0; i < 16; i++)
 	{
 		Bank6.digitalWrite(i, HIGH);
-		delay(100);
+		delay(300);
 		Bank6.digitalWrite(i, LOW);
-		delay(100);
+		delay(300);
 	}
 }
 
@@ -376,14 +376,16 @@ void setup()
 	digitalWrite(power_nRF24, LOW);
 
 	setup_SD_Fat();
-	//setup_nRF24();
+	setup_nRF24();
+	setup_MCP();
+	test_MCP();
 }
 
 void loop()
 {
 
 	//test_nRF24();
-	test_MCP();
+	//test_MCP();
 
 	delay(100);
 }
