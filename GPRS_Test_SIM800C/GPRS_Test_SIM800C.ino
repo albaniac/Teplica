@@ -6,7 +6,7 @@
 *************************************************************************/
 
 #include "SIM800C.h"
-
+#include <DueTimer.h>
 
 
 #define APN "connect"
@@ -147,7 +147,7 @@ void check_blink()
 		if (count_blink2 > 250)
 		{
 			state_device = 0;
-			//MsTimer2::stop();                                                 // Включить таймер прерывания
+			Timer6.stop();                                                 // Выключить таймер прерывания
 			//gprs.reboot(gprs.errors);                                                    // Что то пошло не так с регистрацией на станции
 		}
 	}
@@ -158,7 +158,7 @@ void check_blink()
 		if (count_blink1 > 250)
 		{
 			state_device = 0;
-			//MsTimer2::stop();                                                 // Включить таймер прерывания
+			Timer6.stop();                                                 // Выключить таймер прерывания
 			//gprs.reboot(gprs.errors);                                                    // Что то пошло не так с регистрацией на станции
 		}
 	}
@@ -180,7 +180,7 @@ void setup_GPRS()
 {
 	bool setup_ok = false;
 	int count_init = 0;
-
+	Timer6.start(300000);
 	pinMode(SIM800_RESET_PIN, OUTPUT);
 
 	digitalWrite(SIM800_RESET_PIN, HIGH);                            // Сигнал сброс в исходное состояние
@@ -430,10 +430,10 @@ void setup()
 
 
 	attachInterrupt(37, check_blink, RISING);                     // Включить прерывания. Индикация состояния модема(сигнал NETLIGHT) 
-
-
-
-
+	//Timer3.attachInterrupt(firstHandler).start(500000); // Every 500ms
+	//Timer4.attachInterrupt(secondHandler).setFrequency(1).start();
+	//Timer5.attachInterrupt(thirdHandler).setFrequency(10);
+	Timer6.attachInterrupt(flash_time); // Every 500ms
 
 
 
