@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GPRS_Test_SIM800.ino" />
+    <None Include="GPRS_Test_SIM800C.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.GPRS_Test_SIM800.vsarduino.h">
+    <ClInclude Include="__vm\.GPRS_Test_SIM800C.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

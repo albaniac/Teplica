@@ -5,13 +5,13 @@
 * For more information, please visit http://arduinodev.com
 *************************************************************************/
 
-#include "SIM800.h"
+#include "SIM800C.h"
 
 #define APN "connect"
 #define Serial Serial
 static const char* url = "http://arduinodev.com/datetime.php";
 
-CGPRS_SIM800 gprs;
+CGPRS_SIM800C gprs;
 uint32_t count = 0;
 uint32_t errors = 0;
 
@@ -20,7 +20,7 @@ void setup()
 	Serial.begin(9600);
 	while (!Serial);
 
-	Serial.println("SIM800 TEST");
+	Serial.println("SIM800C TEST");
 
 	for (;;) {
 		Serial.print("Resetting...");

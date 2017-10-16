@@ -35,9 +35,9 @@ typedef struct {
   uint8_t second;
 } GSM_LOCATION;
 
-class CGPRS_SIM800 {
+class CGPRS_SIM800C {
 public:
-    CGPRS_SIM800():httpState(HTTP_DISABLED) {}
+    CGPRS_SIM800C():httpState(HTTP_DISABLED) {}
     // initialize the module
     bool init();
     // setup network

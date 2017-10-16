@@ -233,6 +233,6 @@ __attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMa
 }
 
 
-#include "GPRS_Test_SIM800.ino"
+#include "GPRS_Test_SIM800C.ino"
 #endif
 #endif

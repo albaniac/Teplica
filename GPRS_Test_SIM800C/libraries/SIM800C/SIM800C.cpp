@@ -5,9 +5,9 @@
 * For more information, please visit http://arduinodev.com
 *************************************************************************/
 
-#include "SIM800.h"
+#include "SIM800C.h"
 
-bool CGPRS_SIM800::init()
+bool CGPRS_SIM800C::init()
 {
     SIM_SERIAL.begin(115200);
  /*   pinMode(SIM800_RESET_PIN, OUTPUT);
@@ -27,7 +27,7 @@ bool CGPRS_SIM800::init()
     }
     return false;
 }
-byte CGPRS_SIM800::setup(const char* apn)
+byte CGPRS_SIM800C::setup(const char* apn)
 {
   bool success = false;
   for (byte n = 0; n < 30; n++) {
@@ -74,7 +74,7 @@ byte CGPRS_SIM800::setup(const char* apn)
 
   return 0;
 }
-bool CGPRS_SIM800::getOperatorName()
+bool CGPRS_SIM800C::getOperatorName()
 {
   // display operator name
   if (sendCommand("AT+COPS?", "OK\r", "ERROR\r") == 1) {
@@ -89,7 +89,7 @@ bool CGPRS_SIM800::getOperatorName()
   }
   return false;
 }
-bool CGPRS_SIM800::checkSMS()
+bool CGPRS_SIM800C::checkSMS()
 {
   if (sendCommand("AT+CMGR=1", "+CMGR:", "ERROR") == 1) {
     // reads the data of the SMS
@@ -102,7 +102,7 @@ bool CGPRS_SIM800::checkSMS()
   }
   return false; 
 }
-int CGPRS_SIM800::getSignalQuality()
+int CGPRS_SIM800C::getSignalQuality()
 {
   sendCommand("AT+CSQ");
   char *p = strstr(buffer, "CSQ: ");
@@ -115,7 +115,7 @@ int CGPRS_SIM800::getSignalQuality()
   }
 }
 
-bool CGPRS_SIM800::getLocation(GSM_LOCATION* loc)
+bool CGPRS_SIM800C::getLocation(GSM_LOCATION* loc)
 {
   if (sendCommand("AT+CIPGSMLOC=1,1", 10000)) do {
     char *p;
@@ -141,12 +141,12 @@ bool CGPRS_SIM800::getLocation(GSM_LOCATION* loc)
   return false;
 }
 
-void CGPRS_SIM800::httpUninit()
+void CGPRS_SIM800C::httpUninit()
 {
   sendCommand("AT+HTTPTERM");
 }
 
-bool CGPRS_SIM800::httpInit()
+bool CGPRS_SIM800C::httpInit()
 {
   if  (!sendCommand("AT+HTTPINIT", 10000) || !sendCommand("AT+HTTPPARA=\"CID\",1", 5000)) {
     httpState = HTTP_DISABLED;
@@ -155,7 +155,7 @@ bool CGPRS_SIM800::httpInit()
   httpState = HTTP_READY;
   return true;
 }
-bool CGPRS_SIM800::httpConnect(const char* url, const char* args)
+bool CGPRS_SIM800C::httpConnect(const char* url, const char* args)
 {
     // Sets url
     SIM_SERIAL.print("AT+HTTPPARA=\"URL\",\"");
@@ -180,7 +180,7 @@ bool CGPRS_SIM800::httpConnect(const char* url, const char* args)
 }
 // check if HTTP connection is established
 // return 0 for in progress, 1 for success, 2 for error
-byte CGPRS_SIM800::httpIsConnected()
+byte CGPRS_SIM800C::httpIsConnected()
 {
     byte ret = checkbuffer("0,200", "0,60", 10000);
     if (ret >= 2) {
@@ -189,7 +189,7 @@ byte CGPRS_SIM800::httpIsConnected()
     }
     return ret;
 }
-void CGPRS_SIM800::httpRead()
+void CGPRS_SIM800C::httpRead()
 {
     SIM_SERIAL.println("AT+HTTPREAD");
     httpState = HTTP_READING;
@@ -198,7 +198,7 @@ void CGPRS_SIM800::httpRead()
 }
 // check if HTTP connection is established
 // return 0 for in progress, -1 for error, number of http payload bytes on success
-int CGPRS_SIM800::httpIsRead()
+int CGPRS_SIM800C::httpIsRead()
 {
     byte ret = checkbuffer("+HTTPREAD: ", "Error", 10000) == 1;
     if (ret == 1) {
@@ -216,7 +216,7 @@ int CGPRS_SIM800::httpIsRead()
     }
     return 0;
 }
-byte CGPRS_SIM800::sendCommand(const char* cmd, unsigned int timeout, const char* expected)
+byte CGPRS_SIM800C::sendCommand(const char* cmd, unsigned int timeout, const char* expected)
 {
   if (cmd) {
     purgeSerial();
@@ -253,7 +253,7 @@ byte CGPRS_SIM800::sendCommand(const char* cmd, unsigned int timeout, const char
 #endif
   return 0;
 }
-byte CGPRS_SIM800::sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout)
+byte CGPRS_SIM800C::sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout)
 {
   if (cmd) {
     purgeSerial();
@@ -298,7 +298,7 @@ byte CGPRS_SIM800::sendCommand(const char* cmd, const char* expected1, const cha
   return 0;
 }
 
-byte CGPRS_SIM800::checkbuffer(const char* expected1, const char* expected2, unsigned int timeout)
+byte CGPRS_SIM800C::checkbuffer(const char* expected1, const char* expected2, unsigned int timeout)
 {
     while (SIM_SERIAL.available()) {
         char c = SIM_SERIAL.read();
@@ -319,7 +319,7 @@ byte CGPRS_SIM800::checkbuffer(const char* expected1, const char* expected2, uns
     return (millis() - m_checkTimer < timeout) ? 0 : 3;
 }
 
-void CGPRS_SIM800::purgeSerial()
+void CGPRS_SIM800C::purgeSerial()
 {
   while (SIM_SERIAL.available()) SIM_SERIAL.read();
 }

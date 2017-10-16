@@ -1,5 +1,5 @@
-C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\GPRS_Test_SIM800\arduino_due_x_dbg\Debug\GPRS_Test_SIM800.cpp.o: \
- C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\GPRS_Test_SIM800\arduino_due_x_dbg\Debug\GPRS_Test_SIM800.cpp \
+C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\GPRS_Test_SIM800C\arduino_due_x_dbg\Debug\GPRS_Test_SIM800C.cpp.o: \
+ C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\GPRS_Test_SIM800C\arduino_due_x_dbg\Debug\GPRS_Test_SIM800C.cpp \
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Arduino.h \
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/interrupt.h \
@@ -135,4 +135,4 @@ C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\GPRS_Test_SIM800\arduino_due_x_db
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/USB/USBAPI.h \
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/RingBuffer.h \
  C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Stream.h \
- D:\2\ SVN\ Teplica\trunk\GPRS_Test_SIM800\libraries\SIM800/SIM800.h
+ D:\2\ SVN\ Teplica\trunk\GPRS_Test_SIM800C\libraries\SIM800C/SIM800C.h

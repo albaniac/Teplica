@@ -8,7 +8,7 @@
 #include "SIM800.h"
 
 #define APN "connect"
-#define con Serial
+#define Serial Serial
 static const char* url = "http://arduinodev.com/datetime.php";
 
 CGPRS_SIM800 gprs;
@@ -17,42 +17,42 @@ uint32_t errors = 0;
 
 void setup()
 {
-  con.begin(9600);
-  while (!con);
+  Serial.begin(9600);
+  while (!Serial);
 
-  con.println("SIM800 TEST");
+  Serial.println("SIM800 TEST");
 
   for (;;) {
-    con.print("Resetting...");
+    Serial.print("Resetting...");
     while (!gprs.init()) {
-      con.write('.');
+      Serial.write('.');
     }
-    con.println("OK");
+    Serial.println("OK");
     
-    con.print("Setting up network...");
+    Serial.print("Setting up network...");
     byte ret = gprs.setup(APN);
     if (ret == 0)
       break;
-    con.print("Error code:");
-    con.println(ret);
-    con.println(gprs.buffer);
+    Serial.print("Error code:");
+    Serial.println(ret);
+    Serial.println(gprs.buffer);
   }
-  con.println("OK");
+  Serial.println("OK");
   delay(3000);  
   
   if (gprs.getOperatorName()) {
-    con.print("Operator:");
-    con.println(gprs.buffer);
+    Serial.print("Operator:");
+    Serial.println(gprs.buffer);
   }
   int ret = gprs.getSignalQuality();
   if (ret) {
-     con.print("Signal:");
-     con.print(ret);
-     con.println("dB");
+     Serial.print("Signal:");
+     Serial.print(ret);
+     Serial.println("dB");
   }
   for (;;) {
     if (gprs.httpInit()) break;
-    con.println(gprs.buffer);
+    Serial.println(gprs.buffer);
     gprs.httpUninit();
     delay(1000);
   }
@@ -64,64 +64,64 @@ void loop()
   
   char mydata[16];
   sprintf(mydata, "t=%lu", millis());
-  con.print("Requesting ");
-  con.print(url);
-  con.print('?');
-  con.println(mydata);
+  Serial.print("Requesting ");
+  Serial.print(url);
+  Serial.print('?');
+  Serial.println(mydata);
   gprs.httpConnect(url, mydata);
   count++;
   while (gprs.httpIsConnected() == 0) {
     // can do something here while waiting
-    con.write('.');
+    Serial.write('.');
     for (byte n = 0; n < 25 && !gprs.available(); n++) {
       delay(10);
     }
   }
   if (gprs.httpState == HTTP_ERROR) {
-    con.println("Connect error");
+    Serial.println("Connect error");
     errors++;
     delay(3000);
     return; 
   }
-  con.println();
+  Serial.println();
   gprs.httpRead();
   int ret;
   while ((ret = gprs.httpIsRead()) == 0) {
     // can do something here while waiting
   }
   if (gprs.httpState == HTTP_ERROR) {
-    con.println("Read error");
+    Serial.println("Read error");
     errors++;
     delay(3000);
     return; 
   }
 
   // now we have received payload
-  con.print("[Payload]");
-  con.println(gprs.buffer);
+  Serial.print("[Payload]");
+  Serial.println(gprs.buffer);
 
   // show position
   GSM_LOCATION loc;
   if (gprs.getLocation(&loc)) {
-    con.print("LAT:");
-    con.print(loc.lat, 6);
-    con.print(" LON:");
-    con.print(loc.lon, 6);
-    con.print(" TIME:");
-    con.print(loc.hour);
-    con.print(':');
-    con.print(loc.minute);
-    con.print(':');
-    con.println(loc.second);
+    Serial.print("LAT:");
+    Serial.print(loc.lat, 6);
+    Serial.print(" LON:");
+    Serial.print(loc.lon, 6);
+    Serial.print(" TIME:");
+    Serial.print(loc.hour);
+    Serial.print(':');
+    Serial.print(loc.minute);
+    Serial.print(':');
+    Serial.println(loc.second);
   }
   
   // show stats  
-  con.print("Total Requests:");
-  con.print(count);
+  Serial.print("Total Requests:");
+  Serial.print(count);
   if (errors) {
-    con.print(" Errors:");
-    con.print(errors);
+    Serial.print(" Errors:");
+    Serial.print(errors);
   }
-  con.println();
+  Serial.println();
 }
 
