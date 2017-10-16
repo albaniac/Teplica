@@ -15,19 +15,19 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN)
 
 
     SIM_SERIAL.begin(_baud);
-//	pinMode(_PWR_On, OUTPUT);
-  //  pinMode(_RESET_PIN, OUTPUT);
+	pinMode(_PWR_On, OUTPUT);
+    pinMode(_RESET_PIN, OUTPUT);
 
-	/*digitalWrite(_PWR_On, HIGH);
+	digitalWrite(_PWR_On, HIGH);
 	delay(2000);
 	digitalWrite(_PWR_On, LOW);
-	delay(2000);*/
+	delay(2000);
 
-    //digitalWrite(_RESET_PIN, HIGH);
-    //delay(100);
-    //digitalWrite(_RESET_PIN, LOW);
-    //delay(100);
-    //digitalWrite(_RESET_PIN, HIGH);
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    digitalWrite(_RESET_PIN, LOW);
+    delay(100);
+    digitalWrite(_RESET_PIN, HIGH);
 
     delay(4000);
 

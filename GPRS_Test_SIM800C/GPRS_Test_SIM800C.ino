@@ -189,169 +189,168 @@ void setup_GPRS()
 	pinMode(SIM800_POWER_PIN, OUTPUT);
 	digitalWrite(SIM800_POWER_PIN, HIGH);                              // Сигнал сброс в исходное состояние
 	delay(3000);
-
-	do
-	{
-		con.println(F("Initializing....(May take 5-10 seconds)"));
-
-		digitalWrite(SIM800_RESET_PIN, HIGH);                          // Сигнал сброс в исходное состояние
-		delay(1000);
-		digitalWrite(LED13, LOW);                                      // Светодиод индикации процесса устанавливаем в исходное состояние
-		digitalWrite(SIM800_POWER_PIN, HIGH);                          // Кратковременно отключаем питание модуля GPRS (устанавливаем в исходное состояние)
-		delay(1000);                                                   // Немного подождем
-		while (digitalRead(STATUS) != LOW)                             // Проверяем отключение питания модуля SIM800C 
-		{
-			delay(100);                                                //    
-		}
-		con.println(F("Power SIM800 Off"));
+//
+//	do
+//	{
+//		con.println(F("Initializing....(May take 5-10 seconds)"));
+//
+//		digitalWrite(SIM800_RESET_PIN, HIGH);                          // Сигнал сброс в исходное состояние
 //		delay(1000);
-		digitalWrite(LED13, HIGH);                                     // Индикация старта включения питания модуля SIM800C 
-		digitalWrite(SIM800_POWER_PIN, LOW);                           // Включение питания модуля SIM800C 
-		delay(500);                                                    // Немного подождем переходные просессы при включении питания
-		//digitalWrite(SIM800_RESET_PIN, HIGH);                         // Производим сброс модема после включения питания
-		//delay(1200);
-	//	digitalWrite(SIM800_RESET_PIN, LOW);
-		int count_status = 0;                                          // Установим количество попыток включения SIM800C , иначе что то не так - сбросим микроконтроллер
-		
-		while (digitalRead(STATUS) == LOW)                             // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть отключено. 
-		{
-			count_status++;                                            // Увеличим счетчик попыток включения
-			if (count_status > 100)                                    // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
-			{
-				//gprs.reboot(gprs.errors);                            // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
-			}
-			delay(100);                                                // Включение SIM800C прошло нормально.
-		}
-		
-		con.println(F("Power SIM800 On"));
-
-		// Инициализация SIM800C
-		for (;;) {
-			con.print("Resetting...");
-			while (!gprs.init(SIM800_BAUD, SIM800_POWER_PIN, SIM800_RESET_PIN))
-			{
-				con.write('.');
-			}
-			con.println("OK");
-
-			con.print("Setting up network...");
-	/*		byte ret = gprs.setup(APN);
-			if (ret == 0)
-				break;
-			con.print("Error code:");
-			con.println(ret);
-			con.println(gprs.buffer);*/
-			break;
-		}
-		con.println("OK");
-
-		delay(1000);
-
-		if (gprs.getIMEI())                                     // Получить IMEI
-		{
-			con.print(F("\nIMEI:"));
-			//imei = gprs.buffer;                                 // Отключить на время отладки
-			gprs.cleanStr(imei);                                // Отключить на время отладки
-			con.println(imei);
-		}
-
-
-
-
-		con.print(F("\nSetting up mobile network..."));
-		while (state_device != 2)                                // Ожидание регистрации в сети
-		{
-			con.print(F("."));
-			delay(1000);
-		}
-
-		//GPRSSerial->begin(19200);                               // Скорость обмена с модемом SIM800C
-		/*		while (!gprs.begin(*GPRSSerial))                        // Настройка модуля SIM800C
-		{
-			con.println(F("Couldn't find module GPRS"));
-			while (1);
-		}
-
-		con.println(F("OK"));
-		con.print(F("\nSetting up mobile network..."));
-		while (state_device != 2)                                // Ожидание регистрации в сети
-		{
-			Serial.print(F("."));
-			delay(1000);
-		}
-		delay(1000);
-
-		if (gprs.getIMEI())                                     // Получить IMEI
-		{
-			con.print(F("\nIMEI:"));
-			//imei = gprs.buffer;                                 // Отключить на время отладки
-			gprs.cleanStr(imei);                                // Отключить на время отладки
-			con.println(imei);
-		}
-
-		if (gprs.getSIMCCID())                               // Получить Номер СИМ карты
-		{
-			con.print(F("\nSIM CCID:"));
-			SIMCCID = gprs.buffer1;
-			gprs.cleanStr(SIMCCID);
-			con.println(SIMCCID);
-		}
-
-
-		char n = gprs.getNetworkStatus();
-
-		con.print(F("\nNetwork status "));
-		con.print(n);
-		con.print(F(": "));
-		if (n == '0') con.println(F("\nNot registered"));                      // 0 – не зарегистрирован, поиска сети нет
-		if (n == '1') con.println(F("\nRegistered (home)"));                   // 1 – зарегистрирован, домашняя сеть
-		if (n == '2') con.println(F("\nNot registered (searching)"));          // 2 – не зарегистрирован, идёт поиск новой сети
-		if (n == '3') con.println(F("\nDenied"));                              // 3 – регистрация отклонена
-		if (n == '4') con.println(F("\nUnknown"));                             // 4 – неизвестно
-		if (n == '5') con.println(F("\nRegistered roaming"));                  // 5 – роуминг
-
-		if (n == '1' || n == '5')                                                 // Если домашняя сеть или роуминг
-		{
-			if (state_device == 2)                                                // Проверить аппаратно подключения модема к оператору
-			{
-				do
-				{
-					byte signal = gprs.getSignalQuality();
-					con.print(F("rssi ..")); con.println(signal);
-					delay(1000);
-					con.println(F("GPRS connect .."));
-					gprs.getOperatorName();
-					setup_ok = true;
-
-				} while (!setup_ok);
-			}
-		}
-		*/
-	} while (count_init > 30 || setup_ok == false);    // 30 попыток зарегистрироваться в сети
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//		digitalWrite(LED13, LOW);                                      // Светодиод индикации процесса устанавливаем в исходное состояние
+//		digitalWrite(SIM800_POWER_PIN, HIGH);                          // Кратковременно отключаем питание модуля GPRS (устанавливаем в исходное состояние)
+//		delay(1000);                                                   // Немного подождем
+//		while (digitalRead(STATUS) != LOW)                             // Проверяем отключение питания модуля SIM800C 
+//		{
+//			delay(100);                                                //    
+//		}
+//		con.println(F("Power SIM800 Off"));
+////		delay(1000);
+//		digitalWrite(LED13, HIGH);                                     // Индикация старта включения питания модуля SIM800C 
+//		digitalWrite(SIM800_POWER_PIN, LOW);                           // Включение питания модуля SIM800C 
+//		delay(500);                                                    // Немного подождем переходные просессы при включении питания
+//		//digitalWrite(SIM800_RESET_PIN, HIGH);                         // Производим сброс модема после включения питания
+//		//delay(1200);
+//	//	digitalWrite(SIM800_RESET_PIN, LOW);
+//		int count_status = 0;                                          // Установим количество попыток включения SIM800C , иначе что то не так - сбросим микроконтроллер
+//		
+//		while (digitalRead(STATUS) == LOW)                             // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть отключено. 
+//		{
+//			count_status++;                                            // Увеличим счетчик попыток включения
+//			if (count_status > 100)                                    // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
+//			{
+//				//gprs.reboot(gprs.errors);                            // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
+//			}
+//			delay(100);                                                // Включение SIM800C прошло нормально.
+//		}
+//		
+//		con.println(F("Power SIM800 On"));
+//
+//		// Инициализация SIM800C
+//		for (;;) {
+//			con.print("Resetting...");
+//			while (!gprs.init(SIM800_BAUD, SIM800_POWER_PIN, SIM800_RESET_PIN))
+//			{
+//				con.write('.');
+//			}
+//			con.println("OK");
+//
+//			con.print("Setting up network...");
+//	/*		byte ret = gprs.setup(APN);
+//			if (ret == 0)
+//				break;
+//			con.print("Error code:");
+//			con.println(ret);
+//			con.println(gprs.buffer);*/
+//			break;
+//		}
+//		con.println("OK");
+//
+//		delay(1000);
+//
+//		if (gprs.getIMEI())                                     // Получить IMEI
+//		{
+//			con.print(F("\nIMEI:"));
+//			//imei = gprs.buffer;                                 // Отключить на время отладки
+//			gprs.cleanStr(imei);                                // Отключить на время отладки
+//			con.println(imei);
+//		}
+//
+//
+//
+//
+//		con.print(F("\nSetting up mobile network..."));
+//		while (state_device != 2)                                // Ожидание регистрации в сети
+//		{
+//			con.print(F("."));
+//			delay(1000);
+//		}
+//
+//		//GPRSSerial->begin(19200);                               // Скорость обмена с модемом SIM800C
+//		/*		while (!gprs.begin(*GPRSSerial))                        // Настройка модуля SIM800C
+//		{
+//			con.println(F("Couldn't find module GPRS"));
+//			while (1);
+//		}
+//
+//		con.println(F("OK"));
+//		con.print(F("\nSetting up mobile network..."));
+//		while (state_device != 2)                                // Ожидание регистрации в сети
+//		{
+//			Serial.print(F("."));
+//			delay(1000);
+//		}
+//		delay(1000);
+//
+//		if (gprs.getIMEI())                                     // Получить IMEI
+//		{
+//			con.print(F("\nIMEI:"));
+//			//imei = gprs.buffer;                                 // Отключить на время отладки
+//			gprs.cleanStr(imei);                                // Отключить на время отладки
+//			con.println(imei);
+//		}
+//
+//		if (gprs.getSIMCCID())                               // Получить Номер СИМ карты
+//		{
+//			con.print(F("\nSIM CCID:"));
+//			SIMCCID = gprs.buffer1;
+//			gprs.cleanStr(SIMCCID);
+//			con.println(SIMCCID);
+//		}
+//
+//
+//		char n = gprs.getNetworkStatus();
+//
+//		con.print(F("\nNetwork status "));
+//		con.print(n);
+//		con.print(F(": "));
+//		if (n == '0') con.println(F("\nNot registered"));                      // 0 – не зарегистрирован, поиска сети нет
+//		if (n == '1') con.println(F("\nRegistered (home)"));                   // 1 – зарегистрирован, домашняя сеть
+//		if (n == '2') con.println(F("\nNot registered (searching)"));          // 2 – не зарегистрирован, идёт поиск новой сети
+//		if (n == '3') con.println(F("\nDenied"));                              // 3 – регистрация отклонена
+//		if (n == '4') con.println(F("\nUnknown"));                             // 4 – неизвестно
+//		if (n == '5') con.println(F("\nRegistered roaming"));                  // 5 – роуминг
+//
+//		if (n == '1' || n == '5')                                                 // Если домашняя сеть или роуминг
+//		{
+//			if (state_device == 2)                                                // Проверить аппаратно подключения модема к оператору
+//			{
+//				do
+//				{
+//					byte signal = gprs.getSignalQuality();
+//					con.print(F("rssi ..")); con.println(signal);
+//					delay(1000);
+//					con.println(F("GPRS connect .."));
+//					gprs.getOperatorName();
+//					setup_ok = true;
+//
+//				} while (!setup_ok);
+//			}
+//		}
+//		*/
+//	} while (count_init > 30 || setup_ok == false);    // 30 попыток зарегистрироваться в сети
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
 
-/*
+
+
+
+
+
+
+
+
+
+
+
 	con.println("SIM800C TEST");
 
 	for (;;) {
@@ -390,7 +389,7 @@ void setup_GPRS()
 		delay(1000);
 	}
 	delay(3000);
-	*/
+	
 }
 
 
@@ -447,7 +446,7 @@ void setup()
 
 void loop()
 {
-	/*
+	
 	char mydata[16];
 	sprintf(mydata, "t=%lu", millis());
 	con.print("Requesting ");
@@ -509,7 +508,7 @@ void loop()
 		con.print(errors);
 	}
 	con.println();
-	*/
+	
 }
 
 

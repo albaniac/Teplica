@@ -220,7 +220,7 @@ char inputString[2];
 
 #define APN "connect"
 #define con Serial
-static const char* url = "http://trm7.xyz/r.php";
+static const char* url = "http://arduinodev.com/datetime.php";
 
 CGPRS_SIM800 gprs;
 uint32_t count = 0;
