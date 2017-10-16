@@ -7,8 +7,11 @@
 
 #include "SIM800C.h"
 
+
+
 #define APN "connect"
-#define Serial Serial
+
+#define con Serial
 static const char* url = "http://arduinodev.com/datetime.php";
 
 CGPRS_SIM800C gprs;
@@ -58,7 +61,20 @@ String SIMCCID = "";
 #define DELIM "&"
 
 
+void firstHandler() 
+{
+	con.println("[-  ] First Handler!");
+}
 
+void secondHandler() 
+{
+	con.println("[ - ] Second Handler!");
+}
+
+void thirdHandler() 
+{
+	con.println("[  -] Third Handler!");
+}
 
 void setColor(bool red, bool green, bool blue)         // ¬ключение цвета свечени€ трехцветного светодиода.
 {
@@ -71,14 +87,57 @@ void setColor(bool red, bool green, bool blue)         // ¬ключение цвета свечен
 	digitalWrite(LED_GREEN, green);
 	digitalWrite(LED_BLUE, blue);
 }
+void flash_time()                                       // ѕрограмма обработчик прерывистого свечени€ светодиодов при старте
+{
+	if (state_device == 0)
+	{
+		setColor(COLOR_RED);
+	}
+	if (state_device == 1)
+	{
+		stateLed = !stateLed;
+		if (!stateLed)
+		{
+			setColor(COLOR_RED);
+		}
+		else
+		{
+			setColor(COLOR_NONE);
+		}
+	}
 
+	if (state_device == 2)
+	{
+		stateLed = !stateLed;
+		if (!stateLed)
+		{
+			setColor(COLOR_NONE);
+		}
+		else
+		{
+			setColor(COLOR_BLUE);
+		}
+	}
 
-
+	if (state_device == 3)
+	{
+		stateLed = !stateLed;
+		if (!stateLed)
+		{
+			setColor(COLOR_NONE);
+		}
+		else
+		{
+			setColor(COLOR_GREEN);
+		}
+	}
+}
 void check_blink()
 {
+	// ѕодпрограмма контрол€ состо€ни€ модул€ SIM800C (сигнал NETLIGHT)
 	unsigned long current_M = millis();
 //	wdt_reset();
-	metering_NETLIGHT = current_M - metering_temp;                            // переделать дл€  
+	metering_NETLIGHT = current_M - metering_temp;                            // »змерение длительности сигнала NETLIGHT
 	metering_temp = current_M;
 
 	if (metering_NETLIGHT > 3055 && metering_NETLIGHT < 3070)
@@ -108,7 +167,7 @@ void check_blink()
 		state_device = 3;                                                     // 3 - GPRS св€зь установлена
 
 	}
-	//Serial.println(state_device);
+	//con.println(state_device);
 }
 
 
@@ -133,7 +192,7 @@ void setup_GPRS()
 
 	do
 	{
-		Serial.println(F("Initializing....(May take 5-10 seconds)"));
+		con.println(F("Initializing....(May take 5-10 seconds)"));
 
 		digitalWrite(SIM800_RESET_PIN, HIGH);                          // —игнал сброс в исходное состо€ние
 		delay(1000);
@@ -144,7 +203,7 @@ void setup_GPRS()
 		{
 			delay(100);                                                //    
 		}
-		Serial.println(F("Power SIM800 Off"));
+		con.println(F("Power SIM800 Off"));
 //		delay(1000);
 		digitalWrite(LED13, HIGH);                                     // »ндикаци€ старта включени€ питани€ модул€ SIM800C 
 		digitalWrite(SIM800_POWER_PIN, LOW);                           // ¬ключение питани€ модул€ SIM800C 
@@ -164,62 +223,57 @@ void setup_GPRS()
 			delay(100);                                                // ¬ключение SIM800C прошло нормально.
 		}
 		
-		Serial.println(F("Power SIM800 On"));
+		con.println(F("Power SIM800 On"));
 
 		// »нициализаци€ SIM800C
 		for (;;) {
-			Serial.print("Resetting...");
+			con.print("Resetting...");
 			while (!gprs.init(SIM800_BAUD, SIM800_POWER_PIN, SIM800_RESET_PIN))
 			{
-				Serial.write('.');
+				con.write('.');
 			}
-			Serial.println("OK");
+			con.println("OK");
 
-			Serial.print("Setting up network...");
+			con.print("Setting up network...");
 	/*		byte ret = gprs.setup(APN);
 			if (ret == 0)
 				break;
-			Serial.print("Error code:");
-			Serial.println(ret);
-			Serial.println(gprs.buffer);*/
+			con.print("Error code:");
+			con.println(ret);
+			con.println(gprs.buffer);*/
 			break;
 		}
-		Serial.println("OK");
+		con.println("OK");
 
 		delay(1000);
 
 		if (gprs.getIMEI())                                     // ѕолучить IMEI
 		{
-			Serial.print(F("\nIMEI:"));
+			con.print(F("\nIMEI:"));
 			//imei = gprs.buffer;                                 // ќтключить на врем€ отладки
 			gprs.cleanStr(imei);                                // ќтключить на врем€ отладки
-			Serial.println(imei);
+			con.println(imei);
 		}
 
 
 
 
-
-
-
-
-
-		Serial.print(F("\nSetting up mobile network..."));
+		con.print(F("\nSetting up mobile network..."));
 		while (state_device != 2)                                // ќжидание регистрации в сети
 		{
-			Serial.print(F("."));
+			con.print(F("."));
 			delay(1000);
 		}
 
 		//GPRSSerial->begin(19200);                               // —корость обмена с модемом SIM800C
 		/*		while (!gprs.begin(*GPRSSerial))                        // Ќастройка модул€ SIM800C
 		{
-			Serial.println(F("Couldn't find module GPRS"));
+			con.println(F("Couldn't find module GPRS"));
 			while (1);
 		}
 
-		Serial.println(F("OK"));
-		Serial.print(F("\nSetting up mobile network..."));
+		con.println(F("OK"));
+		con.print(F("\nSetting up mobile network..."));
 		while (state_device != 2)                                // ќжидание регистрации в сети
 		{
 			Serial.print(F("."));
@@ -246,15 +300,15 @@ void setup_GPRS()
 
 		char n = gprs.getNetworkStatus();
 
-		Serial.print(F("\nNetwork status "));
-		Serial.print(n);
-		Serial.print(F(": "));
-		if (n == '0') Serial.println(F("\nNot registered"));                      // 0 Ц не зарегистрирован, поиска сети нет
-		if (n == '1') Serial.println(F("\nRegistered (home)"));                   // 1 Ц зарегистрирован, домашн€€ сеть
-		if (n == '2') Serial.println(F("\nNot registered (searching)"));          // 2 Ц не зарегистрирован, идЄт поиск новой сети
-		if (n == '3') Serial.println(F("\nDenied"));                              // 3 Ц регистраци€ отклонена
-		if (n == '4') Serial.println(F("\nUnknown"));                             // 4 Ц неизвестно
-		if (n == '5') Serial.println(F("\nRegistered roaming"));                  // 5 Ц роуминг
+		con.print(F("\nNetwork status "));
+		con.print(n);
+		con.print(F(": "));
+		if (n == '0') con.println(F("\nNot registered"));                      // 0 Ц не зарегистрирован, поиска сети нет
+		if (n == '1') con.println(F("\nRegistered (home)"));                   // 1 Ц зарегистрирован, домашн€€ сеть
+		if (n == '2') con.println(F("\nNot registered (searching)"));          // 2 Ц не зарегистрирован, идЄт поиск новой сети
+		if (n == '3') con.println(F("\nDenied"));                              // 3 Ц регистраци€ отклонена
+		if (n == '4') con.println(F("\nUnknown"));                             // 4 Ц неизвестно
+		if (n == '5') con.println(F("\nRegistered roaming"));                  // 5 Ц роуминг
 
 		if (n == '1' || n == '5')                                                 // ≈сли домашн€€ сеть или роуминг
 		{
@@ -263,9 +317,9 @@ void setup_GPRS()
 				do
 				{
 					byte signal = gprs.getSignalQuality();
-					Serial.print(F("rssi ..")); Serial.println(signal);
+					con.print(F("rssi ..")); con.println(signal);
 					delay(1000);
-					Serial.println(F("GPRS connect .."));
+					con.println(F("GPRS connect .."));
 					gprs.getOperatorName();
 					setup_ok = true;
 
@@ -298,40 +352,40 @@ void setup_GPRS()
 
 
 /*
-	Serial.println("SIM800C TEST");
+	con.println("SIM800C TEST");
 
 	for (;;) {
-		Serial.print("Resetting...");
+		con.print("Resetting...");
 		while (!gprs.init(SIM800_BAUD, SIM800_POWER_PIN, SIM800_RESET_PIN))
 		{
-			Serial.write('.');
+			con.write('.');
 		}
-		Serial.println("OK");
+		con.println("OK");
 
-		Serial.print("Setting up network...");
+		con.print("Setting up network...");
 		byte ret = gprs.setup(APN);
 		if (ret == 0)
 			break;
-		Serial.print("Error code:");
-		Serial.println(ret);
-		Serial.println(gprs.buffer);
+		con.print("Error code:");
+		con.println(ret);
+		con.println(gprs.buffer);
 	}
-	Serial.println("OK");
+	con.println("OK");
 	delay(3000);
 
 	if (gprs.getOperatorName()) {
-		Serial.print("Operator:");
-		Serial.println(gprs.buffer);
+		con.print("Operator:");
+		con.println(gprs.buffer);
 	}
 	int ret = gprs.getSignalQuality();
 	if (ret) {
-		Serial.print("Signal:");
-		Serial.print(ret);
-		Serial.println("dB");
+		con.print("Signal:");
+		con.print(ret);
+		con.println("dB");
 	}
 	for (;;) {
 		if (gprs.httpInit()) break;
-		Serial.println(gprs.buffer);
+		con.println(gprs.buffer);
 		gprs.httpUninit();
 		delay(1000);
 	}
@@ -344,8 +398,8 @@ void setup_GPRS()
 
 void setup()
 {
-	Serial.begin(115200);
-//	while (!Serial);
+	con.begin(115200);
+//	while (!con);
 	//pinMode(SIM800_RESET_PIN, OUTPUT);
 	//digitalWrite(SIM800_RESET_PIN, HIGH);                      // —игнал сброс в исходное состо€ние
 	//delay(500);
@@ -387,7 +441,7 @@ void setup()
 
 	setColor(COLOR_NONE);                                      // 
 	//time = millis();                                            // —тарт отсчета суток
-	Serial.println(F("\nSIM800 setup end"));
+	con.println(F("\nSIM800 setup end"));
 
 }
 
@@ -396,65 +450,65 @@ void loop()
 	/*
 	char mydata[16];
 	sprintf(mydata, "t=%lu", millis());
-	Serial.print("Requesting ");
-	Serial.print(url);
-	Serial.print('?');
-	Serial.println(mydata);
+	con.print("Requesting ");
+	con.print(url);
+	con.print('?');
+	con.println(mydata);
 	gprs.httpConnect(url, mydata);
 	count++;
 	while (gprs.httpIsConnected() == 0) {
 		// can do something here while waiting
-		Serial.write('.');
+		con.write('.');
 		for (byte n = 0; n < 25 && !gprs.available(); n++) {
 			delay(10);
 		}
 	}
 	if (gprs.httpState == HTTP_ERROR) {
-		Serial.println("Connect error");
+		con.println("Connect error");
 		errors++;
 		delay(3000);
 		return;
 	}
-	Serial.println();
+	con.println();
 	gprs.httpRead();
 	int ret;
 	while ((ret = gprs.httpIsRead()) == 0) {
 		// can do something here while waiting
 	}
 	if (gprs.httpState == HTTP_ERROR) {
-		Serial.println("Read error");
+		con.println("Read error");
 		errors++;
 		delay(3000);
 		return;
 	}
 
 	// now we have received payload
-	Serial.print("[Payload]");
-	Serial.println(gprs.buffer);
+	con.print("[Payload]");
+	con.println(gprs.buffer);
 
 	// show position
 	GSM_LOCATION loc;
 	if (gprs.getLocation(&loc)) {
-		Serial.print("LAT:");
-		Serial.print(loc.lat, 6);
-		Serial.print(" LON:");
-		Serial.print(loc.lon, 6);
-		Serial.print(" TIME:");
-		Serial.print(loc.hour);
-		Serial.print(':');
-		Serial.print(loc.minute);
-		Serial.print(':');
-		Serial.println(loc.second);
+		con.print("LAT:");
+		con.print(loc.lat, 6);
+		con.print(" LON:");
+		con.print(loc.lon, 6);
+		con.print(" TIME:");
+		con.print(loc.hour);
+		con.print(':');
+		con.print(loc.minute);
+		con.print(':');
+		con.println(loc.second);
 	}
 
 	// show stats  
-	Serial.print("Total Requests:");
-	Serial.print(count);
+	con.print("Total Requests:");
+	con.print(count);
 	if (errors) {
-		Serial.print(" Errors:");
-		Serial.print(errors);
+		con.print(" Errors:");
+		con.print(errors);
 	}
-	Serial.println();
+	con.println();
 	*/
 }
 
