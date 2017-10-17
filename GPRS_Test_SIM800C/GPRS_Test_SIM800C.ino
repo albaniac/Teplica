@@ -87,13 +87,14 @@ void setColor(bool red, bool green, bool blue)         // Включение цвета свечен
 	digitalWrite(LED_GREEN, green);
 	digitalWrite(LED_BLUE, blue);
 }
+
 void flash_time()                                       // Программа обработчик прерывистого свечения светодиодов при старте
-{
-	if (state_device == 0)
+{                                                       // 
+	if (state_device == 0)                              // 
 	{
 		setColor(COLOR_RED);
 	}
-	if (state_device == 1)
+	if (state_device == 1)                             // Мигающий красный светодиод - поиск станции
 	{
 		stateLed = !stateLed;
 		if (!stateLed)
@@ -106,35 +107,38 @@ void flash_time()                                       // Программа обработчик 
 		}
 	}
 
-	if (state_device == 2)
+	if (state_device == 2)                             // Мигающий синий светодиод, поиск станции завершен - регистрация
 	{
-		stateLed = !stateLed;
-		if (!stateLed)
 		{
-			setColor(COLOR_NONE);
+			stateLed = !stateLed;
+			if (!stateLed)
+			{
+				setColor(COLOR_NONE);
+			}
+			else
+			{
+				setColor(COLOR_BLUE);
+			}
 		}
-		else
-		{
-			setColor(COLOR_BLUE);
-		}
-	}
 
-	if (state_device == 3)
-	{
-		stateLed = !stateLed;
-		if (!stateLed)
+		if (state_device == 3)                            // Мигающий зеленый светодиод - регистрация выполнена, индикация подключения к интернету
 		{
-			setColor(COLOR_NONE);
-		}
-		else
-		{
-			setColor(COLOR_GREEN);
+			stateLed = !stateLed;
+			if (!stateLed)
+			{
+				setColor(COLOR_NONE);
+			}
+			else
+			{
+				setColor(COLOR_GREEN);
+			}
 		}
 	}
 }
+
 void check_blink()
 {
-	// Подпрограмма контроля состояния модуля SIM800C (сигнал NETLIGHT)
+	// Подпрограмма контроля состояния модуля SIM800C (контролируется сигнал NETLIGHT по аппаратному прерыванию)
 	unsigned long current_M = millis();
 //	wdt_reset();
 	metering_NETLIGHT = current_M - metering_temp;                            // Измерение длительности сигнала NETLIGHT
@@ -147,34 +151,27 @@ void check_blink()
 		if (count_blink2 > 250)
 		{
 			state_device = 0;
-			Timer6.stop();                                                 // Выключить таймер прерывания
-			//gprs.reboot(gprs.errors);                                                    // Что то пошло не так с регистрацией на станции
+			Timer6.stop();                                                   // Выключить таймер прерывания индикации светодиодом
+			//gprs.reboot(gprs.errors);                                      // Что то пошло не так с регистрацией на станции
 		}
 	}
-	else if (metering_NETLIGHT > 855 && metering_NETLIGHT < 870)
+	else if(metering_NETLIGHT > 855 && metering_NETLIGHT < 870)
 	{
 		state_device = 1;                                                     // 1 Не зарегистрирован в сети, поиск
 		count_blink1++;
-		if (count_blink1 > 250)
+		if (count_blink1 > 250)                                               // В сети не зарегистрирован - перезагрузка
 		{
 			state_device = 0;
-			Timer6.stop();                                                 // Выключить таймер прерывания
-			//gprs.reboot(gprs.errors);                                                    // Что то пошло не так с регистрацией на станции
+			Timer6.stop();                                                    // Выключить таймер прерывания индикации светодиодом
+			//gprs.reboot(gprs.errors);                                       // Что то пошло не так с регистрацией на станции
 		}
 	}
-	else if (metering_NETLIGHT > 350 && metering_NETLIGHT < 370)
+	else if(metering_NETLIGHT > 350 && metering_NETLIGHT < 370)
 	{
 		state_device = 3;                                                     // 3 - GPRS связь установлена
 
 	}
-	//con.println(state_device);
 }
-
-
-
-
-
-
 
 void setup_GPRS()
 {
