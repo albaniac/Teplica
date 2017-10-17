@@ -29,7 +29,6 @@ uint32_t errors = 0;
 
 #define SIM800_BAUD      115200
 #define SIM800_POWER_PIN 27
-#define SIM800_POWER_EN  36
 #define SIM800_RESET_PIN 47
 #define NETLIGHT_PIN     37                              // Индикация NETLIGHT
 #define STATUS_PIN       57                              // Индикация STATUS
@@ -330,7 +329,7 @@ void setup_GPRS()
 
 
 
-/*
+
 
 	con.println("SIM800C TEST");
 
@@ -370,7 +369,7 @@ void setup_GPRS()
 		delay(1000);
 	}
 	delay(3000);
-	*/
+	
 }
 
 
@@ -382,16 +381,23 @@ void setup()
 	con.begin(115200);
 
 //	while (!con);
-	//pinMode(SIM800_RESET_PIN, OUTPUT);
-	//digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
+	pinMode(SIM800_RESET_PIN, OUTPUT);
+	digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
 	//delay(500);
 	pinMode(LED13, OUTPUT);
 	digitalWrite(LED13, LOW);                          // Индикация светодиода исходное состояние
-	//pinMode(SIM800_POWER_PIN, OUTPUT);                 // Отключить питание SIM800 
-	//digitalWrite(SIM800_POWER_PIN, HIGH);              // Отключить питание SIM800 
+	pinMode(SIM800_POWER_PIN, OUTPUT);                 // Отключить питание SIM800 
+	digitalWrite(SIM800_POWER_PIN, LOW);              // Отключить питание SIM800 
+	delay(1000);
 	//pinMode(SIM800_POWER_EN, OUTPUT);                  // Включить преобразователь питания SIM800  
 	//digitalWrite(SIM800_POWER_EN, HIGH);               // Включить преобразователь питания SIM800  
-	//digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
+	delay(1000);
+	digitalWrite(SIM800_RESET_PIN, LOW);            // Сигнал сброс в исходное состояние
+	delay(100);
+	digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
+	delay(1000);
+	/*
+
 
 	pinMode(LED_RED, OUTPUT);
 	pinMode(LED_BLUE, OUTPUT);
@@ -422,13 +428,13 @@ void setup()
 
 
 
-	setup_GPRS();
+	//setup_GPRS();
 
 	//setColor(COLOR_NONE);                                      // 
 	setColor(COLOR_GREEN);
 	//time = millis();                                            // Старт отсчета суток
 	con.println(F("\nSIM800 setup end"));
-
+	*/
 }
 
 void loop()
@@ -492,7 +498,7 @@ void loop()
 	con.print(count);
 	if (errors) {
 		con.print(" Errors:");
-		con.print(errors);
+		con.print(errors); 
 	}
 	con.println();
 	*/

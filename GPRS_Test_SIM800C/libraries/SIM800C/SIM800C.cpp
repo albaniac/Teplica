@@ -18,18 +18,18 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STAT
 	int16_t timeout = 7000;
 	SIM_SERIAL.begin(_baud);
 
-	pinMode(_PWR_On, OUTPUT);
-	pinMode(_RESET_PIN, OUTPUT);
-	pinMode(_STATUS_PIN, INPUT);
+	pinMode(_PWR_On, OUTPUT);                                      // Pin управления питанием SIM800C
+	pinMode(_RESET_PIN, OUTPUT);                                   // Pin включения SIM800C
+	pinMode(_STATUS_PIN, INPUT);                                   // Pin контроля питаниея SIM800C
 	delay(100);
-	digitalWrite(_PWR_On, HIGH);
+	digitalWrite(_PWR_On, HIGH);                                   // Pin включения SIM800C
 	delay(100);
-	digitalWrite(_RESET_PIN, HIGH);
+	digitalWrite(_RESET_PIN, HIGH);                                // Pin включения SIM800C в исходное состояние
 
-	//while (digitalRead(_STATUS_PIN) != LOW)                             // Проверяем отключение питания модуля SIM800C 
-	//{
-	//	delay(100);                                                //    
-	//}
+	while (digitalRead(_STATUS_PIN) != LOW)                             // Проверяем отключение питания модуля SIM800C 
+	{
+		delay(100);                                                //    
+	}
 
 
 #ifdef DEBUG
@@ -37,22 +37,22 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STAT
 #endif
 
 	delay(1000);
-	digitalWrite(_PWR_On, LOW);
+	digitalWrite(_PWR_On, LOW);                                   // Подать питание на SIM800C    
 	delay(1000);
-	digitalWrite(_RESET_PIN, LOW);
+	digitalWrite(_RESET_PIN, LOW);                                // Вкючить питание SIM800C
 	delay(1000);
-	digitalWrite(_RESET_PIN, HIGH);                               // Производим сброс модема после включения питания
+	digitalWrite(_RESET_PIN, HIGH);                               // Pin включения SIM800C в исходное состояние
 	delay(1000);
 
-	//while (digitalRead(_STATUS_PIN) == LOW)                       // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть включено. 
-	//{
-	//	count_status++;                                           // Увеличим счетчик попыток включения
-	//	if (count_status > 100)                                   // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
-	//	{
-	//		//gprs.reboot(gprs.errors);                           // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
-	  //}
+	while (digitalRead(_STATUS_PIN) == LOW)                       // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть включено. 
+	{
+		count_status++;                                           // Увеличим счетчик попыток включения
+		if (count_status > 100)                                   // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
+		{
+			//gprs.reboot(gprs.errors);                           // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
+	    }
 		delay(100);                                               // Включение SIM800C прошло нормально.
-    //}
+    }
 
 
 #ifdef DEBUG
