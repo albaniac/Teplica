@@ -21,7 +21,7 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STAT
 	pinMode(_PWR_On, OUTPUT);                                      // Pin управления питанием SIM800C
 	pinMode(_RESET_PIN, OUTPUT);                                   // Pin включения SIM800C
 	pinMode(_STATUS_PIN, INPUT);                                   // Pin контроля питаниея SIM800C
-	delay(100);
+	delay(1000);
 	digitalWrite(_PWR_On, HIGH);                                   // Pin включения SIM800C
 	delay(100);
 	digitalWrite(_RESET_PIN, HIGH);                                // Pin включения SIM800C в исходное состояние
@@ -40,7 +40,7 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STAT
 	digitalWrite(_PWR_On, LOW);                                   // Подать питание на SIM800C    
 	delay(1000);
 	digitalWrite(_RESET_PIN, LOW);                                // Вкючить питание SIM800C
-	delay(1000);
+	delay(100);
 	digitalWrite(_RESET_PIN, HIGH);                               // Pin включения SIM800C в исходное состояние
 	delay(1000);
 

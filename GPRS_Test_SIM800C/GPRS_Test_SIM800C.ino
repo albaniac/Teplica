@@ -177,7 +177,7 @@ void setup_GPRS()
 {
 	bool setup_ok = false;
 	int count_init = 0;
-	Timer6.start(300000);
+	//Timer6.start(300000);
 
 	//do
 	//{
@@ -380,41 +380,37 @@ void setup()
 	Serial.begin(115200);
 	con.begin(115200);
 
-//	while (!con);
-	pinMode(SIM800_RESET_PIN, OUTPUT);
-	digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
-	//delay(500);
-	pinMode(LED13, OUTPUT);
+//	while (!con);	pinMode(LED13, OUTPUT);
 	digitalWrite(LED13, LOW);                          // Индикация светодиода исходное состояние
-	pinMode(SIM800_POWER_PIN, OUTPUT);                 // Отключить питание SIM800 
-	digitalWrite(SIM800_POWER_PIN, LOW);              // Отключить питание SIM800 
-	delay(1000);
-	//pinMode(SIM800_POWER_EN, OUTPUT);                  // Включить преобразователь питания SIM800  
-	//digitalWrite(SIM800_POWER_EN, HIGH);               // Включить преобразователь питания SIM800  
-	delay(1000);
-	digitalWrite(SIM800_RESET_PIN, LOW);            // Сигнал сброс в исходное состояние
-	delay(100);
-	digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
-	delay(1000);
-	/*
+	pinMode(SIM800_RESET_PIN, OUTPUT);
+	//digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
+	//delay(500);
+ //	pinMode(SIM800_POWER_PIN, OUTPUT);                 // Отключить питание SIM800 
+	//digitalWrite(SIM800_POWER_PIN, LOW);              // Отключить питание SIM800 
+	//delay(1000);
+	//digitalWrite(SIM800_RESET_PIN, LOW);            // Сигнал сброс в исходное состояние
+	//delay(100);
+	//digitalWrite(SIM800_RESET_PIN, HIGH);            // Сигнал сброс в исходное состояние
+	//delay(1000);
+	
 
 
-	pinMode(LED_RED, OUTPUT);
-	pinMode(LED_BLUE, OUTPUT);
-	pinMode(LED_GREEN, OUTPUT);
-	pinMode(NETLIGHT_PIN, INPUT);                        // Индикация NETLIGHT (подключено аппаратное прерывание)
-	//pinMode(STATUS, INPUT);                            // Индикация STATUS (контроль включения питания SIM800)
+	//pinMode(LED_RED, OUTPUT);
+	//pinMode(LED_BLUE, OUTPUT);
+	//pinMode(LED_GREEN, OUTPUT);
+	//////pinMode(NETLIGHT_PIN, INPUT);                        // Индикация NETLIGHT (подключено аппаратное прерывание)
+	////pinMode(STATUS, INPUT);                            // Индикация STATUS (контроль включения питания SIM800)
 
 
 
-	setColor(COLOR_RED);
-	delay(500);
-	setColor(COLOR_GREEN);
-	delay(500);
-	setColor(COLOR_BLUE);
-	delay(500);
-	setColor(COLOR_RED);
-	delay(300);
+	//setColor(COLOR_RED);
+	//delay(500);
+	//setColor(COLOR_GREEN);
+	//delay(500);
+	//setColor(COLOR_BLUE);
+	//delay(500);
+	//setColor(COLOR_RED);
+	//delay(300);
 
 
 
@@ -428,18 +424,18 @@ void setup()
 
 
 
-	//setup_GPRS();
+	setup_GPRS();
 
 	//setColor(COLOR_NONE);                                      // 
 	setColor(COLOR_GREEN);
 	//time = millis();                                            // Старт отсчета суток
 	con.println(F("\nSIM800 setup end"));
-	*/
+	
 }
 
 void loop()
 {
-	/*
+	
 	char mydata[16];
 	sprintf(mydata, "t=%lu", millis());
 	con.print("Requesting ");
@@ -501,7 +497,7 @@ void loop()
 		con.print(errors); 
 	}
 	con.println();
-	*/
+	
 }
 
 
