@@ -208,7 +208,15 @@ char inputString[2];
 
 
 
+<<<<<<< .mine
 //#define PWR_SIM800       65                              // Включение питания модуля SIM800
+#define PWR_SIM800       27                              // Включение питания модуля SIM800
+#define PWR_SIM800_2       36                              // Включение питания модуля SIM800
+||||||| .r489
+#define PWR_SIM800       65                              // Включение питания модуля SIM800
+=======
+//#define PWR_SIM800       65                              // Включение питания модуля SIM800
+>>>>>>> .r494
 //#define SIM800_RESET_PIN 67                              // Сброс модуля SIM800
 #define PWR_SIM800       27                              // Включение питания модуля SIM800
 
@@ -865,6 +873,14 @@ void setup()
 	digitalWrite(OE_Pin, LOW);
 
 	pinMode(PWR_SIM800, OUTPUT);
+<<<<<<< .mine
+	pinMode(PWR_SIM800_2, OUTPUT);
+	digitalWrite(PWR_SIM800_2, HIGH);
+	//pinMode(SIM800_RESET_PIN, OUTPUT);
+||||||| .r489
+	//pinMode(SIM800_RESET_PIN, OUTPUT);
+=======
+>>>>>>> .r494
 	pinMode(NETLIGHT, INPUT);
 	
 
