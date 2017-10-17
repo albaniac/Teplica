@@ -8,7 +8,8 @@
 #include <Arduino.h>
 
 // change this to the pin connect with SIM800 reset pin
-#define SIM800_RESET_PIN 67
+//#define SIM800_RESET_PIN 67
+#define SIM800_RESET_PIN 47
 
 // change this to the serial UART which SIM800 is attached to
 #define SIM_SERIAL Serial2

@@ -7,9 +7,6 @@
 
 #include <Arduino.h>
 
-// change this to the pin connect with SIM800 reset pin
-//#define SIM800_RESET_PIN 67
-
 // change this to the serial UART which SIM800 is attached to
 #define SIM_SERIAL Serial2
 
@@ -39,7 +36,7 @@ class CGPRS_SIM800C {
 public:
     CGPRS_SIM800C():httpState(HTTP_DISABLED) {}
     // initialize the module
-    bool init(unsigned long baud, int PWR_On, int RESET_PIN);
+    bool init(unsigned long baud, int PWR_On, int RESET_PIN, int STATUS_PIN);
     // setup network
     byte setup(const char* apn);
     // get network operator name
@@ -116,6 +113,7 @@ private:
 	unsigned long _baud;                    // Скорость Serial
 	int _PWR_On;                            // Включение питания модуля SIM800
 	int _RESET_PIN;                         // Сброс модуля SIM800
+	int _STATUS_PIN;                        // Контроль питания SIM800 
 	byte operator_Num = 0;                  // Порядковый номер оператора
 	//unsigned int timeout = 2000;            // 
 	String apn = "";

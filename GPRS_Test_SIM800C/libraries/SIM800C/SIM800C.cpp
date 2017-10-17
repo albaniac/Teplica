@@ -7,31 +7,60 @@
 
 #include "SIM800C.h"
 
-bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN)
+bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STATUS_PIN)
 {
-	_PWR_On    = PWR_On;                           // Включение питания модуля SIM800
-	_RESET_PIN = RESET_PIN;                        // Сброс модуля SIM800
-	_baud      = baud;                             // Установить скорость Serial
+	_baud       = baud;                                            // Установить скорость Serial
+	_PWR_On     = PWR_On;                                          // Включение питания модуля SIM800
+	_RESET_PIN  = RESET_PIN;                                       // Сброс модуля SIM800
+	_STATUS_PIN = STATUS_PIN;                                      // Контроль питания SIM800
 
-
-    SIM_SERIAL.begin(_baud);
-	pinMode(_PWR_On, OUTPUT);
-    pinMode(_RESET_PIN, OUTPUT);
-
-	digitalWrite(_PWR_On, HIGH);
-	delay(2000);
-	digitalWrite(_PWR_On, LOW);
-	delay(2000);
-
-    digitalWrite(_RESET_PIN, HIGH);
-    delay(100);
-    digitalWrite(_RESET_PIN, LOW);
-    delay(100);
-    digitalWrite(_RESET_PIN, HIGH);
-
-    delay(4000);
-
+	int count_status = 0;                                          // Установим количество попыток включения SIM800C , иначе что то не так - сбросим микроконтроллер
 	int16_t timeout = 7000;
+	SIM_SERIAL.begin(_baud);
+
+	pinMode(_PWR_On, OUTPUT);
+	pinMode(_RESET_PIN, OUTPUT);
+	pinMode(_STATUS_PIN, INPUT);
+	delay(100);
+	digitalWrite(_PWR_On, HIGH);
+	delay(100);
+	digitalWrite(_RESET_PIN, HIGH);
+
+	//while (digitalRead(_STATUS_PIN) != LOW)                             // Проверяем отключение питания модуля SIM800C 
+	//{
+	//	delay(100);                                                //    
+	//}
+
+
+#ifdef DEBUG
+	DEBUG.println(F("\nPower SIM800 Off"));
+#endif
+
+	delay(1000);
+	digitalWrite(_PWR_On, LOW);
+	delay(1000);
+	digitalWrite(_RESET_PIN, LOW);
+	delay(1000);
+	digitalWrite(_RESET_PIN, HIGH);                               // Производим сброс модема после включения питания
+	delay(1000);
+
+	//while (digitalRead(_STATUS_PIN) == LOW)                       // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть включено. 
+	//{
+	//	count_status++;                                           // Увеличим счетчик попыток включения
+	//	if (count_status > 100)                                   // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
+	//	{
+	//		//gprs.reboot(gprs.errors);                           // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
+	  //}
+		delay(100);                                               // Включение SIM800C прошло нормально.
+    //}
+
+
+#ifdef DEBUG
+	DEBUG.println(F("Power SIM800 On"));
+#endif
+
+
+    delay(1000);
 
 	while (timeout > 0)
 	{
@@ -89,8 +118,8 @@ byte CGPRS_SIM800C::setup(const char* apn)
         if (p) {
           char mode = *(p + 2);
 #if DEBUG
-          con.print("Mode:");
-          con.println(mode);
+		  DEBUG.print("Mode:");
+		  DEBUG.println(mode);
 #endif
           if (mode == '1' || mode == '5') {
             success = true;
@@ -653,6 +682,7 @@ byte CGPRS_SIM800C::sendCommand(const char* cmd, unsigned int timeout, const cha
 {
   if (cmd) {
     purgeSerial();
+
 #ifdef DEBUG
     DEBUG.print('>');
     DEBUG.println(cmd);

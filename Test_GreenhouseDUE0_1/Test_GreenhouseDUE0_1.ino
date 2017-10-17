@@ -208,8 +208,12 @@ char inputString[2];
 
 
 
-#define PWR_SIM800       65                              // Включение питания модуля SIM800
+//#define PWR_SIM800       65                              // Включение питания модуля SIM800
 //#define SIM800_RESET_PIN 67                              // Сброс модуля SIM800
+#define PWR_SIM800       27                              // Включение питания модуля SIM800
+
+
+
 #define LED13           13                               // Индикация светодиодом
 #define NETLIGHT         8                               // Индикация NETLIGHT
 #define STATUS           9                               // Индикация STATUS
@@ -861,14 +865,13 @@ void setup()
 	digitalWrite(OE_Pin, LOW);
 
 	pinMode(PWR_SIM800, OUTPUT);
-	//pinMode(SIM800_RESET_PIN, OUTPUT);
 	pinMode(NETLIGHT, INPUT);
 	
 
 	digitalWrite(PWR_SIM800, LOW);
 	//digitalWrite(SIM800_RESET_PIN, HIGH);
 	delay(2000);
-	digitalWrite(NETLIGHT, HIGH);
+	//digitalWrite(NETLIGHT, HIGH);
 	//digitalWrite(STATUS, HIGH);
 
 	pinMode(SIM800_RESET_PIN, OUTPUT);
