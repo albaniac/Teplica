@@ -6,8 +6,6 @@
 *************************************************************************/
 
 #include "SIM800.h"
-//#include <SoftwareSerial.h>
-//#include <EEPROM.h>
 
 bool CGPRS_SIM800::begin(unsigned long baud)
 {
@@ -36,28 +34,28 @@ bool CGPRS_SIM800::begin(unsigned long baud)
 		delay(100);
 	}
 	
-	if (sendCommandS(F("AT")))               
+	if (sendCommand("AT"))               
 	{
-		sendCommandS(F("AT+IPR=19200"));                	 // Установить скорость обмена
+		sendCommand("AT+IPR=19200");                	 // Установить скорость обмена
 		delay(100);
-		sendCommandS(F("ATE0"));                             // Отключить эхо 
+		sendCommand("ATE0");                             // Отключить эхо 
 		delay(100);
-		sendCommandS(F("AT+CFUN=1"));                        // 1 – нормальный режим (по умолчанию). Второй параметр 1 – перезагрузить (доступно только в нормальном режиме, т.е. параметры = 1,1)
+		sendCommand("AT+CFUN=1",10000);                        // 1 – нормальный режим (по умолчанию). Второй параметр 1 – перезагрузить (доступно только в нормальном режиме, т.е. параметры = 1,1)
 		delay(100);																
-		sendCommandS(F("AT+CMGF=1"));                        // режим кодировки СМС - обычный (для англ.)
+		sendCommand("AT+CMGF=1");                        // режим кодировки СМС - обычный (для англ.)
 		delay(100);														
-		sendCommandS(F("AT+CLIP=1"));                        // включаем АОН
+		sendCommand("AT+CLIP=1");                        // включаем АОН
 		delay(100);													
-		sendCommandS(F("AT+CSCS=\"GSM\""));                   // режим кодировки текста
+		sendCommand("AT+CSCS=\"GSM\"");                   // режим кодировки текста
 		delay(100);															
-		//sendCommandS(F("AT+CNMI=2,2"));                    // отображение смс в терминале сразу после приема (без этого сообщения молча падают в память)tln("AT+CSCS=\"GSM\""); 
+		//sendCommand("AT+CNMI=2,2");                    // отображение смс в терминале сразу после приема (без этого сообщения молча падают в память)tln("AT+CSCS=\"GSM\""); 
 		delay(100);									 
-		//sendCommandS(F("AT+CMGDA=\"DEL ALL\""));           // AT+CMGDA=«DEL ALL» команда удалит все сообщения
+		//sendCommand("AT+CMGDA=\"DEL ALL\"");           // AT+CMGDA=«DEL ALL» команда удалит все сообщения
 		//delay(100);
-		//sendCommandS(F("AT+GMR"));                         // Номер прошивки
+		//sendCommand("AT+GMR");                         // Номер прошивки
 		//delay(100);
-		sendCommandS(F("AT + CMGF = 1"));                    // sets the SMS mode to text
-		//sendCommandS(F("AT+CPMS=\"SM\",\"SM\",\"SM\""));   // selects the memory
+		sendCommand("AT + CMGF = 1");                    // sets the SMS mode to text
+		//sendCommand("AT+CPMS=\"SM\",\"SM\",\"SM\"");     // selects the memory
 		return true;
 	}
 	return false;
@@ -68,41 +66,39 @@ byte CGPRS_SIM800::connect_GPRS()
 {
 	for (byte n = 0; n < 10; n++)
 	{
-		if (!sendCommandS(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\""))) return 1;           
+		if (!sendCommand("AT+SAPBR=3,1,\"Contype\",\"GPRS\"")) return 1;           
 
-		SIM_SERIAL.print(F("AT+SAPBR=3,1,\"APN\",\""));
+		SIM_SERIAL.print("AT+SAPBR=3,1,\"APN\",\"");
 		SIM_SERIAL.print(apn);
 		SIM_SERIAL.println('\"');
-		if (!sendCommandS(no))   return 2;   
+		if (!sendCommand(0))   return 2;   
 
 		SIM_SERIAL.print(F("AT+SAPBR=3,1,\"USER\",\""));
 		SIM_SERIAL.print(user);
 		SIM_SERIAL.println('\"');
-		if (!sendCommandS(no))   return 2;
+		if (!sendCommand(0))   return 2;
 
 		SIM_SERIAL.print(F("AT+SAPBR=3,1,\"PWD\",\""));
 		SIM_SERIAL.print(pwd);
 		SIM_SERIAL.println('\"');
-		if (!sendCommandS(no))   return 2;
+		if (!sendCommand(0))   return 2;
 
 		SIM_SERIAL.print(F("AT+CGDCONT=1,\"IP\",\""));
 		SIM_SERIAL.print(cont);
 		SIM_SERIAL.println('\"');
-		if (!sendCommandS(no))   return 2;
+		if (!sendCommand(0))   return 2;
 
-		timeout = 15000;
 		Serial.print(F("Connect GPRS..")); Serial.println(n+1);
-		sendCommandS(F("AT+SAPBR=1,1"));  timeout = 2000;   return 0;                 // установка GPRS связи
+		sendCommand("AT+SAPBR=1,1 ", 10000);  return 0;                      // установка GPRS связи
 	}
-	return 3;                                                                         // Неуспешная регистрация
+	return 3;                                                                // Неуспешная регистрация
 }
 
 bool CGPRS_SIM800::connect_IP_GPRS()
 {
 	for (byte n = 0; n < 30; n++)
 	{
-		timeout = 15000;
-		if (sendCommandS(F("AT+SAPBR=2,1"))) timeout = 2000;  return true;                             // получить IP адрес
+		if (sendCommand("AT+SAPBR=2,1", 10000)) return true;                             // получить IP адрес
 		delay(500);
 	}
 	return false;
@@ -122,7 +118,7 @@ uint8_t CGPRS_SIM800::getNetworkStatus()
 {
 	for (byte n = 0; n < 30; n++)
 	{
-		if (sendCommandS(F("AT+CREG?")))                       // Тип регистрации сети
+		if (sendCommand("AT+CREG?", 2000))                       // Тип регистрации сети
 		{
 			// Первый параметр:
 			// 0 – нет кода регистрации сети
@@ -150,11 +146,9 @@ uint8_t CGPRS_SIM800::getNetworkStatus()
 		delay(1000);
 	}
 }
-
-
 bool CGPRS_SIM800::getIMEI()
 {
-  if (sendCommandS(F("AT+GSN")) == 1)               // (sendCommand("AT+GSN", "OK\r", "ERROR\r") == 1) 
+  if (sendCommand("AT+GSN", "OK\r", "ERROR\r") == 1)  // (sendCommand("AT+GSN", "OK\r", "ERROR\r") == 1) 
   {
 	char *p = strstr(buffer, "\r");                 //Функция strstr() возвращает указатель на первое вхождение в строку, 
 											        //на которую указывает str1, строки, указанной str2 (исключая завершающий нулевой символ).
@@ -173,7 +167,7 @@ bool CGPRS_SIM800::getIMEI()
 }
 bool CGPRS_SIM800::getSIMCCID()
 {
-	if (sendCommandS(F("AT+CCID")) == 1)             // (sendCommand("AT+CCID", "OK\r", "ERROR\r") == 1)
+	if (sendCommand("AT+CCID", "OK\r", "ERROR\r") == 1)             // (sendCommand("AT+CCID", "OK\r", "ERROR\r") == 1)
 	{      
 		char *p = strstr(buffer, "\r");              //Функция strstr() возвращает указатель на первое вхождение в строку, 
 												     //Если совпадений не обнаружено, возвращается NULL.
@@ -200,12 +194,10 @@ bool CGPRS_SIM800::getSIMCCID()
 	}
 	return false;
 }
-
-
 bool CGPRS_SIM800::getOperatorName()
 {
   // display operator name
-  if (sendCommandS(F("AT+COPS?")) == 1)   
+  if (sendCommand("AT+COPS?", "OK\r", "ERROR\r") == 1)
   {
 	  char *p = strstr(buffer, ",\"");
 	  if (p)
@@ -249,14 +241,37 @@ bool CGPRS_SIM800::getOperatorName()
   }
   return false;
 }
-
-
+bool CGPRS_SIM800::getLocation(GSM_LOCATION* loc)
+{
+	if (sendCommand("AT+CIPGSMLOC=1,1", 10000)) do {
+		char *p;
+		if (!(p = strchr(buffer, ':'))) break;
+		if (!(p = strchr(p, ','))) break;
+		loc->lon = atof(++p);
+		if (!(p = strchr(p, ','))) break;
+		loc->lat = atof(++p);
+		if (!(p = strchr(p, ','))) break;
+		loc->year = atoi(++p) - 2000;
+		if (!(p = strchr(p, '/'))) break;
+		loc->month = atoi(++p);
+		if (!(p = strchr(p, '/'))) break;
+		loc->day = atoi(++p);
+		if (!(p = strchr(p, ','))) break;
+		loc->hour = atoi(++p);
+		if (!(p = strchr(p, ':'))) break;
+		loc->minute = atoi(++p);
+		if (!(p = strchr(p, ':'))) break;
+		loc->second = atoi(++p);
+		return true;
+	} while (0);
+	return false;
+}
 byte CGPRS_SIM800::ping_connect_internet()
 {
 	int count_connect = 0;                                                // Счетчик количества попыток проверки подключения Network registration (сетевому оператору)
 	for (;;)                                                              // Бесконечный цикл пока не наступит, какое то состояние для выхода
 	{
-		if (sendCommandS(F("AT+CREG?")) == 1) break;                      // Все нормально, в сети оператора зарегистрированы , Прервать попытки и выйти из цикла
+		if (sendCommand("AT+CREG?", "OK\r", "ERROR\r", 2000) == 1) break;                      // Все нормально, в сети оператора зарегистрированы , Прервать попытки и выйти из цикла
 		Serial.print(">");
 		Serial.println(buffer);                                           // Не получилось, ("ERROR") 
 		String stringError = buffer;
@@ -276,7 +291,7 @@ byte CGPRS_SIM800::ping_connect_internet()
 	count_connect = 0;                                                 // Счетчик количества попыток проверки подключения Attach from GPRS service
 	for (;;)                                                           // Бесконечный цикл пока не наступит, какое то состояние для выхода
 	{
-		if (sendCommandS(F("AT+CGATT?")) == 1) break;                  // Все нормально, модуль подключен к GPRS service , Прервать попытки и выйти из цикла
+		if (sendCommand("AT+CGATT?") == 1) break;                      // Все нормально, модуль подключен к GPRS service , Прервать попытки и выйти из цикла
 		Serial.print(F(">"));
 		Serial.println(buffer);                                          // Не получилось, ("ERROR") 
 		String stringError = buffer;
@@ -298,26 +313,22 @@ byte CGPRS_SIM800::ping_connect_internet()
 	switch (operator_Num)                                                  // Определяем вариант подключения в зависимости от оператора
 	{
 	case 0:
-		sendCommandS(F("AT+CSTT=\"internet.mts.ru\""));                    //Настроить точку доступа MTS. При повторных пингах будет выдавать ошибку. Это нормально потому что данные уже внесены.
+		sendCommand("AT+CSTT=\"internet.mts.ru\"");                    //Настроить точку доступа MTS. При повторных пингах будет выдавать ошибку. Это нормально потому что данные уже внесены.
 		break;
 	case 1:
-		sendCommandS(F("AT+CSTT=\"internet.beeline.ru\""));                //Настроить точку доступа  beeline
+		sendCommand("AT+CSTT=\"internet.beeline.ru\"");                //Настроить точку доступа  beeline
 		break;
 	case 2:
-		sendCommandS(F("AT+CSTT=\"internet\""));                           //Настроить точку доступа Megafon
+		sendCommand("AT+CSTT=\"internet\"");                           //Настроить точку доступа Megafon
 		break;
 	}
 	delay(1000);
-	timeout = 10000;
-	sendCommandS(F("AT+CIICR"));                                           // Поднимаем протокол Bring Up Wireless Connection with GPRS  
-	timeout = 2000;
+	sendCommand("AT+CIICR", 10000);                                           // Поднимаем протокол Bring Up Wireless Connection with GPRS  
 	return 0;
 }
-
-
 bool CGPRS_SIM800::ping(const char* url)
 {
-	sendCommandS(F("AT+CIFSR"));                                          //Получить локальный IP-адрес
+	sendCommand("AT+CIFSR",1000);                                          //Получить локальный IP-адрес
 	delay(1000);
 	SIM_SERIAL.print(F("AT+CIPPING=\""));                                // Отправить команду ping
 	SIM_SERIAL.print(url);
@@ -342,13 +353,9 @@ bool CGPRS_SIM800::ping(const char* url)
 	SIM_SERIAL.print(F("AT+CIPSHUT"));                             // Ошибка, что то не так пошло. На всякий случай закрываем соединение
 	return false;
 }
-
 bool CGPRS_SIM800::checkSMS()
 {
-	expected1 = "+CMGR:";
-	expected2 = ERROR_r;
-
-	if (sendCommandS(F("AT+CMGR=1")) == 1)                            //  отправляет команду "AT+CMGR=1", поиск ответного сообщения +CMGR:
+	if (sendCommand("AT+CMGR=1", "+CMGR:", "ERROR") == 1)                            //  отправляет команду "AT+CMGR=1", поиск ответного сообщения +CMGR:
 	{ 
 		while (SIM_SERIAL.available())                                //есть данные от GSM модуля
 		{
@@ -356,15 +363,10 @@ bool CGPRS_SIM800::checkSMS()
 			val += char(ch);                                           //сохраняем входную строку в переменную val
 			delay(10);
 		}
-		expected1 = OK_r;
-		expected2 = ERROR_r;
 		return true;
 	}
-	 expected1 = OK_r;
-	 expected2 = ERROR_r;
 	 return false; 
 }
-
 void CGPRS_SIM800::send_sms(String text, String phone)  //процедура отправки СМС
 {
 	Serial.println(F("SMS send started"));
@@ -382,27 +384,24 @@ void CGPRS_SIM800::send_sms(String text, String phone)  //процедура отправки СМС
 	Serial.println(F("SMS send complete"));
 	delay(2000);
 }
-
-
 bool CGPRS_SIM800::deleteSMS(int n_sms)
 {
 
 	if (n_sms > 0)
 	{
-		if(sendCommandS(F("AT+CMGD=1")) == 1)                      //  remove the SMS
+		if (sendCommand("AT+CMGD=1", "+CMGR:", "ERROR") == 1)                      //  remove the SMS
 		return true;
 	}
 	else
 	{
-		if(sendCommandS(F("AT+CMGDA=\"DEL ALL\"")) == 1)          // remove the SMS
+		if (sendCommand("AT+CMGDA=\"DEL ALL\"", "+CMGR:", "ERROR") == 1)          // remove the SMS
 		return true;
 	}
 	return false;
 }
-
 byte CGPRS_SIM800::getSignalQuality()
 {
-  sendCommandS(F("AT+CSQ"));                                      // Уровень сигнала
+  sendCommand("AT+CSQ");                                      // Уровень сигнала
   char *p = strstr(buffer, "CSQ:");
   if (p) 
   {
@@ -423,7 +422,7 @@ void CGPRS_SIM800::httpUninit()
 bool CGPRS_SIM800::httpInit()
 {
 	timeout = 10000;
-	if  (!sendCommandS(F("AT+HTTPINIT")) || !sendCommandS(F("AT+HTTPPARA=\"CID\",1")))  //if  (!sendCommand("AT+HTTPINIT", 10000) || !sendCommand("AT+HTTPPARA=\"CID\",1", 5000)) 
+	if  (!sendCommand("AT+HTTPINIT", 10000) || !sendCommand("AT+HTTPPARA=\"CID\",1", 5000))  //if  (!sendCommand("AT+HTTPINIT", 10000) || !sendCommand("AT+HTTPPARA=\"CID\",1", 5000)) 
 	{
 		httpState = HTTP_DISABLED;
 		timeout = 2000;
@@ -440,7 +439,7 @@ bool CGPRS_SIM800::httpConnect(const char* url, const char* args)
 	SIM_SERIAL.print(url);
 	if (args) 
 	{
-		SIM_SERIAL.print('?');
+		//SIM_SERIAL.print('?');
 		SIM_SERIAL.print(args);
 	}
 
@@ -466,7 +465,7 @@ bool CGPRS_SIM800::httpConnectStr(const char* url, String args)
 	SIM_SERIAL.print(url);
 	if (args) 
 	{
-		SIM_SERIAL.print('?');
+		//SIM_SERIAL.print('?');
 		SIM_SERIAL.print(args);
 	}
 
@@ -548,6 +547,93 @@ boolean CGPRS_SIM800::HTTP_ssl(boolean onoff)
 	timeout  = 2000; 
 	return false;           
 }
+
+
+byte CGPRS_SIM800::sendCommand(const char* cmd, unsigned int timeout, const char* expected)
+{
+	if (cmd) {
+		purgeSerial();
+
+#ifdef DEBUG
+		DEBUG.print('>');
+		DEBUG.println(cmd);
+#endif
+		SIM_SERIAL.println(cmd);
+	}
+	uint32_t t = millis();
+	byte n = 0;
+	do {
+		if (SIM_SERIAL.available()) {
+			char c = SIM_SERIAL.read();
+			if (n >= sizeof(buffer) - 1) {
+				// buffer full, discard first half
+				n = sizeof(buffer) / 2 - 1;
+				memcpy(buffer, buffer + sizeof(buffer) / 2, n);
+			}
+			buffer[n++] = c;
+			buffer[n] = 0;
+			if (strstr(buffer, expected ? expected : "OK\r")) {
+#ifdef DEBUG
+				DEBUG.print("[1]");
+				DEBUG.println(buffer);
+#endif
+				return n;
+			}
+		}
+	} while (millis() - t < timeout);
+#ifdef DEBUG
+	DEBUG.print("[0]");
+	DEBUG.println(buffer);
+#endif
+	return 0;
+}
+byte CGPRS_SIM800::sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout)
+{
+	if (cmd) {
+		purgeSerial();
+#ifdef DEBUG
+		DEBUG.print('>');
+		DEBUG.println(cmd);
+#endif
+		SIM_SERIAL.println(cmd);
+	}
+	uint32_t t = millis();
+	byte n = 0;
+	do {
+		if (SIM_SERIAL.available()) {
+			char c = SIM_SERIAL.read();
+			if (n >= sizeof(buffer) - 1) {
+				// buffer full, discard first half
+				n = sizeof(buffer) / 2 - 1;
+				memcpy(buffer, buffer + sizeof(buffer) / 2, n);
+			}
+			buffer[n++] = c;
+			buffer[n] = 0;
+			if (strstr(buffer, expected1)) {
+#ifdef DEBUG
+				DEBUG.print("[1]");
+				DEBUG.println(buffer);
+#endif
+				return 1;
+			}
+			if (strstr(buffer, expected2)) {
+#ifdef DEBUG
+				DEBUG.print("[2]");
+				DEBUG.println(buffer);
+#endif
+				return 2;
+			}
+		}
+	} while (millis() - t < timeout);
+#if DEBUG
+	DEBUG.print("[0]");
+	DEBUG.println(buffer);
+#endif
+	return 0;
+}
+
+
+
 
 byte CGPRS_SIM800::sendCommandS(String cmd, unsigned int timeout, const char* expected)
 {   

@@ -29,6 +29,17 @@ typedef enum {
 	HTTP_ERROR,
 } HTTP_STATES;
 
+typedef struct {
+	float lat;
+	float lon;
+	uint8_t year; /* year past 2000, e.g. 15 for 2015 */
+	uint8_t month;
+	uint8_t day;
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+} GSM_LOCATION;
+
 
 class CGPRS_SIM800 {
 public:
@@ -52,7 +63,8 @@ public:
 	bool deleteSMS(int n_sms);
 	// get signal quality level (in dB)
 	byte getSignalQuality();
-	
+	// get GSM location and network time
+	bool getLocation(GSM_LOCATION* loc);
 	// initialize HTTP connection
 	bool httpInit();
 	// terminate HTTP connection
@@ -69,6 +81,10 @@ public:
 	// check if HTTP connection is established
 	// return 0 for in progress, -1 for error, bytes of http payload on success
 	int httpIsRead();
+	// send AT command and check for expected response
+	byte sendCommand(const char* cmd, unsigned int timeout = 2000, const char* expected = 0);
+	// send AT command and check for two possible responses
+	byte sendCommand(const char* cmd, const char* expected1, const char* expected2, unsigned int timeout = 2000);
 	// send AT command and check for expected response
 	byte sendCommandS(String cmd, unsigned int timeout, const char* expected);
 	// send AT command and check for two possible responses
@@ -104,7 +120,5 @@ private:
 	byte operator_Num     = 0;                                  // Порядковый номер оператора
 	int ch                = 0;
 	int Address_errorAll = 160;                        // Адрес в EEPROM счетчика общих ошибок
-	//FONAStreamType *SIM_SERIAL;
-	
 };
 
