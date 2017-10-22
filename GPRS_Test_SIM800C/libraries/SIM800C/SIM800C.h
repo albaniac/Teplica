@@ -36,7 +36,7 @@ class CGPRS_SIM800C {
 public:
     CGPRS_SIM800C():httpState(HTTP_DISABLED) {}
     // initialize the module
-    bool init(unsigned long baud, int PWR_On, int RESET_PIN, int STATUS_PIN);
+    bool init(unsigned long baud);
     // setup network
     byte setup(const char* apn);
     // get network operator name
@@ -111,9 +111,6 @@ private:
     byte m_bytesRecv;
     uint32_t m_checkTimer;
 	unsigned long _baud;                    // Скорость Serial
-	int _PWR_On;                            // Включение питания модуля SIM800
-	int _RESET_PIN;                         // Сброс модуля SIM800
-	int _STATUS_PIN;                        // Контроль питания SIM800 
 	byte operator_Num = 0;                  // Порядковый номер оператора
 	//unsigned int timeout = 2000;            // 
 	String apn = "";

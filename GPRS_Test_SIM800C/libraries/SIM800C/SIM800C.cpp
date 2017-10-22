@@ -7,59 +7,13 @@
 
 #include "SIM800C.h"
 
-bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STATUS_PIN)
+bool CGPRS_SIM800C::init(unsigned long baud)
 {
 	_baud       = baud;                                            // Установить скорость Serial
-	_PWR_On     = PWR_On;                                          // Включение питания модуля SIM800
-	_RESET_PIN  = RESET_PIN;                                       // Сброс модуля SIM800
-	_STATUS_PIN = STATUS_PIN;                                      // Контроль питания SIM800
 
-	int count_status = 0;                                          // Установим количество попыток включения SIM800C , иначе что то не так - сбросим микроконтроллер
+//	int count_status = 0;                                          // Установим количество попыток включения SIM800C , иначе что то не так - сбросим микроконтроллер
 	int16_t timeout = 7000;
 	SIM_SERIAL.begin(_baud);
-
-	pinMode(_PWR_On, OUTPUT);                                      // Pin управления питанием SIM800C
-	pinMode(_RESET_PIN, OUTPUT);                                   // Pin включения SIM800C
-	pinMode(_STATUS_PIN, INPUT);                                   // Pin контроля питаниея SIM800C
-	delay(1000);
-	digitalWrite(_PWR_On, HIGH);                                   // Pin включения SIM800C
-	delay(100);
-	digitalWrite(_RESET_PIN, HIGH);                                // Pin включения SIM800C в исходное состояние
-
-	while (digitalRead(_STATUS_PIN) != LOW)                             // Проверяем отключение питания модуля SIM800C 
-	{
-		delay(100);                                                //    
-	}
-
-
-#ifdef DEBUG
-	DEBUG.println(F("\nPower SIM800 Off"));
-#endif
-
-	delay(1000);
-	digitalWrite(_PWR_On, LOW);                                   // Подать питание на SIM800C    
-	delay(1000);
-	digitalWrite(_RESET_PIN, LOW);                                // Вкючить питание SIM800C
-	delay(100);
-	digitalWrite(_RESET_PIN, HIGH);                               // Pin включения SIM800C в исходное состояние
-	delay(1000);
-
-	while (digitalRead(_STATUS_PIN) == LOW)                       // Проверяем сигнал "STATUS" модуля SIM800C. Питание должно быть включено. 
-	{
-		count_status++;                                           // Увеличим счетчик попыток включения
-		if (count_status > 100)                                   // Если больше 100 попыток. Вызываем программу сброса микроконтроллера
-		{
-			//gprs.reboot(gprs.errors);                           // 100 попыток. Что то пошло не так программа перезапуска  если модуль не включился
-	    }
-		delay(100);                                               // Включение SIM800C прошло нормально.
-    }
-
-
-#ifdef DEBUG
-	DEBUG.println(F("Power SIM800 On"));
-#endif
-
-
     delay(1000);
 
 	while (timeout > 0)
@@ -109,6 +63,7 @@ bool CGPRS_SIM800C::init(unsigned long baud, int PWR_On, int RESET_PIN, int STAT
 	}
     return false;
 }
+
 byte CGPRS_SIM800C::setup(const char* apn)
 {
   bool success = false;
@@ -482,7 +437,7 @@ bool CGPRS_SIM800C::ping(const char* url)
 }
 void CGPRS_SIM800C::reboot(int count_error)
 {
-	pinMode(_PWR_On, OUTPUT);
+//	pinMode(_PWR_On, OUTPUT);
 	int error_All;
 	//EEPROM.get(Address_errorAll, error_All);                 // Получить количество общих ошибок
 	//EEPROM_off = EEPROM.read(Address_EEPROM_off);            // Признак обновления счетчика общих ошибок 
@@ -498,7 +453,7 @@ void CGPRS_SIM800C::reboot(int count_error)
 	//wdt_disable();
 	//wdt_enable(WDTO_2S);                                     // Перезагрузка по сторожевому таймеру
 	//	wdt_enable(WDTO_15MS);                                   // Перезагрузка по сторожевому 
-	digitalWrite(_PWR_On, HIGH);                               // Oтключаем питание модуля GPRS
+	//digitalWrite(_PWR_On, HIGH);                               // Oтключаем питание модуля GPRS
 	Serial.println("Wait reboot 60 sec");
 	for (int i = 0; i < 60; i++)
 	{
@@ -570,12 +525,6 @@ boolean CGPRS_SIM800C::HTTP_ssl(boolean onoff)
 }
 
 
-
-
-
-
-
-
 //---------------------------------------------------------
 
 void CGPRS_SIM800C::httpUninit()
@@ -597,7 +546,7 @@ bool CGPRS_SIM800C::httpConnect(const char* url, const char* args)
     SIM_SERIAL.print("AT+HTTPPARA=\"URL\",\"");
     SIM_SERIAL.print(url);
     if (args) {
-        SIM_SERIAL.print('?');
+      //  SIM_SERIAL.print('?');
         SIM_SERIAL.print(args);
     }
 
