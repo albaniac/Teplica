@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- saved from url=(0071)https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style>body {transition: opacity ease-in 0.2s; } 
+body[unresolved] {opacity: 0; display: block; overflow: hidden; position: relative; } 
+</style>
+
+</header>
+
+  
+    
+  <div id="readme" class="readme blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="text"><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Контроллер-теплицы-на-arduino" aria-hidden="true" class="anchor" id="user-content-Контроллер-теплицы-на-arduino"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Контроллер теплицы на Arduino</h1>
+<p>
+Когда возник вопрос - <a href="https://github.com/Porokhnya/GreenhouseProject/wiki">здесь уже может быть половина ответа</a>. Вторая половина ответа, как правило, <a href="https://www.forumhouse.ru/threads/367227" rel="nofollow">расположена тут</a>.
+</p><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Что-умеет-прошивка" aria-hidden="true" class="anchor" id="user-content-Что-умеет-прошивка"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Что умеет прошивка</h1>
+<p>
+ </p><ul>
+  <li>Отсылать данные в облачные сервисы (ThingSpeak и <a href="http://gardenboss.ru/" rel="nofollow">GardenBoss.ru</a>);</li>
+  <li>Управляться и настраиваться посредством конфигуратора и веб-интерфейса;</li>
+  <li>Получать внешние команды с сервиса <a href="http://gardenboss.ru/" rel="nofollow">GardenBoss.ru</a>;</li>
+  <li>Транслировать топики и управляться по протоколу MQTT;</li>
+  <li>Управляться посредством SMS;</li>
+  <li>Использовать разные шлюзы для связи с сетью: GSM/GPRS (SIM800L/Neoway M590), Wi-Fi (ESP8266), LAN (W5100);</li>
+  <li>Работать с датчиками по разным интерфейсам - непосредственно подключаемые к контроллеру, по RS-485, 1-Wire, nRF;</li>
+  <li>Гибко настраиваться с помощью системы правил - ключевая концепция контроллера, когда пользователь сам определяет требуемое ему поведение системы;</li>
+  <li>Работать с несколькими типами дисплеев - Nextion, LCD 128x64, 7'' TFT под Arduino Due;</li>
+  <li>Работать с разными микроконтролерами: Arduino Mega, Arduino Due и любые платы на их основе;</li>
+  <li>Настраиваться на практически любую конфигурацию железа: работать через расширители портов, включать/выключать модули из прошивки и т.п.;</li>
+  <li>Работать практически со всеми распространёнными видами датчиков разных типов (влажность, температура, расход жидкости и т.п.);</li>
+  <li>Получать дельты (разность) показаний датчиков любых физических типов (например, разность температур между DS18B20 и DHT22);</li>
+  <li>Работать со списками резервирования для повышения отказоустойчивости системы: при помощи списков резервирования можно продублировать показания одного датчика другим, если какой-либо из датчиков группы резервирования выйдет из строя - при этом будет продолжена штатная работа правил;</li>
+  <li>Работать с универсальными модулями: концепция, когда исполнительные механизмы и модули с датчиками физически вынесены на далёкое расстояние от контроллера по любому из поддерживаемых интерфейсов: 1-Wire, nRF, RS-485;</li>
+  <li>Собирать и накапливать информацию как на локальныю SD-карту (в виде лог-файлов), так и в веб-интерфейсе (база SQLite3) и на сервисе <a href="http://gardenboss.ru/" rel="nofollow">GardenBoss.ru</a>, что позволяет выводить статистику в виде графиков;</li>
+<li>Работать в режиме тревог, когда по срабатыванию какого-либо правила отправляется тревожная SMS;</li>
+<li>Поддерживать обратную связь с универсальными исполнительными модулями, посредством правил (например, среагировать, если насос не включился);</li>
+  <li>И ещё массу плюшек, вкусных, и - очень вкусных ;)</li>
+ </ul>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#ВНИМАНИЕ" aria-hidden="true" class="anchor" id="user-content-ВНИМАНИЕ"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>ВНИМАНИЕ!</h1>
+Перед закачиванием прошивки в контроллер её необходимо настроить, все настройки в файле `Globals.h`! Я тестирую и выкладываю прошивку практически <b>в максимальной конфигурации</b>, следовательно, вы должны исключить из прошивки те модули, которым нет соответствия в виде подключённых железных "ответок". Скажем, если у вас нет модуля SD-карты, то совершенно недопустимо включать в прошивку модуль логгирования информации (`USE_LOG_MODULE`) и модуль Wi-Fi (`USE_WIFI_MODULE`). Также хочу обратить внимание на то, что некоторые модули для своей нормальной работы требуют подключённого железного соратника DS3231, т.к. без модуля реального времени их штатная работа невозможна. При любых затруднениях в работе (прошивка не работает как надо, почему-то ничего не получается, что-то не выводится на экран) - прежде всего смотрите настройки прошивки и схему подключения. Подчёркиваю - предложенная прошивка не готовое решение, а конструктор, который вы можете настроить под свои нужды. И, как любое модульное изделие, требует вдумчивого подхода перед началом использования.
+<p>
+</p><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Лицензия" aria-hidden="true" class="anchor" id="user-content-Лицензия"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Лицензия</h1>
+Проект свободен для <b>некоммерческого использования</b> и исключительно в личных целях. Любое другое использование, например, встраивание любой части кода в коммерческий продукт, распространение любой части исходных кодов на сторонних ресурсах без разрешения автора проекта - не допускается. Все права интеллектуальной собственности на любую программную часть продукта принадлежат их авторам, использование программного кода в сторонних проектах без согласия авторов и упоминания об исходном авторстве - не допускается.
+<p>Автор проекта оставляет за собой право в любой момент пересмотреть лицензию распространения продукта.</p>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Структура-архива" aria-hidden="true" class="anchor" id="user-content-Структура-архива"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Структура архива</h1>
+<ul>
+<li>В папке <b>Main</b> - исходники прошивки для Меги;</li>
+<li>В папке <b>SOFT</b> - текущая версия конфигуратора, коннектится к Меге по COM-порту;</li>
+<li>В папке <b>Libraries</b> - сторонние библиотеки, искользуемые в проекте (их количество неуклонно приближается к нулю, но пока - как есть);</li>
+<li>В папке <b>SD</b> - файлы, которые надо закачать на SD-карту;</li>
+<li><b>arduino-1.6.7-windows.exe</b> - версия Arduino IDE, используемая в проекте;</li>
+<li>В папке <b>CHANGED_IDE_FILES</b> - файлы, которые надо заменить, переписав стандартные, из поставки Arduino IDE;</li>
+<li>Файл <b>NewPlan_ru.spl7</b> - файл схемы для программы SPlan 7.0;</li>
+<li>В папке <b>Nextion</b> - файл прошивки для дисплея Nextion 320x240, и проект прошивки;</li>
+<li>В папке <b>Nextion1WireModule</b> - прошивка универсального исполнительного модуля с дисплеем Nextion, работающего по шине 1-Wire;</li>
+<li>В папке <b>UniversalSensorsModule</b> - прошивка универсального модуля с поддержкой до трёх датчиков разных типов, работающего по шине 1-Wire, по шине RS-485, и по радиоканалу, через nRF24L01+;</li>
+<li>В папке <b>UniversalExecutionModule</b> - прошивка универсального исполнительного модуля на 8 слотов настраиваемых привязок, работающего по шине 1-Wire, по шине RS-485, и по радиоканалу, через nRF24L01+;</li>
+<li>В папке <b>FrequencySoilMoistureSensor</b> - прошивка для опроса частотного датчика влажности почвы;</li>
+<li>В папке <b>WEB</b> - текущая версия вебморды, ставится под любой веб-сервер с поддержкой PHP и sqlite3.</li>
+</ul>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Настройки-прошивки-по-умолчанию" aria-hidden="true" class="anchor" id="user-content-Настройки-прошивки-по-умолчанию"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Настройки прошивки по умолчанию</h1>
+<p>Выкладываемая прошивка - это слепок того, что я делаю на текущий момент. Поэтому её настройки по умолчанию могут сильно разниться с теми, которые нужны вам. Примерная конфигурация, которая собрана у меня на макетке на текущий момент:</p>
+<details open=""> 
+<summary><b>Кликните, чтобы посмотреть...</b><br><br></summary>
+<ul>
+<li><code>USE_UNIVERSAL_SENSORS</code> - модуль поддержки универсальных модулей (в разработке, подключен эмулятор на Uno);</li>
+<li><code>USE_UNI_NEXTION_MODULE</code> - модуль поддержки дисплея Nextion по шине 1-Wire;</li>
+<li><code>USE_DS3231_REALTIME_CLOCK</code> - подключён модуль часов реального времени DS3231;</li>
+<li><code>USE_TEMP_SENSORS</code> - модуль хранения информации о температуре и управления фрамугами, подключены DS18B20 и восьмиканальный модуль реле;</li>
+<li><code>USE_WINDOWS_SHIFT_REGISTER</code> - управление фрамугами идёт через сдвиговый регистр 74HC595;</li>
+<li><code>USE_WATERING_MODULE</code> - модуль управления поливом, подключен железный модуль реле на два канала;</li>
+<li><code>USE_LUMINOSITY_MODULE</code> - модуль досветки, подключёны два датчика BH1750, требуется железный модуль реле на один канал;</li>
+<li><code>USE_HUMIDITY_MODULE</code> - модуль влажности, подключены DHT22 и Si7021;</li>
+<li><code>USE_SOIL_MOISTURE_MODULE</code> - модуль влажности почвы, пока подключён китайский влагомер;</li>
+<li><code>USE_LOG_MODULE</code> - модуль логгирования информации, подключен железный SD-модуль;</li>
+<li><code>USE_TIMER_MODULE</code> - модуль таймеров (4 таймера периодических операций);</li>
+<li><code>USE_RESERVATION_MODULE</code> - модуль резервирования показаний датчиков (когда датчики одной группы дублируют друг друга);</li>
+<li><code>USE_WATERFLOW_MODULE</code> - модуль расхода воды, подключён китайский расходомер;</li>
+<li><code>USE_WIFI_MODULE</code> - модуль доступа по WI-FI, подключена ESP8266, требует подключение SD-модуля;</li>
+<li><code>USE_LCD_MODULE</code> - модуль экрана, подключён графический LCD 128x64 на контроллере ST7920, а также тактовая кнопка и энкодер;</li>
+<li>Определено ещё кучу всяких <code>USE_*</code>, поэтому, прошу вас - будьте внимательны с настройками прошивки, ибо перечислять их здесь все - анрил полный;</li>
+<li>Конвертеры уровней, DC-DC-преобразователи - подключены там, где это требуется;</li>
+<li>Подключён SIM800L, директива <code>USE_SMS_MODULE</code> раскомментирована;</li>
+<li>Модули реле у меня включаются по низкому уровню;</li>
+<li>К Меге у меня подключен как минимум один универсальный модуль, для тестирования работы по 1-Wire и RS-485.</li>
+</ul>
+</details>
+<p>Настройки прошивки по умолчанию могут меняться с обновлениями, поэтому будьте внимательны, и проверяйте, пожалуйста,
+соответствие настроек прошивки вашим чаяниям. Обращаю внимание, что прошивку можно настроить и на другой экран (Nextion), и
+на другой шлюз в локальную сеть (W5100), можно менять кол-во датчиков, номера пинов для них, можно управлять пинами реле фрамуг
+напрямую, а не через сдвиговый регистр - всё это шаманство вы можете совершить, чтобы подогнать прошивку под ваши требования. Я
+лишь даю инструмент, которым можно (и нужно) воспользоваться с умом.</p>
+<br>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Скриншоты-конфигуратора" aria-hidden="true" class="anchor" id="user-content-Скриншоты-конфигуратора"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Скриншоты конфигуратора</h1>
+<details open=""> 
+<summary><b>Кликните, чтобы посмотреть...</b><br><br></summary>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen1.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen1.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen2.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen2.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen3.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen3.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen4.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen4.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen5.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen5.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen6.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen6.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen7.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen7.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen8.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen8.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen9.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen9.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen10.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen10.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen11.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen11.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen12.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen12.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen13.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen13.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen14.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen14.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen15.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen15.png" hspace="10" style="max-width:100%;"></a>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/screen16.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/screen16.png" hspace="10" style="max-width:100%;"></a>
+</details>
+<p>
+</p><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Как-использовать" aria-hidden="true" class="anchor" id="user-content-Как-использовать"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Как использовать</h1>
+<ul>
+<li><b>Установить библиотеки (в папке Libraries архива) в среду Arduino IDE!</b></li>
+<li><b>Все файлы из папки CHANGED_IDE_FILES - заменить, переписав стандартные, из поставки Arduino IDE!!!</b></li>
+<li><b>Все настройки прошивки перед компиляцией - в файле Globals.h!</b></li>
+</ul>
+<p>
+Распаковать архив в папку на диске, установить библиотеки из папки <b>Libraries</b> архива в среду Arduino IDE. Затем открыть в Arduino IDE файл <b>Main.ino</b>, настроить директивы условной компиляции (файл `Globals.h`), скомпилировать прошивку и закачать в Мегу. Подсоединить железки в зависимости от выбранных настроек прошивки. <b>Если используется модуль Wi-Fi или модуль логгирования информации - подключить модуль SD-карты и закачать файлы из папки SD в корень SD-карточки!</b>
+</p><p>
+Открыть конфигуратор и подключиться к COM-порту, на котором висит Мега, и начать общение с контроллером. Принципиальная схема подключения некоторого железного добра указана ниже (<b>обратите внимание</b>, что схема - это не конкретное руководство, а лишь <b>ПРИМЕР</b> подключения, т.к. прошивка очень гибко настраивается):<br>
+<a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/plan.png" target="_blank"><img src="./GreenhouseProject_README_RU.md at master · Porokhnya_GreenhouseProject · GitHub_files/plan.png" style="max-width:100%;"></a>
+</p><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Программные-модули" aria-hidden="true" class="anchor" id="user-content-Программные-модули"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Программные модули</h1>
+<p>Их - вагон и тележка, поэтому описывать их все здесь - непрактично. Для понимания того, нужен ли вам тот или иной модуль - всегда есть комментарии в файле настроек прошивки ;)</p>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Конфигуратор" aria-hidden="true" class="anchor" id="user-content-Конфигуратор"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Конфигуратор</h1>
+<p>Конфигуратор автоматически подцепляет прошитые в контроллер модули, и показывает вкладки управления этими модулями, после соединения с контроллером. Если вы не видите вкладку управления поливом (например) - смотрите директивы условной компиляции на предмет того, выключен ли модуль из компиляции или нет.</p>
+<p>
+</p><h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Веб-интерфейс" aria-hidden="true" class="anchor" id="user-content-Веб-интерфейс"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Веб-интерфейс</h1>
+<p>Ставится под любой веб-сервер с поддержкой PHP не ниже 5.6 и базы данных SQLite3, все его исходники - в папке WEB архива с проектом.</p>
+<h1><a href="https://github.com/Porokhnya/GreenhouseProject/blob/master/README_RU.md#Концепция-не-навреди" aria-hidden="true" class="anchor" id="user-content-Концепция-не-навреди"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Концепция "не навреди"</h1>
+<p>При перезагрузке контроллера он <b>ВСЕГДА</b> переходит в автоматический режим работы, даже если при последнем обращении к нему был выставлен ручной режим. Также при наступлении нового дня недели переходит в автоматический режим работы модуль полива. Такой вид поведения был реализован сознательно.</p>
+</article>
+  </div>
+
+  </div>
+
+</body></html>
