@@ -930,30 +930,31 @@ void setup()
 	//pinMode(OE_Pin, OUTPUT);
 	//digitalWrite(OE_Pin, LOW);
 
-	pinMode(PWR_SIM800, OUTPUT);
-
+	pinMode(SIM800_RESET_PIN, OUTPUT);
+	digitalWrite(SIM800_RESET_PIN, HIGH);
 	//pinMode(NETLIGHT, INPUT);
 	//
-
+	pinMode(PWR_SIM800, OUTPUT);
 	digitalWrite(PWR_SIM800, LOW);
-	////digitalWrite(SIM800_RESET_PIN, HIGH);
-	//delay(2000);
+	delay(2000);
+
+	digitalWrite(PWR_SIM800, HIGH);
+	//digitalWrite(SIM800_RESET_PIN, HIGH);
+	delay(2000);
 	//digitalWrite(NETLIGHT, HIGH);
 	//digitalWrite(STATUS, HIGH);
 
-	pinMode(SIM800_RESET_PIN, OUTPUT);
-
-	digitalWrite(SIM800_RESET_PIN, HIGH);
-	delay(300);
-	/*digitalWrite(SIM800_RESET_PIN, LOW);
+	/*digitalWrite(SIM800_RESET_PIN, HIGH);
 	delay(300);*/
-	//digitalWrite(SIM800_RESET_PIN, HIGH);
-	digitalWrite(PWR_SIM800, HIGH);
-	delay(800);
+	digitalWrite(SIM800_RESET_PIN, LOW);
+	delay(500);
+	digitalWrite(SIM800_RESET_PIN, HIGH);
+	//digitalWrite(PWR_SIM800, HIGH);
+	delay(1800);
 
 	//setup_SD_Fat();
 	//setup_nRF24();
-	setup_MCP();
+	//setup_MCP();
 	//setup_ESP8266();
 
 	//Timer3.attachInterrupt(firstHandler).start(3000000); // Every 1000ms
@@ -991,16 +992,16 @@ void setup()
 void loop()
 {
 	//delay(1000);
-	//digitalWrite(PWR_SIM800, LOW);
-	//delay(1000);
-	//digitalWrite(SIM800_RESET_PIN, LOW);
-	//delay(100);
-	//digitalWrite(SIM800_RESET_PIN, HIGH);
-	//delay(200);
-	//digitalWrite(SIM800_RESET_PIN, LOW);
+	/*digitalWrite(PWR_SIM800, LOW);
+	delay(1000);
+	digitalWrite(SIM800_RESET_PIN, LOW);
+	delay(100);
+	digitalWrite(SIM800_RESET_PIN, HIGH);
+	delay(200);
+	digitalWrite(SIM800_RESET_PIN, LOW);
 
-	//delay(3000);
-	//digitalWrite(PWR_SIM800, HIGH);
+	delay(3000);
+	digitalWrite(PWR_SIM800, HIGH);*/
 	//test_nRF24();
 	//test_MCP();
 	//test_74HC595();
@@ -1008,5 +1009,5 @@ void loop()
 	// if there are incoming bytes available
 	// from the server, read them and print them:
 	//test_WebServer();
-	delay(300);
+	delay(3000);
 }
