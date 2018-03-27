@@ -21,14 +21,26 @@
 #include "HTTPInterfaces.h" // подключаем интерфейсы для работы с HTTP-запросами
 
 
-#include <SD.h>
-
+#include <SdFat.h>
+//--------------------------------------------------------------------------------------------------------------------------------------
 class AbstractModule; // forward declaration
 class AlertRule;
 typedef Vector<AbstractModule*> ModulesVec;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 typedef void (*CallbackUpdateFunc)(AbstractModule* mod);
+//--------------------------------------------------------------------------------------------------------------------------------------
+class FileUtils
+{
+  public:
+  
+     static void readLine(SdFile& f, String& result);
 
+     static String GetFileName(SdFile& f);
+     static int CountFiles(const String& dirName, bool recursive=true);
+     static void RemoveFiles(const String& dirName, bool recursive=true);
+
+};
+//--------------------------------------------------------------------------------------------------------------------------------------
 class ModuleController
 {
  private:
@@ -55,6 +67,7 @@ class ModuleController
 #endif
 
   void PublishToCommandStream(AbstractModule* module,const Command& sourceCommand); // публикация в поток команды
+  void streamWrite(Stream* s, const String& str);
 
 #ifdef USE_ALARM_DISPATCHER
   AlarmDispatcher alarmDispatcher;
@@ -102,8 +115,6 @@ public:
   
   void UpdateModules(uint16_t dt, CallbackUpdateFunc func);
   
-  void CallRemoteModuleCommand(AbstractModule* mod, const String& command); // вызывает команду с другой коробочки
-
   void Publish(AbstractModule* module,const Command& sourceCommand); // каждый модуль по необходимости дергает этот метод для публикации событий/ответов на запрос
 
   void SetCommandParser(CommandParser* c) {cParser = c;};
@@ -118,8 +129,9 @@ public:
   #endif
   
 };
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 extern PublishStruct PublishSingleton; // сюда публикуем все ответы от всех модудей
 extern ModuleController* MainController; // главный контроллер
-
+extern SdFat SDFat;
+//--------------------------------------------------------------------------------------------------------------------------------------
 #endif

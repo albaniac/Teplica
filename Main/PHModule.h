@@ -3,10 +3,14 @@
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "AbstractModule.h"
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_PH_MODULE
+
 class PCF8574
 {
   public:
   PCF8574(int address); 
+
+  void begin();
 
   uint8_t read8(); 
   uint8_t read(uint8_t pin); 
@@ -27,14 +31,20 @@ class PCF8574
   int8_t _error;
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef struct
+{
+    bool inMeasure : 1;
+    bool isMixPumpOn : 1;
+    bool isInAddReagentsMode : 1;
+    byte pad : 5;
+  
+} PHModuleFlags;
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
 class PhModule : public AbstractModule // модуль контроля pH
 {
   private:
 
-    //TODO: К ОПТИМИЗАЦИИ !!!
-    bool inMeasure;
-    bool isMixPumpOn;
-    bool isInAddReagentsMode;
+    PHModuleFlags flags;
 
     byte phSensorPin;
     unsigned long measureTimer;
@@ -88,4 +98,6 @@ class PHCalculator
 };
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 extern PHCalculator PHCalculation;
+#endif // USE_PH_MODULE
+
 #endif

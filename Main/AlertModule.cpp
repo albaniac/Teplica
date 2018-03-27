@@ -294,10 +294,15 @@ bool AlertRule::HasAlert()
      if(!os) // не срослось
       return false;
 
-       TemperaturePair tp = *os; 
-       int8_t curTemp = tp.Current.Value;
+       TemperaturePair tp = *os;
 
+       #ifdef ALERT_INCLUDE_COMMA_VALUES
+       int curTemp = tp.Current.Value*100 + tp.Current.Fract;
+       int tAlert = (int8_t) Settings.DataAlert*100; // следим за переданной температурой
+       #else 
+       int8_t curTemp = tp.Current.Value;
        int8_t tAlert = (int8_t) Settings.DataAlert; // следим за переданной температурой
+       #endif
 
        if(curTemp == NO_TEMPERATURE_DATA) // нет датчика на линии
        {
@@ -308,7 +313,12 @@ bool AlertRule::HasAlert()
         else // есть зарезервированный датчик с показаниями
         {
           TemperaturePair tp = *reservedState; 
+         
+          #ifdef ALERT_INCLUDE_COMMA_VALUES
+          curTemp = tp.Current.Value*100 + tp.Current.Fract;
+          #else
           curTemp = tp.Current.Value;
+          #endif
         } // else
        }
  
@@ -391,7 +401,13 @@ bool AlertRule::HasAlert()
         return false;
 
        HumidityPair hp = *os;
+       #ifdef ALERT_INCLUDE_COMMA_VALUES
+       int curHumidity = hp.Current.Value*100 + hp.Current.Fract;
+       int humidityAlert = Settings.DataAlert*100;
+       #else
        int8_t curHumidity = hp.Current.Value;
+       int8_t humidityAlert = Settings.DataAlert;
+       #endif
 
        if(curHumidity == NO_TEMPERATURE_DATA) // нет датчика на линии
        {
@@ -401,18 +417,23 @@ bool AlertRule::HasAlert()
             return (curHumidity == Settings.DataAlert); // на случай, если правило следит за отсутствием показаний с датчика
           else // есть зарезервированный датчик с показаниями
           {
-            HumidityPair tp = *reservedState; 
+            HumidityPair tp = *reservedState;
+            
+            #ifdef ALERT_INCLUDE_COMMA_VALUES
+            curHumidity = tp.Current.Value*100 + tp.Current.Fract;
+            #else 
             curHumidity = tp.Current.Value;
+            #endif
           } // else
              
        }
 
        switch(Settings.Operand)
        {
-          case roLessThan: return curHumidity < Settings.DataAlert;
-          case roLessOrEqual: return curHumidity <= Settings.DataAlert;
-          case roGreaterThan: return curHumidity > Settings.DataAlert;
-          case roGreaterOrEqual: return curHumidity >= Settings.DataAlert;
+          case roLessThan: return curHumidity < humidityAlert;
+          case roLessOrEqual: return curHumidity <= humidityAlert;
+          case roGreaterThan: return curHumidity > humidityAlert;
+          case roGreaterOrEqual: return curHumidity >= humidityAlert;
           default: return false;
        } // switch
       
@@ -429,7 +450,14 @@ bool AlertRule::HasAlert()
         return false;
        
        HumidityPair hp = *os;
+
+       #ifdef ALERT_INCLUDE_COMMA_VALUES
+       int curHumidity = hp.Current.Value*100 + hp.Current.Fract;
+       int humidityAlert = Settings.DataAlert*100;
+       #else
        int8_t curHumidity = hp.Current.Value;
+       int8_t humidityAlert = Settings.DataAlert;
+       #endif
 
        if(curHumidity == NO_TEMPERATURE_DATA) // нет датчика на линии
        {
@@ -439,17 +467,21 @@ bool AlertRule::HasAlert()
             return (curHumidity == Settings.DataAlert); // на случай, если правило следит за отсутствием показаний с датчика
           else // есть зарезервированный датчик с показаниями
           {
-            HumidityPair tp = *reservedState; 
+            HumidityPair tp = *reservedState;
+            #ifdef ALERT_INCLUDE_COMMA_VALUES
+            curHumidity = tp.Current.Value*100 + tp.Current.Fract;
+            #else 
             curHumidity = tp.Current.Value;
+            #endif
           } // else
         }
 
        switch(Settings.Operand)
        {
-          case roLessThan: return curHumidity < Settings.DataAlert;
-          case roLessOrEqual: return curHumidity <= Settings.DataAlert;
-          case roGreaterThan: return curHumidity > Settings.DataAlert;
-          case roGreaterOrEqual: return curHumidity >= Settings.DataAlert;
+          case roLessThan: return curHumidity < humidityAlert;
+          case roLessOrEqual: return curHumidity <= humidityAlert;
+          case roGreaterThan: return curHumidity > humidityAlert;
+          case roGreaterOrEqual: return curHumidity >= humidityAlert;
           default: return false;
        } // switch
       
@@ -466,7 +498,13 @@ bool AlertRule::HasAlert()
         return false;
 
        HumidityPair hp = *os;
+       #ifdef ALERT_INCLUDE_COMMA_VALUES
+       int curHumidity = hp.Current.Value*100 + hp.Current.Fract;
+       int phAlert = Settings.DataAlert*100;
+       #else
        int8_t curHumidity = hp.Current.Value;
+       int8_t phAlert = Settings.DataAlert;
+       #endif
 
        if(curHumidity == NO_TEMPERATURE_DATA) // нет датчика на линии
        {
@@ -476,18 +514,22 @@ bool AlertRule::HasAlert()
             return (curHumidity == Settings.DataAlert); // на случай, если правило следит за отсутствием показаний с датчика
          else // есть зарезервированный датчик с показаниями
           {
-            HumidityPair tp = *reservedState; 
+            HumidityPair tp = *reservedState;
+            #ifdef ALERT_INCLUDE_COMMA_VALUES
+            curHumidity = tp.Current.Value*100 + tp.Current.Fract;
+            #else 
             curHumidity = tp.Current.Value;
+            #endif
           } // else
             
        }
 
        switch(Settings.Operand)
        {
-          case roLessThan: return curHumidity < Settings.DataAlert;
-          case roLessOrEqual: return curHumidity <= Settings.DataAlert;
-          case roGreaterThan: return curHumidity > Settings.DataAlert;
-          case roGreaterOrEqual: return curHumidity >= Settings.DataAlert;
+          case roLessThan: return curHumidity < phAlert;
+          case roLessOrEqual: return curHumidity <= phAlert;
+          case roGreaterThan: return curHumidity > phAlert;
+          case roGreaterOrEqual: return curHumidity >= phAlert;
           default: return false;
        } // switch
       
@@ -682,7 +724,7 @@ uint8_t AlertRule::Load(uint16_t readAddr)
 {
   // загружаем правило из EEPROM
   uint16_t curReadAddr = readAddr;
-  linkedRulesIndices.Clear();
+  linkedRulesIndices.clear();
   delete[] rawCommand; rawCommand = NULL;
 
   // сначала читаем настройки
@@ -741,7 +783,7 @@ bool AlertRule::Construct(AbstractModule* lm, const Command& command)
   Settings.LinkedModuleNameIndex = GetKnownModuleID(lm->GetID());
 
   // чистим имена связанных правил, об удалении памяти имён заботится родитель
-  linkedRulesIndices.Clear();
+  linkedRulesIndices.clear();
 
   uint8_t argsCnt = command.GetArgsCount();
   if(argsCnt < 12) // мало аргументов
@@ -1021,7 +1063,7 @@ void AlertModule::ClearParams()
       char* param = paramsArray[i];
       delete[] param;
     }
-    paramsArray.Clear();
+    paramsArray.clear();
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void AlertModule::SaveRules() // сохраняем настройки в EEPROM
@@ -1179,7 +1221,7 @@ void AlertModule::Update(uint16_t dt)
   if(WORK_STATUS.IsModeChanged())
   {
     WORK_STATUS.SetModeUnchanged();
-    lastIterationRaisedRules.Clear();
+    lastIterationRaisedRules.clear();
   }
   
   for(size_t i=0;i<sz;i++)
@@ -1355,7 +1397,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
             AbstractModule* m = MainController->GetModuleByID(t);
             if(m && m != this && AddRule(m,command))
             {
-              PublishSingleton.Status = true;
+              PublishSingleton.Flags.Status = true;
               PublishSingleton = REG_SUCC;
             }
           } // ADD_RULE
@@ -1363,7 +1405,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
           if(t == SAVE_RULES) // запросили сохранение правил
           {
             SaveRules();
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             PublishSingleton = SAVE_RULES;
           }
           else 
@@ -1390,7 +1432,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                          rule->SetEnabled(bEnabled);
                    } // for
 
-                   PublishSingleton.Status = true;
+                   PublishSingleton.Flags.Status = true;
                    PublishSingleton = RULE_STATE; 
                    PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << state;
                  } // if all
@@ -1404,7 +1446,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                          if(rule && !strcmp(rule->GetName(),rName.c_str()))
                          {
                           rule->SetEnabled(bEnabled);
-                          PublishSingleton.Status = true;
+                          PublishSingleton.Flags.Status = true;
                           PublishSingleton = RULE_STATE; 
                           PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << state;
                           break;
@@ -1438,7 +1480,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                          rule->SetEnabled(bEnabled);
                    } // for
 
-                   PublishSingleton.Status = true;
+                   PublishSingleton.Flags.Status = true;
                    PublishSingleton = RULE_ALERT; 
                    PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << state;
                  } // if all
@@ -1452,7 +1494,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                          if(rule && rule->IsAlarm() && !strcmp(rule->GetName(),rName.c_str()))
                          {
                           rule->SetEnabled(bEnabled);
-                          PublishSingleton.Status = true;
+                          PublishSingleton.Flags.Status = true;
                           PublishSingleton = RULE_ALERT; 
                           PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << state;
                           break;
@@ -1490,7 +1532,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
 
                   rulesCnt = 0;
                   
-                  PublishSingleton.Status = true;
+                  PublishSingleton.Flags.Status = true;
                   PublishSingleton = RULE_DELETE; 
                   PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << REG_DEL;
 
@@ -1521,7 +1563,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
 
                     //TODO: Удалять из параметров имя правила и у всех связанных правил удалять индекс этого имени!!!
  
-                    PublishSingleton.Status = true;
+                    PublishSingleton.Flags.Status = true;
                     PublishSingleton = RULE_DELETE; 
                     PublishSingleton << PARAM_DELIMITER <<  sParam << PARAM_DELIMITER << REG_DEL;
                    } // if(bDeleted)
@@ -1545,7 +1587,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
         
         if(t == RULE_CNT) // запросили данные о количестве правил
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = RULE_CNT; 
           PublishSingleton << PARAM_DELIMITER << rulesCnt;
         }
@@ -1566,7 +1608,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                           AlertRule* rule = alertRules[idx];
                           if(rule) // нашли правило
                           {
-                            PublishSingleton.Status = true;
+                            PublishSingleton.Flags.Status = true;
                             PublishSingleton = RULE_VIEW; 
                             PublishSingleton << PARAM_DELIMITER << (command.GetArg(1)) << PARAM_DELIMITER
                             << (rule->GetAlertRule());
@@ -1598,7 +1640,7 @@ bool  AlertModule::ExecCommand(const Command& command, bool wantAnswer)
                           if(rule) // нашли правило
                           {
                             
-                            PublishSingleton.Status = true;
+                            PublishSingleton.Flags.Status = true;
                             PublishSingleton = RULE_STATE; 
                             PublishSingleton << PARAM_DELIMITER << (command.GetArg(1)) << PARAM_DELIMITER
                              << (rule->GetEnabled() ? STATE_ON : STATE_OFF);

@@ -347,8 +347,20 @@ class NextionUniClient : public AbstractUniClient
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_RS485_GATE
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
-enum {RS485FromMaster = 1, RS485FromSlave = 2};
-enum {RS485ControllerStatePacket = 1, RS485SensorDataPacket = 2};
+enum 
+{
+  RS485FromMaster = 1, 
+  RS485FromSlave = 2
+};
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+enum 
+{
+  RS485ControllerStatePacket = 1, 
+  RS485SensorDataPacket = 2, 
+  RS485WindowsPositionPacket = 3,
+  RS485RequestCommandsPacket = 4,
+  RS485CommandsToExecuteReceipt = 5
+};
 //----------------------------------------------------------------------------------------------------------------
 typedef struct
 {
@@ -370,8 +382,51 @@ typedef struct
 //----------------------------------------------------------------------------------------------------------------
 typedef struct
 {
+  byte moduleNumber; // номер модуля, от 1 до 4-х
+  byte windowsSupported; // сколько окон поддерживает модуль (максимум - 16)
+  byte windowsStatus[20]; // массив состояний окон
+  byte reserved; // добитие до 23 байт
+  
+} WindowFeedbackPacket;
+//----------------------------------------------------------------------------------------------------------------
+enum // команды с модуля управления
+{
+  emCommandNone = 0,          // нет команды
+  emCommandOpenWindows,       // открыть все окна
+  emCommandCloseWindows,      // закрыть все осна
+  emCommandOpenWindow,        // открыть определённое окно
+  emCommandCloseWindow,       // закрыть определённое окно
+  emCommandWaterOn,           // включить волив
+  emCommandWaterOff,          // выключить полив
+  emCommandWaterChannelOn,    // включить канал полива
+  emCommandWaterChannelOff,   // выключить канал полива
+  emCommandLightOn,           // включить досветку
+  emCommandLigntOff,          // выключить досветку
+  emCommandPinOn,             // включить пин
+  emCommandPinOff,            // выключить пин
+};
+//----------------------------------------------------------------------------------------------------------------
+typedef struct
+{ 
+  byte whichCommand;
+  byte param1;
+  byte param2;
+  
+} CommandToExecute;
+//----------------------------------------------------------------------------------------------------------------
+typedef struct
+{
+  byte moduleID; // ID модуля, от которого пришла команда
+  CommandToExecute commands[7]; // 21 байт
+  byte reserved; // добитие до 23 байт
+  
+} CommandsToExecutePacket; // пакет с командами на выполнение
+//----------------------------------------------------------------------------------------------------------------
+typedef struct
+{
   byte sensorType; // тип датчика
   byte sensorIndex; // зарегистрированный в системе индекс
+  byte badReadingAttempts; // кол-во неудачных чтений с датчика
   
 } RS485QueueItem; // запись в очереди на чтение показаний из шины
 //----------------------------------------------------------------------------------------------------------------
@@ -385,16 +440,22 @@ class UniRS485Gate // класс для работы универсальных 
     void Update(uint16_t dt);
 
   private:
+  
 #ifdef USE_UNI_EXECUTION_MODULE
     unsigned long updateTimer;
 #endif    
 
+    void sendControllerStatePacket();
+
     void waitTransmitComplete();
+    void writeToStream(Stream* s, const uint8_t* buffer, size_t len);
     void enableSend();
     void enableReceive();
     byte crc8(const byte *addr, byte len);
 
-  #ifdef USE_UNIVERSAL_SENSORS // если комплимся с поддержкой модулей с датчиками - тогда обрабатываем очередь
+    void executeCommands(const RS485Packet& packet);
+
+  #ifdef USE_UNIVERSAL_MODULES // если комплимся с поддержкой универсальных модулей - тогда обрабатываем очередь
 
     bool isInOnlineQueue(const RS485QueueItem& item);
     RS485Queue sensorsOnlineQueue; // очередь датчиков, с которых были показания

@@ -1,21 +1,21 @@
 #include "LCDMenu.h"
 #include "InteropStream.h"
 #include "AbstractModule.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_LCD_MODULE
 
 #if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
 #include "TempSensors.h"
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 WaitScreenInfo WaitScreenInfos[] = 
 {
    WAIT_SCREEN_SENSORS
   ,{0,0,"",""} // последний элемент пустой, заглушка для признака окончания списка
 };
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 PushButton button(MENU_BUTTON_PIN); // кнопка для управления меню
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ButtonOnClick(const PushButton& Sender, void* UserData) // пришло событие от кнопки - кликнута
 {
   UNUSED(Sender);
@@ -23,32 +23,30 @@ void ButtonOnClick(const PushButton& Sender, void* UserData) // пришло с�
   LCDMenu* menu = (LCDMenu*) UserData;
   menu->enterSubMenu(); // просим войти в подменю
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 IdlePageMenuItem IdleScreen; // экран ожидания
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_TEMP_SENSORS
 WindowMenuItem WindowManageScreen; // экран управления окнами
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_WATERING_MODULE
 WateringMenuItem WateringManageScreen; // экран управления поливом
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_WATERING_MODULE) && defined(WATER_CHANNELS_SCREEN_ENABLED)
 WateringChannelsMenuItem WateringChannelsManageScreen; // экран управления каналами полива
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
 WindowsChannelsMenuItem WindowsChannelsManageScreen; // экран управления каналами полива
 #endif
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_LUMINOSITY_MODULE
 LuminosityMenuItem LuminosityManageScreen; // экран управления досветкой
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 SettingsMenuItem SettingsManageScreen; // экран настроек
-
 //--------------------------------------------------------------------------------------------------------------------------------------
 AbstractLCDMenuItem::AbstractLCDMenuItem(const unsigned char* i, const char* c) :
 icon(i), caption(c), flags(0),/*focused(false), needToDrawCursor(false),*/cursorPos(-1), itemsCount(0)
@@ -101,7 +99,7 @@ void AbstractLCDMenuItem::OnButtonClicked(LCDMenu* menu)
     menu->wantRedraw(); 
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-IdlePageMenuItem::IdlePageMenuItem() : AbstractLCDMenuItem(MONITOR_ICON,("Монитор"))
+IdlePageMenuItem::IdlePageMenuItem() : AbstractLCDMenuItem(MONITOR_ICON,LCD_MONITOR_CAPTION)
 {
   rotationTimer = ROTATION_INTERVAL; // получаем данные с сенсора сразу в первом вызове update
   currentSensorIndex = 0; 
@@ -148,7 +146,7 @@ bool IdlePageMenuItem::SelectNextDirectory(LCDMenu* menu)
 //--------------------------------------------------------------------------------------------------------------------------------------
 void IdlePageMenuItem::SelectNextSDSensor(LCDMenu* menu)
 {
-    if(!workDir) // нет открытой текущей папки
+    if(!workDir.isOpen()) // нет открытой текущей папки
     {
       if(!SelectNextDirectory(menu))
         return;
@@ -156,14 +154,14 @@ void IdlePageMenuItem::SelectNextSDSensor(LCDMenu* menu)
       OpenCurrentSDDirectory(menu);
     }
 
-    if(workDir)
+    if(workDir.isOpen())
     {
-      if(workFile)
+      if(workFile.isOpen())
         workFile.close();
 
-        workFile = workDir.openNextFile();
+        workFile.openNext(&workDir,O_READ);
 
-        if(!workFile) {
+        if(!workFile.isOpen()) {
            // дошли до конца, надо выбрать следующую папку
            workDir.close(); // закрываем текущую папку, чтобы перейти на новую папку
            SelectNextSDSensor(menu);
@@ -173,14 +171,14 @@ void IdlePageMenuItem::SelectNextSDSensor(LCDMenu* menu)
         // файл открыли, можно работать
       
     } // if
-    
+   
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void IdlePageMenuItem::OpenCurrentSDDirectory(LCDMenu* menu)
 {
   UNUSED(menu);
   
-  if(workDir)
+  if(workDir.isOpen())
     workDir.close();
 
     String folderName = "LCD";
@@ -210,18 +208,18 @@ void IdlePageMenuItem::OpenCurrentSDDirectory(LCDMenu* menu)
       
     } // switch
 
-    workDir = SD.open(folderName);
+    workDir.open(folderName.c_str(),FILE_READ);
     
-    if(workDir)
-      workDir.rewindDirectory();
+    if(workDir.isOpen())
+      workDir.rewind();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 char* IdlePageMenuItem::ReadCurrentFile()
 {
-    if(!workFile)
+    if(!workFile.isOpen())
       return NULL;
 
-    uint32_t sz = workFile.size();
+    uint32_t sz = workFile.fileSize();
 
     if(sz > 0)
     {
@@ -244,12 +242,13 @@ void IdlePageMenuItem::RequestSDSensorData(LCDMenu* menu)
   displayString = NULL;
 
   
-    if(!workFile)
+    if(!workFile.isOpen())
       return;
 
    // получаем имя файла
     String idx;
-    char* fName = workFile.name();
+    String strFileName = FileUtils::GetFileName(workFile);
+    const char* fName = strFileName.c_str();
 
     while(*fName && *fName != '.')
     {
@@ -261,8 +260,6 @@ void IdlePageMenuItem::RequestSDSensorData(LCDMenu* menu)
     // получаем модуль в системе
     AbstractModule* module = NULL;
     ModuleStates sensorType;
-    
-
 
     switch(idleFlags.currentSensorsDirectory)
     {
@@ -293,7 +290,6 @@ void IdlePageMenuItem::RequestSDSensorData(LCDMenu* menu)
       
     } // switch    
 
-
     if(module)
     {
       // получаем состояние для датчика
@@ -319,7 +315,6 @@ void IdlePageMenuItem::RequestSDSensorData(LCDMenu* menu)
       
     } // if(module)
       
-
    workFile.close(); // не забываем закрывать файл за собой
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -494,6 +489,7 @@ void IdlePageMenuItem::draw(DrawContext* dc)
   int left = (frame_width - strW)/2 + CONTENT_PADDING;
 
   dc->drawStr(left, cur_top, sensorData.c_str());
+  yield();
 
   // теперь рисуем строку подписи
   cur_top += HINT_FONT_HEIGHT;
@@ -501,6 +497,7 @@ void IdlePageMenuItem::draw(DrawContext* dc)
   left = (frame_width - strW)/2 + CONTENT_PADDING;
 
   dc->drawStr(left, cur_top, displayString);
+  yield();
 
      #ifdef USE_DS3231_REALTIME_CLOCK
 
@@ -509,23 +506,25 @@ void IdlePageMenuItem::draw(DrawContext* dc)
         DS3231Clock rtc = MainController->GetClock();
         DS3231Time tm = rtc.getTime();
 
-        static char dt_buff[20] = {0};
+        /*static */char dt_buff[20] = {0};
         sprintf_P(dt_buff,(const char*) F("%02d.%02d.%d %02d:%02d"), tm.dayOfMonth, tm.month, tm.year, tm.hour, tm.minute);
         
         strW = dc->getStrWidth(dt_buff);
         left = (frame_width - strW)/2 + CONTENT_PADDING;
         
         dc->drawStr(left, cur_top, dt_buff);
+        yield();
         
       #endif // USE_DS3231_REALTIME_CLOCK 
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_TEMP_SENSORS
-WindowMenuItem::WindowMenuItem() : AbstractLCDMenuItem(WINDOW_ICON,("Окна"))
+WindowMenuItem::WindowMenuItem() : AbstractLCDMenuItem(WINDOW_ICON,LCD_WINDOWS_CAPTION)
 {
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void WindowMenuItem::init(LCDMenu* parent)
 {
   AbstractLCDMenuItem::init(parent);
@@ -554,6 +553,7 @@ bool WindowMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             windowsFlags.isWindowsOpen = true;
             //Тут посылаем команду на открытие окон
             ModuleInterop.QueryCommand(ctSET,F("STATE|WINDOW|ALL|OPEN"),false);
+            yield();
           }
           break;
           
@@ -562,6 +562,7 @@ bool WindowMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             windowsFlags.isWindowsOpen = false;
             //Тут посылаем команду на закрытие окон
             ModuleInterop.QueryCommand(ctSET,F("STATE|WINDOW|ALL|CLOSE"),false);
+            yield();
           }
           break;
           
@@ -573,6 +574,8 @@ bool WindowMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
               ModuleInterop.QueryCommand(ctSET,F("STATE|MODE|AUTO"),false);
             else
               ModuleInterop.QueryCommand(ctSET,F("STATE|MODE|MANUAL"),false);
+
+            yield();
           }
           break;
         
@@ -615,9 +618,9 @@ void WindowMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[] = 
   {
-     F("откр")
-    ,F("закр")
-    ,F("авто")    
+     LCD_OPEN_LABEL
+    ,LCD_CLOSE_LABEL
+    ,LCD_AUTO_LABEL    
   };
 
  // рисуем три иконки невыбранных чекбоксов  - пока
@@ -648,6 +651,7 @@ void WindowMenuItem::draw(DrawContext* dc)
     }
   int left = i*CONTENT_PADDING + i*one_icon_box_width + one_icon_left_spacing;
   dc->drawXBMP(left, cur_top, MENU_BITMAP_SIZE, MENU_BITMAP_SIZE, cur_icon);
+  yield();
 
   // теперь рисуем текст иконки
   u8g_uint_t strW = dc->getStrWidth(captions[i]);
@@ -658,6 +662,7 @@ void WindowMenuItem::draw(DrawContext* dc)
   // рисуем заголовок
   cur_top += MENU_BITMAP_SIZE + HINT_FONT_HEIGHT;
   dc->drawStr(left, cur_top, captions[i]);
+  yield();
 
   if(/*needToDrawCursor*/ (flags & 2) && i == cursorPos)
   {
@@ -673,7 +678,7 @@ void WindowMenuItem::draw(DrawContext* dc)
 //--------------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_WATERING_MODULE) && defined(WATER_CHANNELS_SCREEN_ENABLED)
 //--------------------------------------------------------------------------------------------------------------------------------------
-WateringChannelsMenuItem::WateringChannelsMenuItem() : AbstractLCDMenuItem(WATERING_CHANNELS_ICON,("Каналы полива"))
+WateringChannelsMenuItem::WateringChannelsMenuItem() : AbstractLCDMenuItem(WATERING_CHANNELS_ICON,LCD_WATERING_CAPTION)
 {
   
 }
@@ -699,9 +704,9 @@ void WateringChannelsMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[3] = 
   {
-     F("КАНАЛ")
-    ,F("ВКЛ")
-    ,F("ВЫКЛ")
+     LCD_CHANNEL_LABEL
+    ,LCD_ON_LABEL
+    ,LCD_OFF_LABEL
    
   };
 
@@ -739,8 +744,6 @@ void WateringChannelsMenuItem::draw(DrawContext* dc)
   dc->drawStr(left,cur_top,tmp.c_str());
   yield();
 
-  
-  
   if(i < 1)
   {
     // теперь рисуем текст под полем ввода, только для первого итема
@@ -764,6 +767,7 @@ void WateringChannelsMenuItem::draw(DrawContext* dc)
       cur_top += HINT_FONT_BOX_PADDING*2;
     
     dc->drawHLine(left,cur_top,strW);
+    yield();
   }
   
  } // for
@@ -801,6 +805,7 @@ bool WateringChannelsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             String cmd = F("WATER|ON|");
             cmd += currentSelectedChannel;
             ModuleInterop.QueryCommand(ctSET,cmd,false);
+            yield();
 
              menu->wantRedraw(); // изменили внутреннее состояние, просим перерисоваться
           }
@@ -812,6 +817,7 @@ bool WateringChannelsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             String cmd = F("WATER|OFF|");
             cmd += currentSelectedChannel;
             ModuleInterop.QueryCommand(ctSET,cmd,false);
+            yield();
 
              menu->wantRedraw(); // изменили внутреннее состояние, просим перерисоваться
           }
@@ -834,7 +840,7 @@ void WateringChannelsMenuItem::update(uint16_t dt, LCDMenu* menu)
 //--------------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_TEMP_SENSORS) && defined(WINDOWS_CHANNELS_SCREEN_ENABLED)
 //--------------------------------------------------------------------------------------------------------------------------------------
-WindowsChannelsMenuItem::WindowsChannelsMenuItem() : AbstractLCDMenuItem(WINDOWS_CHANNELS_ICON,("Каналы окон"))
+WindowsChannelsMenuItem::WindowsChannelsMenuItem() : AbstractLCDMenuItem(WINDOWS_CHANNELS_ICON,LCD_WINDOWS_CHANNELS_CAPTION)
 {
   
 }
@@ -860,9 +866,9 @@ void WindowsChannelsMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[3] = 
   {
-     F("ОКНО")
-    ,F("ОТКР")
-    ,F("ЗАКР")
+     LCD_WINDOW_LABEL
+    ,LCD_OPEN_LABEL
+    ,LCD_CLOSE_LABEL
    
   };
 
@@ -922,6 +928,7 @@ void WindowsChannelsMenuItem::draw(DrawContext* dc)
       cur_top += HINT_FONT_BOX_PADDING*2;
     
     dc->drawHLine(left,cur_top,strW);
+    yield();
   }
   
  } // for
@@ -961,6 +968,7 @@ bool WindowsChannelsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             cmd += F("|OPEN");
             
             ModuleInterop.QueryCommand(ctSET,cmd,false);
+            yield();
 
              menu->wantRedraw(); // изменили внутреннее состояние, просим перерисоваться
           }
@@ -973,6 +981,7 @@ bool WindowsChannelsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             cmd += currentSelectedChannel;
             cmd += F("|CLOSE");
             ModuleInterop.QueryCommand(ctSET,cmd,false);
+            yield();
 
              menu->wantRedraw(); // изменили внутреннее состояние, просим перерисоваться
           }
@@ -993,7 +1002,7 @@ void WindowsChannelsMenuItem::update(uint16_t dt, LCDMenu* menu)
 #endif // WindowsChannelsMenuItem
 //--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_WATERING_MODULE
-WateringMenuItem::WateringMenuItem() : AbstractLCDMenuItem(WATERING_ICON,("Полив"))
+WateringMenuItem::WateringMenuItem() : AbstractLCDMenuItem(WATERING_ICON,LCD_ALLWATERING_CAPTION)
 {
   
 }
@@ -1017,9 +1026,9 @@ void WateringMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[] = 
   {
-     F("вкл")
-    ,F("выкл")
-    ,F("авто")    
+     LCD_ON_LABEL
+    ,LCD_OFF_LABEL
+    ,LCD_AUTO_LABEL
   };
 
  // рисуем три иконки невыбранных чекбоксов  - пока
@@ -1050,6 +1059,7 @@ void WateringMenuItem::draw(DrawContext* dc)
     }
   int left = i*CONTENT_PADDING + i*one_icon_box_width + one_icon_left_spacing;
   dc->drawXBMP(left, cur_top, MENU_BITMAP_SIZE, MENU_BITMAP_SIZE, cur_icon);
+  yield();
 
   // теперь рисуем текст иконки
   u8g_uint_t strW = dc->getStrWidth(captions[i]);
@@ -1060,14 +1070,15 @@ void WateringMenuItem::draw(DrawContext* dc)
   // рисуем заголовок
   cur_top += MENU_BITMAP_SIZE + HINT_FONT_HEIGHT;
   dc->drawStr(left, cur_top, captions[i]);
+  yield();
 
   if(/*needToDrawCursor*/ (flags & 2) && i == cursorPos)
   {
     // рисуем курсор в текущей позиции
     cur_top += HINT_FONT_BOX_PADDING;
     dc->drawHLine(left,cur_top,strW);
+    yield();
   }
-  yield();
  } // for
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -1110,6 +1121,7 @@ bool WateringMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             waterFlags.isWateringOn = true;
             //Тут посылаем команду на включение полива
             ModuleInterop.QueryCommand(ctSET,F("WATER|ON"),false);
+            yield();
           }
           break;
           
@@ -1118,6 +1130,7 @@ bool WateringMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             waterFlags.isWateringOn = false;
             //Тут посылаем команду на выключение полива
             ModuleInterop.QueryCommand(ctSET,F("WATER|OFF"),false);
+            yield();
           }
           break;
           
@@ -1129,6 +1142,8 @@ bool WateringMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
               ModuleInterop.QueryCommand(ctSET,F("WATER|MODE|AUTO"),false);
             else
               ModuleInterop.QueryCommand(ctSET,F("WATER|MODE|MANUAL"),false);
+
+            yield();
           }
           break;
         
@@ -1145,7 +1160,7 @@ bool WateringMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
 #endif
 //--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_LUMINOSITY_MODULE
-LuminosityMenuItem::LuminosityMenuItem() : AbstractLCDMenuItem(LUMINOSITY_ICON,("Досветка"))
+LuminosityMenuItem::LuminosityMenuItem() : AbstractLCDMenuItem(LUMINOSITY_ICON,LCD_LIGHT_CAPTION)
 {
   
 }
@@ -1169,9 +1184,9 @@ void LuminosityMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[] = 
   {
-     F("вкл")
-    ,F("выкл")
-    ,F("авто")    
+     LCD_ON_LABEL
+    ,LCD_OFF_LABEL
+    ,LCD_AUTO_LABEL   
   };
 
  // рисуем три иконки невыбранных чекбоксов  - пока
@@ -1202,6 +1217,7 @@ void LuminosityMenuItem::draw(DrawContext* dc)
     }
   int left = i*CONTENT_PADDING + i*one_icon_box_width + one_icon_left_spacing;
   dc->drawXBMP(left, cur_top, MENU_BITMAP_SIZE, MENU_BITMAP_SIZE, cur_icon);
+  yield();
 
   // теперь рисуем текст иконки
   u8g_uint_t strW = dc->getStrWidth(captions[i]);
@@ -1212,14 +1228,16 @@ void LuminosityMenuItem::draw(DrawContext* dc)
   // рисуем заголовок
   cur_top += MENU_BITMAP_SIZE + HINT_FONT_HEIGHT;
   dc->drawStr(left, cur_top, captions[i]);
+  yield();
 
   if(/*needToDrawCursor*/ (flags & 2) && i == cursorPos)
   {
     // рисуем курсор в текущей позиции
     cur_top += HINT_FONT_BOX_PADDING;
     dc->drawHLine(left,cur_top,strW);
+    yield();
   }
-  yield();
+
  } // for
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -1261,6 +1279,7 @@ bool LuminosityMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             lumFlags.isLightOn = true;
             //Тут посылаем команду на включение досветки
             ModuleInterop.QueryCommand(ctSET,F("LIGHT|ON"),false);
+            yield();
           }
           break;
           
@@ -1269,6 +1288,7 @@ bool LuminosityMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
             lumFlags.isLightOn = false;
             //Тут посылаем команду на выключение досветки
             ModuleInterop.QueryCommand(ctSET,F("LIGHT|OFF"),false);
+            yield();
           }
           break;
           
@@ -1280,6 +1300,8 @@ bool LuminosityMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
               ModuleInterop.QueryCommand(ctSET,F("LIGHT|MODE|AUTO"),false);
             else
               ModuleInterop.QueryCommand(ctSET,F("LIGHT|MODE|MANUAL"),false);
+
+            yield();
           }
           break;
         
@@ -1294,7 +1316,7 @@ bool LuminosityMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
 }
 #endif
 //--------------------------------------------------------------------------------------------------------------------------------------
-SettingsMenuItem::SettingsMenuItem() : AbstractLCDMenuItem(SETTINGS_ICON,("Настройки"))
+SettingsMenuItem::SettingsMenuItem() : AbstractLCDMenuItem(SETTINGS_ICON,LCD_SETTINGS_CAPTION)
 {
   
 }
@@ -1307,8 +1329,9 @@ void SettingsMenuItem::init(LCDMenu* parent)
   
   openTemp = s->GetOpenTemp();
   closeTemp = s->GetCloseTemp();
+  openInterval = s->GetOpenInterval();
   
-  itemsCount = 2;
+  itemsCount = 3;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void SettingsMenuItem::draw(DrawContext* dc)
@@ -1323,8 +1346,9 @@ void SettingsMenuItem::draw(DrawContext* dc)
 
   static const __FlashStringHelper* captions[] = 
   {
-     F("Тоткр")
-    ,F("Тзакр")
+     LCD_TOPEN_CAPTION
+    ,LCD_TCLOSE_CAPTION
+    ,LCD_INTERVAL_CAPTION
    
   };
 
@@ -1340,8 +1364,13 @@ void SettingsMenuItem::draw(DrawContext* dc)
   String tmp;
   if(i == 1)
     tmp = String(closeTemp);
-  else  
+  else if(i==0) 
     tmp = String(openTemp);
+ else
+ {
+   unsigned long tmpInterval = openInterval/1000;
+   tmp = tmpInterval;
+ }
     
   cur_top += HINT_FONT_HEIGHT + HINT_FONT_BOX_PADDING;
   left += HINT_FONT_BOX_PADDING*2;
@@ -1364,6 +1393,7 @@ void SettingsMenuItem::draw(DrawContext* dc)
     // рисуем курсор в текущей позиции
     cur_top += HINT_FONT_BOX_PADDING;
     dc->drawHLine(left,cur_top,strW);
+    yield();
   }
   
  } // for
@@ -1379,13 +1409,14 @@ void SettingsMenuItem::update(uint16_t dt, LCDMenu* menu)
   GlobalSettings* s = MainController->GetSettings();
 
  uint8_t lastOT = openTemp;
- uint8_t lastCT = closeTemp; 
+ uint8_t lastCT = closeTemp;
+ unsigned long lastOpenInterval = openInterval; 
   
   openTemp = s->GetOpenTemp();
   closeTemp = s->GetCloseTemp();
-
+  openInterval = s->GetOpenInterval();
   
-  bool anyChangesFound = (lastOT != openTemp) || (lastCT != closeTemp);
+  bool anyChangesFound = (lastOT != openTemp) || (lastCT != closeTemp) || (lastOpenInterval != openInterval);
 
   if(anyChangesFound)
     menu->notifyMenuUpdated(this);  
@@ -1402,6 +1433,7 @@ void SettingsMenuItem::setFocus(bool f)
     GlobalSettings* s = MainController->GetSettings();
     s->SetOpenTemp(openTemp);
     s->SetCloseTemp(closeTemp);
+    s->SetOpenInterval(openInterval);
     //s->Save();
   }
 }
@@ -1413,6 +1445,7 @@ bool SettingsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
 
     uint8_t lastOT = openTemp;
     uint8_t lastCT = closeTemp;
+    unsigned long lastOpenInterval = openInterval;
 
     if(dir != 0)
     {
@@ -1432,7 +1465,7 @@ bool SettingsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
           }
           break;
           
-          case 1: // выключить температуру закрытия
+          case 1: // поменять температуру закрытия
           {
             closeTemp += dir;
             if(closeTemp > SCREEN_MAX_TEMP_VALUE)
@@ -1443,11 +1476,25 @@ bool SettingsMenuItem::OnEncoderPositionChanged(int dir, LCDMenu* menu)
           }
           break;
           
-        
+          case 2: // поменять время работы моторов
+          {
+            long change = dir;
+            change *=1000;
+            
+            openInterval += change;
+            
+            if(openInterval >= 999000)
+            {
+              openInterval = dir > 0 ? 0 : 999000;
+            }
+              
+            s->SetOpenInterval(openInterval);
+          }
+          break;        
        } // switch
     }
 
-    if(lastOT != openTemp || lastCT != closeTemp) // состояние изменилось, просим меню перерисоваться
+    if(lastOT != openTemp || lastCT != closeTemp || openInterval != lastOpenInterval) // состояние изменилось, просим меню перерисоваться
       menu->wantRedraw();
 
     return true; // сами обработали смену позиции энкодера
@@ -1677,36 +1724,40 @@ String LCDMenu::GetFileContent(byte directory,byte fileIndex, int& resultSensorI
   resultSensorIndex = -1;
   
   #ifdef SENSORS_SETTINGS_ON_SD_ENABLED
-    String folderName = GetFolderName(directory);
 
+  
+  String folderName = GetFolderName(directory);
+  const char* dirP = folderName.c_str();
     
-    File dir = SD.open(folderName);
-    if(dir) 
+    SdFile dir;
+    if(dir.open(dirP, O_READ)) 
     {
       
-        dir.rewindDirectory();
-        File workFile;
+        dir.rewind();
+        SdFile workFile;
         for(int i=0;i<fileIndex;i++)
         {
-          if(workFile)
+          if(workFile.isOpen())
             workFile.close();
+
+          workFile.openNext(&dir,O_READ);
             
-          workFile = dir.openNextFile();
-          if(!workFile)
+          if(!workFile.isOpen())
             break;
         } // for
 
-        if(workFile)
+        if(workFile.isOpen())
         {
           // получаем индекс датчика (он является именем файла до расширения)
           String idx;
-          char* fName = workFile.name();
+          String strFileName = FileUtils::GetFileName(workFile);
+          const char* fName = strFileName.c_str();
           while(*fName && *fName != '.')
             idx += *fName++;
 
           resultSensorIndex = idx.toInt();
                       
-          uint32_t sz = workFile.size();
+          uint32_t sz = workFile.fileSize();
           if(sz > 0)
           {
               char* toRead = new char[sz+1];
@@ -1723,6 +1774,8 @@ String LCDMenu::GetFileContent(byte directory,byte fileIndex, int& resultSensorI
 
         dir.close();
     }
+
+
   #endif
 
   return result;
@@ -1730,36 +1783,7 @@ String LCDMenu::GetFileContent(byte directory,byte fileIndex, int& resultSensorI
 //--------------------------------------------------------------------------------------------------------------------------------------
 void LCDMenu::DoRemoveFiles(const String& dirName)
 {
-  File iter = SD.open(dirName);
-  if(!iter)
-    return;
-
-  while(1)
-  {
-    File entry = iter.openNextFile();
-    if(!entry)
-      break;
-
-    if(entry.isDirectory())
-    {
-      String subPath = dirName + F("/");
-      subPath += entry.name();
-      DoRemoveFiles(subPath);
-      entry.close();
-    }
-    else
-    {
-      String fullPath = dirName;
-      fullPath += F("/");
-      fullPath += entry.name();
-      SD.remove(fullPath);
-      entry.close();
-    }
-  }
-
-
-  iter.close();
-  
+  FileUtils::RemoveFiles(dirName);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void LCDMenu::ClearSDSensors()
@@ -1776,21 +1800,20 @@ void LCDMenu::AddSDSensor(byte folder,byte sensorIndex,const String& strCaption)
   if(MainController->HasSDCard())
   {
     String folderName = GetFolderName(folder);
-    if(SD.mkdir(folderName))
-    {
+    SDFat.mkdir(folderName.c_str());
+   
       folderName += F("/");
       folderName += String(sensorIndex);
       folderName += F(".INF");
 
-      File outFile = SD.open(folderName,FILE_WRITE | O_TRUNC);
+      SdFile outFile;
 
-      if(outFile)
+      if(outFile.open(folderName.c_str(),FILE_WRITE | O_TRUNC))
       {
         outFile.write((byte*)strCaption.c_str(),strCaption.length());
         outFile.close();
       }
         
-    }
   }
  #endif 
 }
@@ -1835,30 +1858,10 @@ byte LCDMenu::GetFilesCount(byte directory)
         return 0;
       else
       {
-          byte result = 0; // не думаю, что будет больше 255 датчиков :)
           // подсчитываем кол-во файлов в папке
           String folderName = GetFolderName(directory); // эта строка уже в оперативке, т.к. является именем модуля
-
-         File dir = SD.open(folderName);
-         
-         if(dir)
-         {
-            dir.rewindDirectory();
-
-            while(1)
-            {
-              File f = dir.openNextFile();
-              if(!f)
-                break;
-
-              f.close();
-              result++;
-            } // while
-
-            dir.close();
-         } // if(dir)
-
-         return result;
+          return FileUtils::CountFiles(folderName,false);
+        
       } // else
       
     
@@ -1872,13 +1875,6 @@ void LCDMenu::draw()
 {
 if(!flags.needRedraw || !flags.backlightIsOn) // не надо ничего перерисовывать
   return;
-
-#ifdef LCD_DEBUG
-Serial.print("LCDMenu::draw() - ");
-unsigned long m = millis();
-#endif
-
-#define LCD_YIELD yield()
     
  size_t sz = items.size();
  AbstractLCDMenuItem* selItem = items[selectedMenuItem];
@@ -1887,30 +1883,30 @@ unsigned long m = millis();
  firstPage();  
   do 
   {
-   LCD_YIELD;
+   yield();
     // рисуем бокс
     drawFrame(0,MENU_BITMAP_SIZE-1,FRAME_WIDTH,FRAME_HEIGHT+1);
     
     // рисуем пункты меню верхнего уровня
     for(size_t i=0;i<sz;i++)
     {
-      LCD_YIELD;
+      yield();
       drawXBMP( i*MENU_BITMAP_SIZE, 0, MENU_BITMAP_SIZE, MENU_BITMAP_SIZE, items[i]->GetIcon());
     }
     
     // теперь рисуем фрейм вокруг выбранного пункта меню
     drawFrame(selectedMenuItem*MENU_BITMAP_SIZE,0,MENU_BITMAP_SIZE,MENU_BITMAP_SIZE);
-    LCD_YIELD;
+    yield();
     
     // теперь рисуем прямоугольник с заливкой внизу от контента
     drawBox(0,FRAME_HEIGHT + MENU_BITMAP_SIZE - (HINT_FONT_HEIGHT + HINT_FONT_BOX_PADDING),FRAME_WIDTH,HINT_FONT_HEIGHT + HINT_FONT_BOX_PADDING);
-    LCD_YIELD;
+    yield();
     
     setColorIndex(0);
 
     // теперь убираем линию под выбранным пунктом меню
     drawLine(selectedMenuItem*MENU_BITMAP_SIZE+1,MENU_BITMAP_SIZE-1,selectedMenuItem*MENU_BITMAP_SIZE+MENU_BITMAP_SIZE-2,MENU_BITMAP_SIZE-1);
-    LCD_YIELD;
+    yield();
     
     // теперь рисуем название пункта меню
     
@@ -1919,10 +1915,12 @@ unsigned long m = millis();
     // рисуем подсказку, выровненную по правому краю
     u8g_uint_t strW = getStrWidth(capt);    
     drawStr(FRAME_WIDTH - HINT_FONT_BOX_PADDING - strW,FRAME_HEIGHT + MENU_BITMAP_SIZE - HINT_FONT_BOX_PADDING,capt);
+    yield();
     
     #else
     // рисуем подсказку, выровненную по левому краю
     drawStr(HINT_FONT_BOX_PADDING,FRAME_HEIGHT + MENU_BITMAP_SIZE - HINT_FONT_BOX_PADDING,capt);
+    yield();
     
     #endif
 
@@ -1930,15 +1928,13 @@ unsigned long m = millis();
 
     // теперь просим пункт меню отрисоваться на экране
     selItem->draw(this);
-    LCD_YIELD;  
+    yield();  
   
   
   } while( nextPage() ); 
 
    flags.needRedraw = false; // отрисовали всё, что нам надо - и сбросили флаг необходимости отрисовки
-#ifdef LCD_DEBUG
-   Serial.println(millis() - m);
-#endif   
+ 
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 #endif

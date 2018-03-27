@@ -1,10 +1,9 @@
-#ifndef _WIFI_MODULE_H
-#define _WIFI_MODULE_H
+#pragma once
 
 #include "AbstractModule.h"
 #include "TinyVector.h"
 #include "Settings.h"
-#include "TCPClient.h"
+#include "CoreTransport.h"
 
 #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
 #include "IoT.h"
@@ -12,103 +11,56 @@
 //--------------------------------------------------------------------------------------------------------------------------------
 #include "HTTPInterfaces.h" // подключаем интерфейсы для работы с HTTP-запросами
 //--------------------------------------------------------------------------------------------------------------------------------
-#define MAX_WIFI_CLIENTS 4 // максимальное кол-во клиентов
-#define WIFI_PACKET_LENGTH 2048 // по скольку байт в пакете отсылать данные
+#ifdef USE_WIFI_MODULE
 //--------------------------------------------------------------------------------------------------------------------------------
-typedef enum
-{
-  /*0*/  wfaIdle, // пустое состояние
-  /*1*/  wfaWantReady, // надо получить ready от модуля
-  /*2*/  wfaEchoOff, // выключаем эхо
-  /*3*/  wfaCWMODE, // переводим в смешанный режим
-  /*4*/  wfaCWSAP, // создаём точку доступа
-  /*5*/  wfaCWJAP, // коннектимся к роутеру
-  /*6*/  wfaCWQAP, // отсоединяемся от роутера
-  /*7*/  wfaCIPMODE, // устанавливаем режим работы
-  /*8*/  wfaCIPMUX, // разрешаем множественные подключения
-  /*9*/  wfaCIPSERVER, // запускаем сервер
-  /*10*/ wfaCIPSEND, // отсылаем команду на передачу данных
-  /*11*/ wfaACTUALSEND, // отсылаем данные
-  /*12*/ wfaCIPCLOSE, // закрываем соединение
-  /*13*/ wfaCheckModemHang, // проверяем на зависание модема
-
-#if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-  
-  /*14*/ wfaStartIoTSend, // начинаем отсыл данных в IoT
-  /*15*/ wfaStartSendIoTData, // посылаем команду на отсыл данныз в IoT
-  /*16*/ wfaActualSendIoTData, // актуальный отсыл данных в IoT
-  /*17*/ wfaCloseIoTConnection, // закрываем соединение
-#endif
-
-  /*18*/ wfaStartHTTPSend, // начинаем запрос HTTP
-  /*19*/ wfaStartSendHTTPData, // начинаем отсылать данные по HTTP
-  /*20*/ wfaCloseHTTPConnection, // закрываем HTTP-соединение
-  /*21*/ wfaActualSendHTTPData, // актуальный отсыл данных HTTP-запроса
-  
-} WIFIActions;
-
-typedef Vector<WIFIActions> ActionsVector;
-
-typedef struct
-{
-
-  bool inSendData : 1; 
-  bool isAnyAnswerReceived : 1;
-  bool inRebootMode : 1;
-  bool wantIoTToProcess : 1; // нас попросили отправить данные в IoT
-  bool wantHTTPRequest : 1; // нас попросили запросить URI по HTTP и получить ответ
-  bool inHTTPRequestMode: 1; // мы в процессе работы с HTTP-запросом
-  byte pad : 2;
-      
-} WiFiModuleFlags;
-
 class WiFiModule : public AbstractModule // модуль поддержки WI-FI
 #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
 , public IoTGate
 #endif
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
 , public HTTPQueryProvider
+#endif
+, public IClientEventsSubscriber
+, public Stream
 {
   private:
+  
+    String* streamBuffer;
 
-    WiFiModuleFlags flags;
+    #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+      CoreMQTT mqtt;
+    #endif
+
+    TransportReceiveBuffer externalClientData;
+    void ProcessUnknownClientQuery(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone);
+
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
 
     HTTPRequestHandler* httpHandler; // интерфейс перехватчика работы с HTTP-запросами
-    String* httpData; // данные для отсыла по HTTP
+    CoreTransportClient httpClient;
+    bool canCallHTTPEvent;
+    bool httpDataWritten;
+    String* httpData;
     void EnsureHTTPProcessed(uint16_t statusCode); // убеждаемся, что мы сообщили вызывающей стороне результат запроса по HTTP
+    void sendDataToGardenbossRu();
+    void processGardenbossData(uint8_t* data, size_t dataSize, bool isLastData);
     
-    long needToWaitTimer; // таймер ожидания до запроса следующей команды   
-    unsigned long sendCommandTime, answerWaitTimer;
-    void RebootModem(); // перезагружаем модем
-    unsigned long rebootStartTime;
-
+#endif
     
-    bool IsKnownAnswer(const String& line); // если ответ нам известный, то возвращает true
-    void SendCommand(const String& command, bool addNewLine=true); // посылает команды модулю вай-фай
-    void ProcessQueue(); // разбираем очередь команд
-    void ProcessQuery(const String& command); // обрабатываем запрос
-    void ProcessCommand(int clientID, int dataLen,const char* command);
-    void UpdateClients();
-    
-    uint8_t currentAction; // текущая операция, завершения которой мы ждём
-    ActionsVector actionsQueue; // что надо сделать, шаг за шагом 
-    
-    uint8_t currentClientIDX; // индекс клиента, с которым мы работаем сейчас
-    uint8_t nextClientIDX; // индекс клиента, статус которого надо проверить в следующий раз
-
-    // список клиентов
-    TCPClient clients[MAX_WIFI_CLIENTS];
-
-    void InitQueue(bool addRebootCommand=true);
-
     #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+    
       IOT_OnWriteToStream iotWriter;
       IOT_OnSendDataDone iotDone;
       IoTService iotService;
-      String* iotDataHeader;
-      String* iotDataFooter;
-      uint16_t iotDataLength;
+
+      uint16_t thingSpeakDataLength;
+      bool thingSpeakDataWritten;
+      CoreTransportClient thingSpeakClient;
+      void sendDataToThingSpeak();
       void EnsureIoTProcessed(bool success=false);
+      
     #endif
+
   
   public:
     WiFiModule() : AbstractModule("WIFI") {}
@@ -117,17 +69,27 @@ class WiFiModule : public AbstractModule // модуль поддержки WI-F
     void Setup();
     void Update(uint16_t dt);
 
-    void ProcessAnswerLine(String& line);
-    volatile bool WaitForDataWelcome; // флаг, что мы ждём приглашения на отсыл данных - > (плохое ООП, негодное :) )
+  // IClientEventsSubscriber
+  virtual void OnClientConnect(CoreTransportClient& client, bool connected, int16_t errorCode); // событие "Статус соединения клиента"
+  virtual void OnClientDataWritten(CoreTransportClient& client, int16_t errorCode); // событие "Данные из клиента записаны в поток"
+  virtual void OnClientDataAvailable(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone); // событие "Для клиента поступили данные", флаг - все ли данные приняты
+    
+   // Stream
+  virtual void flush(){}
+  virtual int peek() {return 0;}
+  virtual int read() {return 0;}
+  virtual int available() {return 0;}
+  virtual size_t write(uint8_t ch) { *streamBuffer += (char) ch; return 1;}
+  
 
 #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
     virtual void SendData(IoTService service,uint16_t dataLength, IOT_OnWriteToStream writer, IOT_OnSendDataDone onDone);
 #endif 
 
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
   virtual bool CanMakeQuery(); // тестирует, может ли модуль сейчас сделать запрос
   virtual void MakeQuery(HTTPRequestHandler* handler); // начинаем запрос по HTTP
+#endif
 
 };
-
-
-#endif
+#endif // USE_WIFI_MODULE

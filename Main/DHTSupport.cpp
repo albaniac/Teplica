@@ -1,10 +1,11 @@
 #include "DHTSupport.h"
 #include "AbstractModule.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 DHTSupport::DHTSupport()
 {
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 const HumidityAnswer& DHTSupport::read(uint8_t pin, DHTType sensorType)
 {
   answer.IsOK = false;
@@ -17,8 +18,24 @@ const HumidityAnswer& DHTSupport::read(uint8_t pin, DHTType sensorType)
   const uint32_t mstcc = ( F_CPU / 40000 ); // сторож таймаута - 100us
 
   uint8_t bit = digitalPinToBitMask(pin);
-  uint8_t port = digitalPinToPort(pin);
-  volatile uint8_t *PIR = portInputRegister(port);
+  #if (TARGET_BOARD == MEGA_BOARD)
+  uint8_t 
+  #elif (TARGET_BOARD == DUE_BOARD)
+  Pio* 
+  #else
+    #error "Unknown target board!"
+  #endif
+  port = digitalPinToPort(pin);
+  
+  volatile 
+  #if (TARGET_BOARD == MEGA_BOARD)
+  uint8_t*
+  #elif (TARGET_BOARD == DUE_BOARD)
+  RoReg* 
+  #else
+    #error "Unknown target board!"
+  #endif  
+  PIR = portInputRegister(port);
 
   // начинаем читать с датчика
   pinMode(pin,OUTPUT);
@@ -132,9 +149,21 @@ const HumidityAnswer& DHTSupport::read(uint8_t pin, DHTType sensorType)
     break;
   } // switch
  
+  if(answer.Humidity < 0 || answer.Humidity > 100)
+  {
+    answer.Humidity = NO_TEMPERATURE_DATA;
+    answer.HumidityDecimal = 0;
+  }
+
+  if(answer.Temperature < -40 || answer.Temperature > 80)
+  {
+    answer.Temperature = NO_TEMPERATURE_DATA;
+    answer.TemperatureDecimal = 0;
+  }
   
   answer.IsOK = true;
   return answer;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 
 

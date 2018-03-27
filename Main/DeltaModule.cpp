@@ -1,20 +1,15 @@
 #include "DeltaModule.h"
 #include "ModuleController.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 DeltaModule* DeltaModule::_thisDeltaModule = NULL; // указатель на экземпляр класса
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::OnDeltaSetCount(uint8_t& count)
 { 
   // нам передали кол-во сохранённых в EEPROM дельт
-  #ifdef _DEBUG
-  Serial.print(F("Total saved deltas: "));
-  Serial.println(count);
-  #endif
-
   UNUSED(count);
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::OnDeltaRead(uint8_t& _sensorType, String& moduleName1,uint8_t& sensorIdx1, String& moduleName2, uint8_t& sensorIdx2)
 {
   // нам передали прочитанные из EEPROM данные одной дельты
@@ -31,37 +26,24 @@ void DeltaModule::OnDeltaRead(uint8_t& _sensorType, String& moduleName1,uint8_t&
   // проверяем, всё ли мы получили правильно
   if(!(ds.Module1 && ds.Module2))
   {
-  #ifdef _DEBUG
-  Serial.println(F("One of delta modules is inaccessible!"));
-  #endif 
-  return;
+    return;
   }
 
   // теперь проверяем, не указывает ли какое-либо имя модуля на нас.
   if(ds.Module1 == DeltaModule::_thisDeltaModule || ds.Module2 == DeltaModule::_thisDeltaModule)
   {
-  #ifdef _DEBUG
-  Serial.println(F("One of delta modules is linked to DELTA!"));
-  #endif 
     return;
   }
 
   //теперь проверяем, есть ли у обеих модулей датчики указанного типа
  if(!(ds.Module1->State.HasState(sensorType) && ds.Module2->State.HasState(sensorType)))
  {
-  #ifdef _DEBUG
-  Serial.print(F("One of delta modules has no state #"));
-  Serial.println(sensorType);
-  #endif 
   return;
  }
 
   //теперь проверяем, правильные ли индексы датчиков переданы
  if(!(ds.Module1->State.GetState(sensorType,sensorIdx1) && ds.Module2->State.GetState(sensorType,sensorIdx2)))
  {
-  #ifdef _DEBUG
-  Serial.println(F("One of sensors indicies is wrong!"));
-  #endif 
   return;
  } 
 
@@ -79,31 +61,20 @@ void DeltaModule::OnDeltaRead(uint8_t& _sensorType, String& moduleName1,uint8_t&
 
  // сохраняем настройки в структуру
  DeltaModule::_thisDeltaModule->deltas.push_back(ds);
- 
-  #ifdef _DEBUG
-  Serial.println(F("Delta settings successfully added."));
-  #endif 
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::OnDeltaGetCount(uint8_t& count)
 {
-  #ifdef _DEBUG
-  Serial.print(F("Requested to write deltas: "));
-  Serial.println(DeltaModule::_thisDeltaModule->deltas.size());
-  #endif   
   // у нас запросили - сколько установок дельт писать в EEPROM
   count = (uint8_t) DeltaModule::_thisDeltaModule->deltas.size();
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::OnDeltaWrite(uint8_t& sensorType, String& moduleName1,uint8_t& sensorIdx1, String& moduleName2, uint8_t& sensorIdx2)
 {
   // мы передаём данные очередной дельты
   // вызываем yield, поскольку запись в EEPROM занимает время.
   yield();
-  
-  #ifdef _DEBUG
-  Serial.print(F("Store the delta settings #"));
-  Serial.println(DeltaModule::_thisDeltaModule->deltaReadIndex);
-  #endif
 
   // получили указатель на структуру
   DeltaSettings* ds = &(DeltaModule::_thisDeltaModule->deltas[DeltaModule::_thisDeltaModule->deltaReadIndex]);
@@ -116,37 +87,27 @@ void DeltaModule::OnDeltaWrite(uint8_t& sensorType, String& moduleName1,uint8_t&
 
   // передали, увеличили указатель чтения
   DeltaModule::_thisDeltaModule->deltaReadIndex++;
-
-  #ifdef _DEBUG
-  Serial.print(F("Delta settings #"));
-  Serial.print(DeltaModule::_thisDeltaModule->deltaReadIndex);
-  Serial.println(F(" stored."));
-  #endif  
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::Setup()
 {
   // настройка модуля тут
   isDeltasInited = false;
-  settings = MainController->GetSettings();
+  //settings = MainController->GetSettings();
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::SaveDeltas()
 {
   // сохраняем дельты в EEPROM
   deltaReadIndex = 0;
   
-  #ifdef _DEBUG
-  Serial.println(F("Save delta settings..."));
-  #endif
-
   DeltaModule::_thisDeltaModule = this; // сохраняем указатель на себя
 
   // читаем данные из EEPROM
-  settings->WriteDeltaSettings(OnDeltaGetCount, OnDeltaWrite);
-
-  #ifdef _DEBUG
-  Serial.println(F("Delta settings saved."));
-  #endif    
+  MainController->GetSettings()->WriteDeltaSettings(OnDeltaGetCount, OnDeltaWrite);
+    
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::Update(uint16_t dt)
 { 
 
@@ -167,7 +128,7 @@ void DeltaModule::Update(uint16_t dt)
   UpdateDeltas(); // обновляем дельты
 
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::UpdateDeltas()
 {
   // обновляем дельты тут. Проходим по всем элементам массива, смотрим, чего там лежит, получаем показания с нужных датчиков - и сохраняем дельты у себя.
@@ -181,102 +142,33 @@ void DeltaModule::UpdateDeltas()
 
     // первого...
     OneState* os1 = ds->Module1->State.GetState((ModuleStates)ds->SensorType,ds->SensorIndex1);
-    #ifdef _DEBUG
-    if(!os1)
-    {
-      Serial.println(F("[ERR] os1 == NULL!"));
-      continue;
-    }
-    #endif
 
     // и второго
     OneState* os2 = ds->Module2->State.GetState((ModuleStates)ds->SensorType,ds->SensorIndex2);
 
-    #ifdef _DEBUG
-    if(!os2)
-    {
-      Serial.println(F("[ERR] os2 == NULL!"));
-      continue;
-    }
-    #endif
-
     OneState* deltaState = State.GetState((ModuleStates)ds->SensorType,i); // получаем наше состояние
-    #ifdef _DEBUG
-    if(!deltaState)
-    {
-      Serial.println(F("[ERR] deltaState == NULL!"));
-      continue;
-    }
 
-      // выводим предыдущее значение.
-      Serial.print(F("\r\nPrevious deltaState = "));
-      Serial.print((String)*deltaState);
-      Serial.print(F("; index = "));
-      Serial.println(deltaState->GetIndex());
-      
-    #endif
     // и сохраняем в него дельту, индекс при этом должен остаться нетронутым
     if(deltaState && os1 && os2)
       *deltaState = (*os1 - *os2);
 
-    #ifdef _DEBUG
-
-      // протестируем, чего он нам там в виде дельты вывел.
-      Serial.print(F("Current deltaState = "));
-      Serial.print((String)*deltaState);
-      Serial.print(F("; index = "));
-      Serial.println(deltaState->GetIndex());
-
-      if(deltaState->IsChanged())
-      {
-       // есть изменения дельты - тестируем для модуля ALERT.
-       Serial.println(F("Delta state changed!"));
-      }
-      
-
-    #endif // _DEBUG
-    
   } // for
 
-  #ifdef _DEBUG
-  Serial.println(F("[OK] - Deltas updated."));
-  #endif
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DeltaModule::InitDeltas()
 {
   // загружаем дельты из EEPROM
-  deltas.Clear();
-  #ifdef _DEBUG
-  Serial.println(F("Read delta settings..."));
-  #endif
+  deltas.clear();
 
   DeltaModule::_thisDeltaModule = this; // сохраняем указатель на себя
 
   // читаем данные из EEPROM
-  settings->ReadDeltaSettings(OnDeltaSetCount, OnDeltaRead);
-
-  #ifdef _DEBUG
-/*
-  // добавляем свою тестовую дельту
-  // читаем из модуля State температуру с DS18B20.
-  // читаем из модуля HUMIDITY температуру с DHT22.
-  // индексы датчиков и там, и там - 0.
-  // запоминаем в свою дельту.
-  uint8_t sensorType = StateLuminosity;
-  String moduleName1 = F("LIGHT");
-  uint8_t sensorIdx1 = 0;
-  String moduleName2 = F("LIGHT");
-  uint8_t sensorIdx2 = 1;
-  
-  // тупо вызываем функцию, чтобы не париться с настройками
-  OnDeltaRead(sensorType, moduleName1,sensorIdx1, moduleName2, sensorIdx2);
-  */
-  Serial.println(F("Delta settings readed."));
-  #endif
+  MainController->GetSettings()->ReadDeltaSettings(OnDeltaSetCount, OnDeltaRead);
     
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
 {
   if(wantAnswer)
@@ -299,7 +191,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
       {
         if(wantAnswer)
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = DELTA_COUNT_COMMAND;
           PublishSingleton << PARAM_DELIMITER << deltas.size();
         }
@@ -327,7 +219,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
            {
             if(wantAnswer)
             {
-              PublishSingleton.Status = true;
+              PublishSingleton.Flags.Status = true;
               PublishSingleton = DELTA_VIEW_COMMAND;
               PublishSingleton << PARAM_DELIMITER << deltaIdx << PARAM_DELIMITER;
 
@@ -362,7 +254,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
        {
           if(wantAnswer)
           {
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             PublishSingleton = DELTA_SAVE_COMMAND;
             PublishSingleton << PARAM_DELIMITER << REG_SUCC;
           }
@@ -374,7 +266,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
        {
           if(wantAnswer)
           {
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             PublishSingleton = DELTA_DELETE_COMMAND;
             PublishSingleton << PARAM_DELIMITER << REG_SUCC;
           }
@@ -387,7 +279,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
             State.RemoveState((ModuleStates)ds->SensorType,i); // просим класс состояний удалить состояние
           } // for
 
-          deltas.Clear(); // чистим дельты
+          deltas.clear(); // чистим дельты
           SaveDeltas(); // сохраняем дельты
         
        } // DELTA_DELETE_COMMAND
@@ -449,7 +341,7 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
                   
                   if(wantAnswer)
                   {
-                    PublishSingleton.Status = true;
+                    PublishSingleton.Flags.Status = true;
                     PublishSingleton = DELTA_ADD_COMMAND;
                     PublishSingleton << PARAM_DELIMITER << REG_SUCC << PARAM_DELIMITER << (deltas.size() - 1);
                   } // wantAnswer
@@ -467,3 +359,4 @@ bool  DeltaModule::ExecCommand(const Command& command, bool wantAnswer)
   MainController->Publish(this,command);
   return true;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------

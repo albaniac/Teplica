@@ -8,7 +8,7 @@
 #include "InteropStream.h"
 #include "Memory.h"
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
-#ifdef USE_UNIVERSAL_SENSORS
+#ifdef USE_UNIVERSAL_MODULES
 
   #ifdef USE_UNI_REGISTRATION_LINE
     UniRegistrationLine uniRegistrator(UNI_REGISTRATION_PIN);
@@ -18,7 +18,7 @@
     UniPermanentLine uniWiredModules[UNI_WIRED_MODULES_COUNT] = { UNI_WIRED_MODULES };
   #endif
 
-#endif // USE_UNIVERSAL_SENSORS
+#endif // USE_UNIVERSAL_MODULES
 
 #ifdef USE_NRF_GATE
   UniNRFGate nrfGate;
@@ -46,7 +46,7 @@ void ZeroStreamListener::Setup()
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 void ZeroStreamListener::Update(uint16_t dt)
 {
-#ifdef USE_UNIVERSAL_SENSORS
+#ifdef USE_UNIVERSAL_MODULES
 
 
   #if UNI_WIRED_MODULES_COUNT > 0
@@ -57,7 +57,7 @@ void ZeroStreamListener::Update(uint16_t dt)
     }
   #endif
   
-#endif // USE_UNIVERSAL_SENSORS
+#endif // USE_UNIVERSAL_MODULES
 
   UNUSED(dt);
 
@@ -74,7 +74,14 @@ void ZeroStreamListener::Update(uint16_t dt)
   // получаем температуру модуля реального времени
     DS3231Clock rtc = MainController->GetClock();
     Temperature t = rtc.getTemperature();
+
+    // convert to Fahrenheit if needed
+    #ifdef MEASURE_TEMPERATURES_IN_FAHRENHEIT
+     t = Temperature::ConvertToFahrenheit(t);
+    #endif      
+          
     State.UpdateState(StateTemperature,0,(void*)&t);
+    
   }
   #endif 
 
@@ -207,15 +214,39 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         t.toUpperCase();
         if(t == PING_COMMAND) // пинг
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = PONG;
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
         } // if
+        else if(t == F("LIMITS"))
+        {
+          // получить настойки ограничений
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton.Flags.AddModuleIDToAnswer = false;
+            PublishSingleton = t;
+            PublishSingleton << PARAM_DELIMITER;
+            PublishSingleton << MAX_ALERT_RULES;
+            PublishSingleton << PARAM_DELIMITER;
+            PublishSingleton << MAX_DELTAS;
+        }
+        else if(t == F("TUNIT")) // unit for temperatures ( For query use "CTGET=0|TUNIT", answer is "OK=TUNIT|C" for Celsius, "OK=TUNIT|F" for Fahrenheit )
+        {
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton.Flags.AddModuleIDToAnswer = false;
+            PublishSingleton = t;
+            PublishSingleton << PARAM_DELIMITER;
+            #ifdef MEASURE_TEMPERATURES_IN_FAHRENHEIT
+              PublishSingleton << F("F");
+            #else
+              PublishSingleton << F("C");
+            #endif
+            
+        }
         else if(t == F("PSTATE")) // информация о состоянии пинов
         {
-           PublishSingleton.Status = true;
+           PublishSingleton.Flags.Status = true;
            PublishSingleton = "";
-           PublishSingleton.AddModuleIDToAnswer = false;
+           PublishSingleton.Flags.AddModuleIDToAnswer = false;
 
            ControllerState st = WORK_STATUS.GetState();
            for(size_t i=0;i<sizeof(st.PinsState);i++)
@@ -234,9 +265,9 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
            }
            else
            {
-              PublishSingleton.Status = true;
+              PublishSingleton.Flags.Status = true;
               PublishSingleton = GetGUID(command.GetArg(1));
-              PublishSingleton.AddModuleIDToAnswer = false;
+              PublishSingleton.Flags.AddModuleIDToAnswer = false;
            }
            
         }
@@ -248,7 +279,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
             #ifdef USE_NRF_GATE
               
               int level = nrfGate.ScanChannel(ch);
-              PublishSingleton.Status = true;
+              PublishSingleton.Flags.Status = true;
               PublishSingleton = t; 
               PublishSingleton << PARAM_DELIMITER << ch << PARAM_DELIMITER << level;
               
@@ -260,15 +291,15 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         else
         if(t == UNI_RF_CHANNEL_COMMAND)
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = UNI_RF_CHANNEL_COMMAND;
           PublishSingleton << PARAM_DELIMITER;
           PublishSingleton << UniDispatcher.GetRFChannel();
-          PublishSingleton.AddModuleIDToAnswer = false;          
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;          
         }
         else if(t == PINS_COMMAND) {
           // получить информацию по пинам
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = PINS_COMMAND;
           PublishSingleton << PARAM_DELIMITER;
           PublishSingleton << PINS_MAP_SIZE;
@@ -285,16 +316,16 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
           }          
           
         }
-        #if defined(USE_UNIVERSAL_SENSORS) && defined(USE_UNI_REGISTRATION_LINE)
+        #if defined(USE_UNIVERSAL_MODULES) && defined(USE_UNI_REGISTRATION_LINE)
         else
         if(t == UNI_SEARCH) // поиск универсального модуля на линии регистрации
         {
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
           
           if(uniRegistrator.IsModulePresent())
           {
             // датчик найден, отправляем его внутреннее состояние
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
 
             UniRawScratchpad scratch;
             uniRegistrator.CopyScratchpad(&scratch);
@@ -319,16 +350,16 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         else
         if(t == ID_COMMAND)
         {
-          PublishSingleton.Status = true;
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
           PublishSingleton = ID_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << MainController->GetSettings()->GetControllerID();
         }
         else
         if(t == WIRED_COMMAND) // получить количество жёстко указанных в прошивке обычных датчиков
         {
-          PublishSingleton.Status = true;
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
           PublishSingleton = WIRED_COMMAND;
 
           PublishSingleton << PARAM_DELIMITER << UniDispatcher.GetHardCodedSensorsCount(uniTemp);
@@ -342,8 +373,8 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         else
         if(t == UNI_COUNT_COMMAND) // получить количество зарегистрированных универсальных датчиков
         {
-          PublishSingleton.Status = true;
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
           PublishSingleton = UNI_COUNT_COMMAND;
 
           PublishSingleton << PARAM_DELIMITER << UniDispatcher.GetUniSensorsCount(uniTemp);
@@ -359,8 +390,8 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         else
         if(t == SMS_NUMBER_COMMAND) // номер телефона для управления по СМС
         {
-          PublishSingleton.Status = true;
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
           PublishSingleton = SMS_NUMBER_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << MainController->GetSettings()->GetSmsPhoneNumber();
         }
@@ -381,8 +412,6 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
 
             size_t modulesCount = MainController->GetModulesCount(); // получаем кол-во зарегистрированных модулей
 
-          //  const char* noDataByte = "FF"; // байт - нет данных с датчика
-
             // пробегаем по всем модулям
             String moduleName;
             moduleName.reserve(20);
@@ -392,8 +421,6 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
               yield(); // немного даём поработать другим модулям
 
               AbstractModule* mod = MainController->GetModule(i);
-             // if(mod == this) // себя пропускаем
-             //   continue;
 
               // проверяем, не пустой ли модуль. для этого смотрим, сколько у него датчиков вообще
               uint8_t tempCount = mod->State.GetStateCount(StateTemperature);
@@ -423,27 +450,36 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
             
             // 1 байт - флаги о том, какие датчики есть
              pStream->write(WorkStatus::ToHex(flags));
+             yield(); // немного даём поработать другим модулям
             
             // 1 байт - длина ID модуля
               moduleName = mod->GetID();
               uint8_t mnamelen = moduleName.length();
               pStream->write(WorkStatus::ToHex(mnamelen));
-            // далее идёт имя модуля
+              yield(); // немного даём поработать другим модулям
+             // далее идёт имя модуля
               pStream->write(moduleName.c_str());
-            
+              yield(); // немного даём поработать другим модулям
+
             
               // затем идут данные из модуля, сначала - показания температуры, если они есть
               PrintSensorsValues(tempCount,StateTemperature,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идёт кол-во датчиков влажности, если они есть
               PrintSensorsValues(humCount,StateHumidity,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идут показания датчиков освещенности, если они есть
               PrintSensorsValues(lightCount,StateLuminosity,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идут моментальные показания датчиков расхода воды, если они есть
               PrintSensorsValues(waterflowCountInstant,StateWaterFlowInstant,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идут накопительные показания датчиков расхода воды, если они есть
               PrintSensorsValues(waterflowCount,StateWaterFlowIncremental,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идут датчики влажности почвы, если они есть
               PrintSensorsValues(soilMoistureCount,StateSoilMoisture,mod,pStream);
+              yield(); // немного даём поработать другим модулям
               // затем идут датчики pH, если они есть
               PrintSensorsValues(phCount,StatePH,mod,pStream);
             
@@ -459,8 +495,8 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
         } // STATUS_COMMAND     
         else if(t == REGISTERED_MODULES_COMMAND) // пролистать зарегистрированные модули
         {
-          PublishSingleton.AddModuleIDToAnswer = false;
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = F("");
           size_t cnt = MainController->GetModulesCount();
           for(size_t i=0;i<cnt;i++)
@@ -506,7 +542,14 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
 
         if(t == RESET_COMMAND)
         {
+          #if TARGET_BOARD == DUE_BOARD
+            const int RSTC_KEY = 0xA5;
+            RSTC->RSTC_CR = RSTC_CR_KEY(RSTC_KEY) | RSTC_CR_PROCRST | RSTC_CR_PERRST;
+            while (true);
+          #else
           resetFunc(); // ресетимся, писать в ответ ничего не надо
+          #endif
+          
         } // RESET_COMMAND
         else
         if(t == F("AUTO")) // CTSET=0|AUTO - перевести в автоматический режим
@@ -515,13 +558,13 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
           PublishSingleton = "";
 
           // выполняем команды
-          ModuleInterop.QueryCommand(ctSET, F("STATE|MODE|AUTO"),false);//,false);
-          ModuleInterop.QueryCommand(ctSET, F("WATER|MODE|AUTO"),false);//,false);
-          ModuleInterop.QueryCommand(ctSET, F("LIGHT|MODE|AUTO"),false);//,false);
+          ModuleInterop.QueryCommand(ctSET, F("STATE|MODE|AUTO"),false);
+          ModuleInterop.QueryCommand(ctSET, F("WATER|MODE|AUTO"),false);
+          ModuleInterop.QueryCommand(ctSET, F("LIGHT|MODE|AUTO"),false);
 
           // говорим, что выполнили
           PublishSingleton = REG_SUCC;
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
         
         } // AUTO
                 
@@ -547,7 +590,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
             // регистрируем новый модуль
             RemoteModule* remMod = new RemoteModule(reqID); 
             c->RegisterModule(remMod);
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             PublishSingleton = REG_SUCC; 
             PublishSingleton << PARAM_DELIMITER << reqID;
 
@@ -561,7 +604,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
           GlobalSettings* sett = MainController->GetSettings();
           sett->SetSmsPhoneNumber(command.GetArg(1));
 //          sett->Save();
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = SMS_NUMBER_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
           
@@ -576,16 +619,16 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
             nrfGate.SetChannel(ch);
           #endif
           
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = UNI_RF_CHANNEL_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
         
        }
-        #if defined(USE_UNIVERSAL_SENSORS) && defined(USE_UNI_REGISTRATION_LINE)
+        #if defined(USE_UNIVERSAL_MODULES) && defined(USE_UNI_REGISTRATION_LINE)
         else
         if(t == UNI_REGISTER) // зарегистрировать универсальный модуль, висящий на линии
         {
-          PublishSingleton.AddModuleIDToAnswer = false;
+          PublishSingleton.Flags.AddModuleIDToAnswer = false;
 
               if(uniRegistrator.IsModulePresent())
               {
@@ -613,7 +656,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
                 {
                   uniRegistrator.Register();
                               
-                  PublishSingleton.Status = true;
+                  PublishSingleton.Flags.Status = true;
                   PublishSingleton = REG_SUCC;
                 } // if
                 else
@@ -637,7 +680,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
        {
           //String newID = command.GetArg(1);
           MainController->GetSettings()->SetControllerID((uint8_t)atoi(command.GetArg(1)));
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = ID_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
         
@@ -706,7 +749,7 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
              DS3231Clock cl = MainController->GetClock();
              cl.setTime(sec.toInt(),minute.toInt(),hour.toInt(),dow,dayint,monthint,yearint);
 
-             PublishSingleton.Status = true;
+             PublishSingleton.Flags.Status = true;
              PublishSingleton = REG_SUCC;
          } // if
        }
@@ -724,9 +767,11 @@ bool  ZeroStreamListener::ExecCommand(const Command& command, bool wantAnswer)
  if(canPublish) // можем публиковать
   MainController->Publish(this,command);
  else
-  PublishSingleton = F(""); // просто очищаем общий буфер
+ {
+  PublishSingleton.Reset();
+ }
     
-  return PublishSingleton.Status;
+  return PublishSingleton.Flags.Status;
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
 

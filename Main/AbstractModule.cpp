@@ -3,86 +3,103 @@
 #ifdef USE_PH_MODULE
 #include "PHModule.h"
 #endif
-
+#ifdef USE_TEMP_SENSORS
+#include "TempSensors.h"
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(const String& src)
 {
   this->Text = src;
   return *this;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(const char* src)
 {
   this->Text = src;
   return *this;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(char src)
 {
   this->Text = src;
   return *this;  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(const __FlashStringHelper *src)
 {
   this->Text = src;
   return *this;    
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(unsigned long src)
 {
   this->Text = src;
   return *this;    
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(int src)
 {
   this->Text = src;
   return *this;      
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator=(long src)
 {
   this->Text = src;
   return *this;      
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(const String& src)
 {
   this->Text += src;
   return *this;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(const char* src)
 {
   this->Text += src;
   return *this;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(char src)
 {
   this->Text += src;
   return *this;  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(const __FlashStringHelper *src)
 {
   this->Text += src;
   return *this;    
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(unsigned long src)
 {
   this->Text += src;
   return *this;    
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(int src)
 {
   this->Text += src;
   return *this;      
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(unsigned int src)
 {
   this->Text += src;
   return *this;        
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 PublishStruct& PublishStruct::operator<<(long src)
 {
   this->Text += src;
   return *this;      
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 WorkStatus::WorkStatus()
 {
   memset(statuses,0,sizeof(uint8_t)*STATUSES_BYTES);
@@ -90,28 +107,22 @@ WorkStatus::WorkStatus()
   memset(&State,0,sizeof(State));
   memset(&UsedPins,0,sizeof(UsedPins));
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
 void WorkStatus::InitMcpI2CExtenders()
-{
-  //Serial.println("InitMcpI2CExtenders");
-  
+{  
   byte mcp_addresses[] = {MCP23017_ADDRESSES};
   
   for(byte i=0;i<COUNT_OF_MCP23017_EXTENDERS;i++)
   {
     Adafruit_MCP23017* bank = new Adafruit_MCP23017;
-
-    //Serial.print("init MCP ");
-   // Serial.println(mcp_addresses[i]);
     
     bank->begin(mcp_addresses[i]);
-
-    //Serial.println("MCP inited");
     
     mcpI2CExtenders[i] = bank;
   }  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 Adafruit_MCP23017* WorkStatus::GetMCP_I2C_ByAddress(byte addr)
 {
   for(byte i=0;i<COUNT_OF_MCP23017_EXTENDERS;i++)
@@ -123,6 +134,7 @@ Adafruit_MCP23017* WorkStatus::GetMCP_I2C_ByAddress(byte addr)
 
   return NULL;  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::MCP_I2C_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
 {
   Adafruit_MCP23017* bank = GetMCP_I2C_ByAddress(mcpAddress);
@@ -132,24 +144,18 @@ void WorkStatus::MCP_I2C_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
   bank->pinMode(mpcChannel,mode);
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::MCP_I2C_PinWrite(byte mcpAddress, byte mpcChannel, byte level)
 {
   Adafruit_MCP23017* bank = GetMCP_I2C_ByAddress(mcpAddress);
   if(!bank)
     return; 
- /*    
-  Serial.print("write ");
-  Serial.print(level);
-  Serial.print(" to MCP with address ");
-  Serial.print(mcpAddress);
-  Serial.print(" and channel ");
-  Serial.println(mpcChannel);
-*/
+
   bank->digitalWrite(mpcChannel,level);
 }
 
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
 void WorkStatus::InitMcpSPIExtenders()
 {
@@ -162,6 +168,7 @@ void WorkStatus::InitMcpSPIExtenders()
     mcpSPIExtenders[i] = bank;
   }
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::MCP_SPI_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
 {
   MCP23S17* bank = GetMCP_SPI_ByAddress(mcpAddress);
@@ -171,6 +178,7 @@ void WorkStatus::MCP_SPI_PinMode(byte mcpAddress, byte mpcChannel, byte mode)
   bank->pinMode(mpcChannel,mode);
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::MCP_SPI_PinWrite(byte mcpAddress, byte mpcChannel, byte level)
 {
   MCP23S17* bank = GetMCP_SPI_ByAddress(mcpAddress);
@@ -179,7 +187,7 @@ void WorkStatus::MCP_SPI_PinWrite(byte mcpAddress, byte mpcChannel, byte level)
 
   bank->digitalWrite(mpcChannel,level);
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 MCP23S17* WorkStatus::GetMCP_SPI_ByAddress(byte addr)
 {
   for(byte i=0;i<COUNT_OF_MCP23S17_EXTENDERS;i++)
@@ -192,7 +200,7 @@ MCP23S17* WorkStatus::GetMCP_SPI_ByAddress(byte addr)
   return NULL;
 }
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::PinMode(byte pinNumber,byte mode, bool setMode)
 {
 
@@ -213,9 +221,10 @@ void WorkStatus::PinMode(byte pinNumber,byte mode, bool setMode)
   }
     
 
-   if(setMode)
+   if(setMode && (pinNumber < VIRTUAL_PIN_START_NUMBER))
     pinMode(pinNumber,mode);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::SaveWindowState(byte channel, byte state)
 {
   if(channel > 31)
@@ -232,6 +241,7 @@ void WorkStatus::SaveWindowState(byte channel, byte state)
      State.WindowsState |= (1 << channel);
      
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::SaveLightChannelState(byte channel, byte state)
 {
   if(channel > 7)
@@ -244,6 +254,7 @@ void WorkStatus::SaveLightChannelState(byte channel, byte state)
   if(state == LIGHT_RELAY_ON)
     State.LightChannelsState |= (1 << channel);  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::SaveWaterChannelState(byte channel, byte state)
 {
   if(channel > 15)
@@ -256,6 +267,7 @@ void WorkStatus::SaveWaterChannelState(byte channel, byte state)
   if(state == WATER_RELAY_ON)
     State.WaterChannelsState |= (1 << channel);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::PinWrite(byte pin, byte level)
 {
   if(pin < VIRTUAL_PIN_START_NUMBER) // если у нас номер пина меньше, чем номер первого виртуального пина, то - пишем в него
@@ -296,18 +308,21 @@ void WorkStatus::PinWrite(byte pin, byte level)
   if(level)
     State.PinsState[byte_num] |= (1 << bit_num);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::CopyStatusModes()
 {
   CopyStatusMode(WINDOWS_MODE_BIT);
   CopyStatusMode(WATER_MODE_BIT);
   CopyStatusMode(LIGHT_MODE_BIT);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::CopyStatusMode(uint8_t bitNum)
 {
   uint8_t byte_num = bitNum/8;
   uint8_t bit_num = bitNum%8;
   bitWrite(lastStatuses[byte_num],bit_num,bitRead(statuses[byte_num],bit_num));  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool WorkStatus::IsStatusModeChanged(uint8_t bitNum)
 {
   uint8_t byte_num = bitNum/8;
@@ -315,6 +330,7 @@ bool WorkStatus::IsStatusModeChanged(uint8_t bitNum)
 
   return bitRead(statuses[byte_num],bit_num) != bitRead(lastStatuses[byte_num],bit_num);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::SetStatus(uint8_t bitNum, bool bOn)
 {    
   uint8_t byte_num = bitNum/8;
@@ -322,22 +338,26 @@ void WorkStatus::SetStatus(uint8_t bitNum, bool bOn)
 
   bitWrite(statuses[byte_num],bit_num,(bOn ? 1 : 0));
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::SetModeUnchanged()
 {
   memcpy(lastStatuses,statuses,sizeof(statuses));
   SetStatus(WINDOWS_POS_CHANGED_BIT,0);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool WorkStatus::IsModeChanged()
 {
   return IsStatusModeChanged(WINDOWS_MODE_BIT) || IsStatusModeChanged(WATER_MODE_BIT) || IsStatusModeChanged(LIGHT_MODE_BIT) ||
   GetStatus(WINDOWS_POS_CHANGED_BIT);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool WorkStatus::GetStatus(uint8_t bitNum)
 {
   uint8_t byte_num = bitNum/8;
   uint8_t bit_num = bitNum%8;
   return bitRead(statuses[byte_num],bit_num) ? true : false; 
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 byte WorkStatus::MakeNum(char ch) 
 {
   if((ch >= '0') && (ch <= '9'))
@@ -366,6 +386,7 @@ byte WorkStatus::MakeNum(char ch)
     default: return 16;
     }
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 byte WorkStatus::FromHex(const char* buff)
 {
   byte tens = WorkStatus::MakeNum(*buff++);
@@ -376,8 +397,9 @@ byte WorkStatus::FromHex(const char* buff)
     
   return  (tens * 16) + ones; 
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 const char HEX_CHARS[]  PROGMEM = {"0123456789ABCDEF"};
+//--------------------------------------------------------------------------------------------------------------------------------
 const char* WorkStatus::ToHex(int i)
 {  
 
@@ -397,6 +419,7 @@ const char* WorkStatus::ToHex(int i)
   //return Out; 
   return WORK_STATUS_HEX_HOLDER;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void WorkStatus::WriteStatus(Stream* pStream, bool bAsTextHex)
 {
   if(!pStream)
@@ -412,9 +435,9 @@ void WorkStatus::WriteStatus(Stream* pStream, bool bAsTextHex)
     }
   } // for
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 WorkStatus WORK_STATUS; // экземпляр класса состояний
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void OneState::Update(void* newData) // обновляем внутреннее состояние
 {
      switch(Type)
@@ -477,6 +500,7 @@ void OneState::Update(void* newData) // обновляем внутреннее 
     } // switch
  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void OneState::Init(ModuleStates state, uint8_t idx)
 {
     Type = state;
@@ -532,6 +556,7 @@ void OneState::Init(ModuleStates state, uint8_t idx)
     } // switch
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::operator String() // выводим текущие значения как строку
 {
     switch(Type)
@@ -565,6 +590,7 @@ OneState::operator String() // выводим текущие значения к
 
     return String();
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState& OneState::operator=(const OneState& rhs)
 {
 
@@ -573,9 +599,6 @@ OneState& OneState::operator=(const OneState& rhs)
 
   if(Type != rhs.Type)
   {
-  #ifdef _DEBUG
-  Serial.println(F("[ERR] OneState::operator= - called with different types!"));
-  #endif
     return *this;
   }
 
@@ -633,6 +656,7 @@ OneState& OneState::operator=(const OneState& rhs)
 
   return *this;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool OneState::IsChanged()
 {
       switch(Type)
@@ -681,11 +705,12 @@ bool OneState::IsChanged()
  return false;
   
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 ModuleStates OneState::GetType(const String& stringType)
 {
   return GetType(stringType.c_str());
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 String OneState::GetUnit()
 {
  switch(Type)
@@ -694,26 +719,31 @@ String OneState::GetUnit()
       return String();
 
     case StateTemperature:
-      return F(" C");
+    #ifdef MEASURE_TEMPERATURES_IN_FAHRENHEIT
+      return UNIT_FAHRENHEIT;
+    #else
+      return UNIT_CELSIUS;
+    #endif
 
     case StateHumidity:
     case StateSoilMoisture:
       return F("%");
     
     case StatePH:
-      return F(" pH");
+      return UNIT_PH;
 
     case StateLuminosity:
-      return F(" люкс");
+      return UNIT_LUX;
 
     case StateWaterFlowIncremental:
     case StateWaterFlowInstant:
-      return  F(" л");
+      return  UNIT_LITRES;
       
   } 
 
     return String();
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool OneState::HasData()
 {
    switch(Type)
@@ -746,6 +776,7 @@ bool OneState::HasData()
 
   return false;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 uint8_t OneState::GetRawData(byte* outBuffer)
 {
   switch(Type)
@@ -818,6 +849,7 @@ uint8_t OneState::GetRawData(byte* outBuffer)
   }
   return 0;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 String OneState::GetStringType(ModuleStates type)
 {
   switch(type)
@@ -849,7 +881,7 @@ String OneState::GetStringType(ModuleStates type)
 
   return PROP_NONE;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 ModuleStates OneState::GetType(const char* stringType)
 {
   if(!strcmp_P(stringType, (const char*) PROP_TEMP))
@@ -875,6 +907,7 @@ ModuleStates OneState::GetType(const char* stringType)
 
   return StateUnknown;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::~OneState()
 {
   // подчищаем за собой
@@ -922,63 +955,52 @@ OneState::~OneState()
  
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::operator HumidityPair()
 {
   if(!(Type == StateHumidity || Type == StateSoilMoisture || Type == StatePH)) // влажность можно получить только для трёх типов датчиков
   {
-  #ifdef _DEBUG
-    Serial.println(F("[ERR] OneState:operator HumidityPair() - !StateHumidity"));
-  #endif
-  return HumidityPair(Humidity(),Humidity()); // undefined behaviour
+    return HumidityPair(Humidity(),Humidity()); // undefined behaviour
   }
 
     return HumidityPair(*((Humidity*)PreviousData),*((Humidity*)Data));  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::operator TemperaturePair()
 {
   if(Type != StateTemperature)
   {
-  #ifdef _DEBUG
-    Serial.println(F("[ERR] OneState:operator TemperaturePair() - !StateTemperature"));
-  #endif
-  return TemperaturePair(Temperature(),Temperature()); // undefined behaviour
+    return TemperaturePair(Temperature(),Temperature()); // undefined behaviour
   }
 
     return TemperaturePair(*((Temperature*)PreviousData),*((Temperature*)Data));
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::operator LuminosityPair()
 {
   if(Type != StateLuminosity)
   {
-  #ifdef _DEBUG
-    Serial.println(F("[ERR] OneState:operator LuminosityPair() - !StateLuminosity"));
-  #endif
-  return LuminosityPair(0,0); // undefined behaviour
+    return LuminosityPair(0,0); // undefined behaviour
   }
   return LuminosityPair(*((long*)PreviousData),*((long*)Data));   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState::operator WaterFlowPair()
 {
   if(!(Type == StateWaterFlowInstant || Type == StateWaterFlowIncremental))
   {
-  #ifdef _DEBUG
-    Serial.println(F("[ERR] OneState:operator WaterFlowPair() - !StateWaterFlow"));
-  #endif
-  return WaterFlowPair(0,0); // undefined behaviour
+    return WaterFlowPair(0,0); // undefined behaviour
   }
   return WaterFlowPair(*((unsigned long*)PreviousData),*((unsigned long*)Data));   
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState operator-(const OneState& left, const OneState& right)
 {
   OneState result(left.Type,left.Index); // инициализируем
 
   if(left.Type != right.Type)
   {
-  #ifdef _DEBUG
-    Serial.println(F("[ERR] OneState operator- - Different types!"));
-  #endif
-  return result; // undefined behaviour
+    return result; // undefined behaviour
   }
   
       switch(left.Type)
@@ -1058,18 +1080,19 @@ OneState operator-(const OneState& left, const OneState& right)
       
   return result;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 Temperature::Temperature()
 {
   Value = NO_TEMPERATURE_DATA;
   Fract = 0;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 Temperature::operator String() const
 {
     sprintf_P(SD_BUFFER,(const char*) F("%d,%02u"), Value,Fract);
     return SD_BUFFER;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 Temperature operator-(const Temperature& left, const Temperature& right) 
 {
   
@@ -1100,14 +1123,17 @@ Temperature operator-(const Temperature& left, const Temperature& right)
   
     return Temperature(res/100, res%100); // дельта у нас всегда положительная.
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 ModuleState::ModuleState() : supportedStates(0)
 {
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool ModuleState::HasState(ModuleStates state)
 {
   return ( (supportedStates & state) == state);
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void ModuleState::RemoveState(ModuleStates state, uint8_t idx)
 {
   size_t cnt = states.size();
@@ -1137,6 +1163,7 @@ void ModuleState::RemoveState(ModuleStates state, uint8_t idx)
     supportedStates &= ~state; // инвертируем все биты в state, кроме выставленного, и применяем эту маску к supportedStates. 
     // В результате в supportedStates очистятся только те биты, которые были выставлены в state.
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState* ModuleState::AddState(ModuleStates state, uint8_t idx)
 {
     supportedStates |= state;
@@ -1145,6 +1172,7 @@ OneState* ModuleState::AddState(ModuleStates state, uint8_t idx)
     
     return s;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 bool ModuleState::HasChanges()
 {
   size_t sz = states.size();
@@ -1160,6 +1188,7 @@ bool ModuleState::HasChanges()
   return false;
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 void ModuleState::UpdateState(ModuleStates state, uint8_t idx, void* newData)
 {
   size_t sz = states.size();
@@ -1172,11 +1201,8 @@ void ModuleState::UpdateState(ModuleStates state, uint8_t idx, void* newData)
         return;
       } // if
   } // for
-
-#ifdef _DEBUG
-Serial.println(F("[ERR] - UpdateState FAILED!"));
-#endif  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 uint8_t ModuleState::GetStateCount(ModuleStates state)
 {
   uint8_t result = 0;
@@ -1191,6 +1217,7 @@ uint8_t ModuleState::GetStateCount(ModuleStates state)
   
   return result;
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState* ModuleState::GetStateByOrder(ModuleStates state, uint8_t orderNum)
 {
   size_t sz = states.size();
@@ -1209,6 +1236,7 @@ OneState* ModuleState::GetStateByOrder(ModuleStates state, uint8_t orderNum)
 
     return NULL;  
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 OneState* ModuleState::GetState(ModuleStates state, uint8_t idx)
 {
   size_t sz = states.size();
@@ -1221,6 +1249,110 @@ OneState* ModuleState::GetState(ModuleStates state, uint8_t idx)
 
     return NULL;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 char SD_BUFFER[SD_BUFFER_LENGTH] = {0};
+//--------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_FEEDBACK_MANAGER
+//--------------------------------------------------------------------------------------------------------------------------------
+FeedbacksManager::FeedbacksManager()
+{
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void FeedbacksManager::Setup()
+{
+  #ifdef USE_TEMP_SENSORS
+  waitingWindowsFeedbackTimer = 0;
+  #endif
+  
+  flags.inWaitingWindowsFeedbackMode = true;
+  flags.isAnyWindowsFeedbackReceived = false;
+  flags.isFirstCallOfWindowsFeedback = true;
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void FeedbacksManager::Update(uint16_t dt)
+{
+  #ifdef USE_TEMP_SENSORS
+    if(flags.inWaitingWindowsFeedbackMode)
+    {
+      waitingWindowsFeedbackTimer += dt;
+      if(waitingWindowsFeedbackTimer > FEEDBACK_MANAGER_WAIT_TIME)
+      {
+        // таймаут получения обратной связи
+        WindowFeedbackDone();
+      }
+    }
+  #endif // USE_TEMP_SENSORS
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void FeedbacksManager::WindowFeedbackDone()
+{
+  // эту функцию вызывают, когда пришла (или не пришла) информация по обратной связи от окон.
+  // Здесь мы просто сбрасываем таймер, и вызываем функцию закрытия окон, если ни один пакет
+  // по обратной связи канала окна не был обработан
+  
+    flags.inWaitingWindowsFeedbackMode = false;
+    
+    if(!flags.isAnyWindowsFeedbackReceived) // если не получили ни одного пакета 
+    {
+      if(flags.isFirstCallOfWindowsFeedback) // и первый раз вызвали эту функцию
+      {
+        // то надо принудительно закрыть окна при стартке
+        flags.isFirstCallOfWindowsFeedback = false;
+        
+        #ifdef USE_TEMP_SENSORS
+          //Serial.println(F("No feedback, close windows..."));
+          WindowModule->CloseAllWindows();
+        #endif
+      }
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void FeedbacksManager::WindowFeedback(uint8_t windowNumber, bool isCloseSwitchTriggered, bool isOpenSwitchTriggered, bool hasPosition, uint8_t positionPercents)
+{
+  #ifdef USE_TEMP_SENSORS
+  
+    flags.isAnyWindowsFeedbackReceived = true; // говорим, что получили инфу по обратной связи по крайней мере для одного окна
+    
+    WindowModule->WindowFeedback(windowNumber,isCloseSwitchTriggered,isOpenSwitchTriggered,hasPosition,positionPercents, flags.inWaitingWindowsFeedbackMode);
+  #endif
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+bool FeedbacksManager::IsWaitingForFirstWindowsFeedback()
+{
+  #ifdef USE_TEMP_SENSORS
+    return flags.inWaitingWindowsFeedbackMode;
+  #else
+    return false;
+  #endif  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+FeedbacksManager FeedbackManager;
+//--------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_FEEDBACK_MANAGER
+//--------------------------------------------------------------------------------------------------------------------------------
+#if defined(_DEBUG) || defined(WIFI_DEBUG) || defined(GSM_DEBUG_MODE) || defined(LOGGING_DEBUG_MODE) || defined(ETHERNET_DEBUG) || defined(WATER_DEBUG) || defined(NRF_DEBUG) || defined(RS485_DEBUG) || defined(UNI_DEBUG) || defined(PH_DEBUG) || defined(IOT_DEBUG) || defined(HTTP_DEBUG) || defined(MQTT_DEBUG)
+
+  #if defined(USE_WIFI_MODULE) || defined(USE_SMS_MODULE)
+  #include "CoreTransport.h"
+  #endif
+
+void DebugLog(const String& str)
+{
+  for(size_t i=0;i<str.length();i++)
+  {
+    #ifdef USE_WIFI_MODULE
+      ESP.readFromStream();
+    #endif
+
+   #ifdef USE_SMS_MODULE
+    SIM800.readFromStream();
+   #endif     
+    
+    Serial.write(str[i]);
+  }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+#endif
 

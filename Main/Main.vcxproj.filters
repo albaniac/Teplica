@@ -42,6 +42,24 @@
     <ClInclude Include="CompositeCommandsModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Configuration_DEBUG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration_DUE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration_MEGA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration_MEGA_MiniBoard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration_Shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreTransport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DeltaModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -99,6 +117,9 @@
     <ClInclude Include="LuminosityModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Max44009.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MCP23017.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -109,6 +130,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModuleController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MODULE_FISH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NextionController.h">
@@ -127,9 +151,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PushButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RemoteModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReservationModule.h">
@@ -156,10 +177,10 @@
     <ClInclude Include="StatModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TCPClient.h">
+    <ClInclude Include="TempSensors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TempSensors.h">
+    <ClInclude Include="TFTModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TimerModule.h">
@@ -169,6 +190,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UniversalSensors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UTFTMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UTFTRus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UTFT_Buttons_Rus.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WaterflowModule.h">
@@ -204,6 +234,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CompositeCommandsModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreTransport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeltaModule.cpp">
@@ -254,6 +287,9 @@
     <ClCompile Include="LuminosityModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Max44009.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MCP23017.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -264,6 +300,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ModuleController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MODULE_FISH.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NextionController.cpp">
@@ -284,13 +323,19 @@
     <ClCompile Include="PushButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RemoteModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ReservationModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RussianFonts.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SensorFont.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SevenSegNumFontMDS.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SHT1x.cpp">
@@ -308,16 +353,40 @@
     <ClCompile Include="StatModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TCPClient.cpp">
+    <ClCompile Include="TempSensors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TempSensors.cpp">
+    <ClCompile Include="TFTModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tft_back_button.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tft_light_button.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tft_options_button.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tft_water_button.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tft_windows_button.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TimerModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="UniversalSensors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UTFTMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UTFTRus.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UTFT_Buttons_Rus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WaterflowModule.cpp">

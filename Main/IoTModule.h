@@ -3,20 +3,8 @@
 
 #include "AbstractModule.h"
 #include "IoT.h"
-
-/*
-typedef struct
-{
-  byte type;
-  byte index;
-  const char* module;
-} IoTSensorData;
-*/
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 class IoTModule : public AbstractModule // модуль отсылки данных в IoT-хранилища
-#if defined(USE_IOT_MODULE) && defined(IOT_UNIT_TEST)
-, public IoTGate
-#endif
 {
   private:
 
@@ -40,10 +28,6 @@ class IoTModule : public AbstractModule // модуль отсылки данн�
 
   AbstractModule* FindModule(byte index);
   
-#endif  
-
-#if defined(USE_IOT_MODULE) && defined(IOT_UNIT_TEST)
-    virtual void SendData(IoTService service,uint16_t dataLength, IOT_OnWriteToStream writer, IOT_OnSendDataDone onDone);
 #endif
   
   public:
@@ -59,6 +43,5 @@ class IoTModule : public AbstractModule // модуль отсылки данн�
  #endif
 
 };
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #endif
