@@ -283,6 +283,8 @@ AlertModule alertsModule;
 
   ExternalWatchdogSettings watchdogSettings;
 #endif
+
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
@@ -292,7 +294,7 @@ void setup()
 #endif
 
   Serial.begin(SERIAL_BAUD_RATE); // запускаем Serial на нужной скорости
-
+  Serial.println(F("Setup start"));
   // инициализируем память (EEPROM не надо, а вот I2C - надо)
   MemInit();  
 
@@ -432,6 +434,7 @@ void setup()
   #ifdef USE_LOG_MODULE
     controller.Log(&logModule,READY); // печатаем в файл действий строчку Ready, которая скажет нам, что мега стартовала
   #endif
+	Serial.println(F("Setup End"));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // эта функция вызывается после обновления состояния каждого модуля.
