@@ -1483,7 +1483,7 @@ void TFTIdleScreen::setup(TFTMenu* menuManager)
   int sensorsTop = availStatusBoxes ? (INFO_BOX_V_SPACING + INFO_BOX_HEIGHT + SENSOR_BOX_V_SPACING) : SENSOR_BOX_V_SPACING;
   int sensorBoxesPlacedInLine = 0;
   int createdSensorIndex = 0;
-
+  
   for(int i=0;i<TFT_SENSOR_BOXES_COUNT;i++)
   {
 
