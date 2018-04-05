@@ -107,8 +107,8 @@ const HumidityAnswer& DHTSupport::read(uint8_t pin, DHTType sensorType)
         
   } // for
 
-  pinMode(pin, OUTPUT);
-  digitalWrite(pin, HIGH); // поднимаем линию, говоря датчику, что он свободен
+  //pinMode(pin, OUTPUT);
+  //digitalWrite(pin, HIGH); // поднимаем линию, говоря датчику, что он свободен
 
 
   // проверяем принятые данные
