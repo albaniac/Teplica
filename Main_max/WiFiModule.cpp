@@ -1,18 +1,81 @@
 #include "WiFiModule.h"
 #include "ModuleController.h"
 #include "InteropStream.h"
+#include "Memory.h"
 //--------------------------------------------------------------------------------------------------------------------------------
-#define WIFI_DEBUG_WRITE(s,ca) { Serial.print(String(F("[CA] ")) + String((ca)) + String(F(": ")));  Serial.println((s)); }
-#define CHECK_QUEUE_TAIL(v) { if(!actionsQueue.size()) {Serial.println(F("[QUEUE IS EMPTY!]"));} else { if(actionsQueue[actionsQueue.size()-1]!=(v)){Serial.print(F("NOT RIGHT TAIL, WAITING: ")); Serial.print((v)); Serial.print(F(", ACTUAL: "));Serial.println(actionsQueue[actionsQueue.size()-1]); } } }
-#define CIPSEND_COMMAND F("AT+CIPSENDBUF=") // F("AT+CIPSEND=")
+#ifdef USE_WIFI_MODULE
 //--------------------------------------------------------------------------------------------------------------------------------
 #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::EnsureIoTProcessed(bool success)
+{
+   if(iotDone) 
+   {
+      // да, нас вызывали для отсыла данных в IoT, но что-то пошло не так
+      iotDone({success,iotService});
+      iotDone = NULL;
+      iotWriter = NULL;
+   }    
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::sendDataToThingSpeak()
+{
+  thingSpeakDataWritten = false;
+  
+  if(!thingSpeakClient.connected() || !ESP.ready())
+  {
+    EnsureIoTProcessed(false);
+    return;
+  }
+
+  // тут посылаем данные в клиент для ThingSpeak
+  delete streamBuffer;
+  streamBuffer = new String();
+  // резервируем нужное кол-во памяти
+  streamBuffer->reserve(thingSpeakDataLength + 150);
+
+  IoTSettings iotSettings = MainController->GetSettings()->GetIoTSettings();
+  
+  *streamBuffer = F("GET /update?headers=false&api_key=");
+  *streamBuffer += iotSettings.ThingSpeakChannelID;
+  *streamBuffer += F("&");
+
+  // просим, чтобы записали данные в нас
+  iotWriter(this);
+
+  *streamBuffer += F(" HTTP/1.1\r\nAccept: */*\r\nUser-Agent: ");
+  *streamBuffer += IOT_USER_AGENT;
+  *streamBuffer += F("\r\nHost: ");
+  *streamBuffer += THINGSPEAK_HOST;
+  *streamBuffer += F("\r\n\r\n");
+
+  #ifdef WIFI_DEBUG
+    DEBUG_LOGLN(*streamBuffer);
+  #endif
+
+  // теперь пишем в клиент
+  thingSpeakClient.write((uint8_t*) streamBuffer->c_str(),streamBuffer->length());
+
+  // тут сразу можно удалять буфер, т.к. он уже скопирован в клиент
+  delete streamBuffer;
+  streamBuffer = new String();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void WiFiModule::SendData(IoTService service,uint16_t dataLength, IOT_OnWriteToStream writer, IOT_OnSendDataDone onDone)
 {
+  thingSpeakDataWritten = false;
+  
+  if(!ESP.ready())
+  {
+    onDone({false,service});
+    return;
+  }
+  
+    thingSpeakDataLength = dataLength;
+  
     // тут смотрим, можем ли мы обработать запрос на отсыл данных в IoT
     IoTSettings iotSettings = MainController->GetSettings()->GetIoTSettings();
 
-    //#if defined(THINGSPEAK_ENABLED) 
     if(iotSettings.Flags.ThingSpeakEnabled && strlen(iotSettings.ThingSpeakChannelID)) // включен один сервис хотя бы
     {
 
@@ -21,42 +84,15 @@ void WiFiModule::SendData(IoTService service,uint16_t dataLength, IOT_OnWriteToS
       iotDone = onDone;
       iotService = service;
 
-      #ifdef WIFI_DEBUG
-        Serial.println(F("Requested to write data to IoT using ESP..."));
-      #endif
-
       // Тут формируем данные для запроса
       switch(service)
       {
          case iotThingSpeak:
          {
-          // попросили отослать данные через ThingSpeak
-          delete iotDataHeader;
-          delete iotDataFooter;
-          iotDataHeader = new String();
-          iotDataFooter = new String();
-
-          // формируем запрос
-          *iotDataHeader = F("GET /update?api_key=");
-          *iotDataHeader += iotSettings.ThingSpeakChannelID;
-          *iotDataHeader += F("&");
-
-          *iotDataFooter = F(" HTTP/1.1\r\nAccept: */*\r\nUser-Agent: ");
-          *iotDataFooter += IOT_USER_AGENT;
-          *iotDataFooter += F("\r\nHost: ");
-          *iotDataFooter += THINGSPEAK_HOST;
-          *iotDataFooter += F("\r\n\r\n");
-
-          // теперь вычисляем, сколько всего данных будет
-          iotDataLength = iotDataHeader->length() + iotDataFooter->length() + dataLength;
-
-          // теперь можно добавлять в очередь запрос на обработку. Но ситуация с очередью следующая:
-          // мы не знаем, чем сейчас занят ESP, и что у нас в очереди. Мы знаем только, что нельзя разбивать
-          // команды wfaCIPSEND и wfaACTUALSEND, поскольку после отработки первой в очередь следом ОБЯЗАНА
-          // быть помещена вторая, иначе - аллес, т.к. эти команды используются для отсыла ответа на полученную команду.
-          // следовательно, всё, что мы можем сделать - это взвести флаг, что как только очередь освободится - мы должны
-          // поместить в неё команду на отсыл данных в IoT.
-          flags.wantIoTToProcess = true;
+          // попросили отослать данные через ThingSpeak          
+          // пробуем законнектиться
+          String tsIP = THINGSPEAK_IP;
+          thingSpeakClient.connect(tsIP.c_str(),80);
          }
          break;
         
@@ -65,663 +101,19 @@ void WiFiModule::SendData(IoTService service,uint16_t dataLength, IOT_OnWriteToS
     else
     {
       // ни одного сервиса не включено
-    //#else
       // тут ничего не можем отсылать, сразу дёргаем onDone, говоря, что у нас не получилось отослать
       onDone({false,service});
-    //#endif
+
     }
-}
-#endif   
-//--------------------------------------------------------------------------------------------------------------------------------
-bool WiFiModule::IsKnownAnswer(const String& line)
-{
-  return ( line == F("OK") || line == F("ERROR") || line == F("FAIL") || line.endsWith(F("SEND OK")) || line.endsWith(F("SEND FAIL")));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::ProcessAnswerLine(String& line)
-{
-
-   flags.isAnyAnswerReceived = true; 
-    
-  #ifdef WIFI_DEBUG
-     WIFI_DEBUG_WRITE(line,currentAction);
-  #endif
-
-   // проверяем, не перезагрузился ли модем
-  if(line == F("ready") && currentAction != wfaWantReady) // мы проверяем на ребут только тогда, когда сами его не вызвали
-  {
-    #ifdef WIFI_DEBUG
-      WIFI_DEBUG_WRITE(F("ESP boot found, init queue.."),currentAction);
-    #endif
-
-
-     // убеждаемся, что мы вызвали коллбэк для отсыла данных в IoT
-     #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-      EnsureIoTProcessed();
-     #endif
-
-     // убеждаемся, что мы обработали HTTP-запрос, пусть и неудачно
-     EnsureHTTPProcessed(ERROR_MODEM_NOT_ANSWERING);
-     
-    InitQueue(false); // инициализировали очередь по новой, т.к. модем либо только загрузился, либо - перезагрузился. При этом мы не добавляем команду перезагрузки в очередь
-    needToWaitTimer = WIFI_WAIT_BOOT_TIME; // дадим модему ещё 2 секунды на раздупливание
-
-    return;
-  } 
-
-  // здесь может придти ответ от сервера, или - запрос от клиента
-  if(
- #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-    currentAction != wfaActualSendIoTData &&  // если мы не в процессе отсыла данных в IoT
-#endif
-   
-    line.startsWith(F("+IPD")))
-  {
-    ProcessQuery(line); // разбираем пришедшую команду
-  } // if
-
-  
-  switch(currentAction)
-  {
-    case wfaWantReady:
-    {
-      // ждём ответа "ready" от модуля
-      if(line == F("ready")) // получили
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => ESP restarted."),currentAction);
-          CHECK_QUEUE_TAIL(wfaWantReady);
-       #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду
-       currentAction = wfaIdle;
-      }
-    }
-    break;
-
-    case wfaCheckModemHang:
-    {
-      // проверяли, отвечает ли модем
-      if(IsKnownAnswer(line)) {
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => ESP answered and available."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCheckModemHang);
-         #endif
-         
-         actionsQueue.pop(); // убираем последнюю обработанную команду     
-         currentAction = wfaIdle;
-
-      }
-    }
-    break;    
-
-    case wfaEchoOff: // выключили эхо
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => ECHO OFF processed."),currentAction);
-          CHECK_QUEUE_TAIL(wfaEchoOff);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-    }
-    break;
-
-    case wfaCWMODE: // перешли в смешанный режим
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => SoftAP mode is ON."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCWMODE);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-      
-    }
-    break;
-
-    case wfaCWSAP: // создали точку доступа
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => access point created."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCWSAP);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-      
-    }
-    break;
-
-    case wfaCIPMODE: // установили режим работы сервера
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => TCP-server mode now set to 0."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCIPMODE);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-      
-    }
-    break;
-
-    case wfaCIPMUX: // разрешили множественные подключения
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => Multiple connections allowed."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCIPMUX);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-      
-    }
-    break;
-
-    case wfaCIPSERVER: // запустили сервер
-    {
-       if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => TCP-server started."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCIPSERVER);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-     
-    }
-    break;
-
-    case wfaCWJAP: // законнектились к роутеру
-    {
-       if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => connected to the router."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCWJAP);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-      
-    }
-    break;
-
-    case wfaCWQAP: // отсоединились от роутера
-    {
-      if(IsKnownAnswer(line))
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("[OK] => disconnected from router."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCWQAP);
-        #endif
-       actionsQueue.pop(); // убираем последнюю обработанную команду     
-       currentAction = wfaIdle;
-      }
-     
-    }
-    break;
-
-    //////////////////////////// ЦИКЛ HTTP ////////////////////////////////////////
-    case wfaStartHTTPSend: // коннектились к хосту по HTTP
-    {
-      if(IsKnownAnswer(line))
-      {
-
-         #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("HTTP connection command done, parse..."),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartHTTPSend);
-         #endif
-
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        currentAction = wfaIdle;
-        
-        // один из известных нам ответов?
-        if(line == F("OK"))
-        {
-         #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("HTTP connection OK, continue..."),currentAction);
-         #endif
-          // законнектились, можем посылать данные
-          actionsQueue.push_back(wfaStartSendHTTPData); // добавляем команду на актуальный отсыл данных в очередь     
-        }
-        else
-        {
-         #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("HTTP connection ERROR!"),currentAction);
-         #endif
-
-          // всё плохо, вызываем коллбэк
-            EnsureHTTPProcessed(ERROR_CANT_ESTABLISH_CONNECTION);
-        }
-      } // if(IsKnownAnswer(line))      
-    }
-    break;
-
-
-    case wfaStartSendHTTPData: // запросили отсыл данных по HTTP, надо прочекать, что да как
-    {
-      // ждём > для отсыла данных
-        #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("HTTP, waiting for \">\"..."),currentAction);
-        #endif 
-
-      if(line == F(">")) // дождались приглашения
-      {
-        #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("\">\" FOUND, sending HTTP-query data..."),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartSendHTTPData);
-        #endif 
-
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        actionsQueue.push_back(wfaActualSendHTTPData); // добавляем команду на актуальный отсыл данных в очередь     
-        currentAction = wfaIdle;
-        flags.inSendData = true; // выставляем флаг, что мы отсылаем данные, и тогда очередь обработки клиентов не будет чухаться
-               
-      }
-      else
-      if(line.indexOf(F("FAIL")) != -1 || line.indexOf(F("ERROR")) != -1)
-      {
-         // всё плохо 
-        #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("Error sending HTTP-query data!"),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartSendHTTPData);
-        #endif 
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        currentAction = wfaIdle; // переходим в ждущий режим
-        // поскольку мы законнекчены - надо закрыть соединение
-        actionsQueue.push_back(wfaCloseHTTPConnection);
-
-        // убеждаемся, что мы уведомили вызвавшую сторону о результатах запроса
-        EnsureHTTPProcessed(ERROR_HTTP_REQUEST_FAILED);
-      }
-    }
-    break;  
-
-    case wfaCloseHTTPConnection: // закрывали HTTP-соединение
-    {
-      if(IsKnownAnswer(line)) // дождались закрытия соединения
-      {
-        #ifdef HTTP_DEBUG
-        WIFI_DEBUG_WRITE(F("HTTP connection closed."),currentAction);
-        CHECK_QUEUE_TAIL(wfaCloseHTTPConnection);
-        #endif
-        actionsQueue.pop(); // убираем последнюю обработанную команду     
-        currentAction = wfaIdle;
-        flags.inSendData = false; // разрешаем обработку других клиентов
-      }
-    }
-    break;
-
-    case wfaActualSendHTTPData:
-    {
-      // мы тут, понимаешь ли, ждём ответа на отсыл данных  HTTP-запроса.
-      // в порт нам сыпется всё подряд, мы пересылаем это вызвавшей стороне до тех пор, пока она скажет "хватит",
-      // или пока ESP нам не скажет, что наш клиент отвалился.
-
-      // сначала проверяем, не закрыто ли соединение?
-       int idx = line.indexOf(F(",CLOSED"));
-       
-       if(idx != -1) // соединение закрыто сервером, всё отослали
-        {
-          // клиент отсоединился
-          String s = line.substring(0,idx);
-          int clientID = s.toInt();
-          if(clientID >= 0 && clientID < MAX_WIFI_CLIENTS)
-          {
-            // проверяем - не наш ли клиент?
-            if(clientID == (MAX_WIFI_CLIENTS - 1))
-            {
-
-               #ifdef HTTP_DEBUG
-                  WIFI_DEBUG_WRITE(F("HTTP client disconnected, DONE."),currentAction);
-               #endif 
-                            
-                // наш - значит, мы уже весь ответ вычитали, и можем рапортовать о завершении
-                EnsureHTTPProcessed(HTTP_REQUEST_COMPLETED);
-                
-                actionsQueue.pop(); // убираем последнюю обработанную команду
-                currentAction = wfaIdle;
-                flags.inSendData = false; // разрешаем обработку других клиентов         
-
-            } // if
-            
-          }
-        } // if
-       else
-       {
-          bool enough = false;
-          httpHandler->OnAnswerLineReceived(line,enough);
-    
-          // смотрим, может, хватит?
-          if(enough)
-          {
-             // точно, хватит
-             #ifdef HTTP_DEBUG
-                WIFI_DEBUG_WRITE(F("HTTP request done."),currentAction);
-             #endif
-    
-             // говорим, что всё на мази
-             EnsureHTTPProcessed(HTTP_REQUEST_COMPLETED);
-    
-             // и закрываем соединение
-              actionsQueue.pop(); // убираем последнюю обработанную команду
-              currentAction = wfaIdle;         
-              
-              // поскольку мы законнекчены - надо закрыть соединение
-              actionsQueue.push_back(wfaCloseHTTPConnection);              
-          } // if(enough)
-      } // else not closed
-    }
-    break;
-
-    //////////////////////////// ЦИКЛ HTTP КОНЧИЛСЯ ////////////////////////////////////////
-    
- 
- #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-
-    case wfaActualSendIoTData:
-    {
-      // мы тут, понимаешь ли, ждём ответа на отсыл данных в IoT.
-      // Ждём до тех пор, пока не получен известный нам ответ или строка не начинается с +IPD
-      bool isIpd = line.startsWith(F("+IPD"));
-      if(isIpd)
-      {
-        // дождались, следовательно, можем вызывать коллбэк, сообщая, что мы успешно отработали
-          #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT data processed, parse answer"),currentAction);
-          CHECK_QUEUE_TAIL(wfaActualSendIoTData);
-         #endif
-
-          if(isIpd)
-          {
-            #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(F("IoT SUCCESS!"),currentAction);
-            #endif
-            // хорошо
-            EnsureIoTProcessed(true);
-          }
-          else
-          {
-            #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(F("IoT FAIL!"),currentAction);
-            #endif
-            // плохо
-            EnsureIoTProcessed();
-          }
-
-          // в любом случае - завершаем обработку
-          actionsQueue.pop(); // убираем последнюю обработанную команду
-          currentAction = wfaIdle;         
-          
-          // поскольку мы законнекчены - надо закрыть соединение
-          actionsQueue.push_back(wfaCloseIoTConnection);          
-       }
-    }
-    break;
-
-    case wfaStartIoTSend:
-    {
-      // ждём коннекта к серверу
-      if(IsKnownAnswer(line))
-      {
-
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT connection command done, parse..."),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartIoTSend);
-         #endif
-
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        currentAction = wfaIdle;
-        
-        // один из известных нам ответов
-        if(line == F("OK"))
-        {
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT connection OK, continue..."),currentAction);
-         #endif
-          // законнектились, можем посылать данные
-          actionsQueue.push_back(wfaStartSendIoTData); // добавляем команду на актуальный отсыл данных в очередь     
-        }
-        else
-        {
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT connection ERROR!"),currentAction);
-         #endif
-
-            flags.inSendData = false;
-          // всё плохо, вызываем коллбэк
-            EnsureIoTProcessed();
-        }
-      } // if(IsKnownAnswer(line))
-    }
-    break;
-
-    case wfaCloseIoTConnection:
-    {
-      if(IsKnownAnswer(line)) // дождались закрытия соединения
-      {
-        #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("IoT connection closed."),currentAction);
-        CHECK_QUEUE_TAIL(wfaCloseIoTConnection);
-        #endif
-        actionsQueue.pop(); // убираем последнюю обработанную команду     
-        currentAction = wfaIdle;
-        flags.inSendData = false; // разрешаем обработку других клиентов
-      }
-    }
-    break;
-
-    case wfaStartSendIoTData:
-    {
-      // ждём > для отсыла данных
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT, waiting for \">\"..."),currentAction);
-        #endif 
-
-      if(line == F(">")) // дождались приглашения
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("\">\" FOUND, sending data to IoT..."),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartSendIoTData);
-        #endif 
-
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        actionsQueue.push_back(wfaActualSendIoTData); // добавляем команду на актуальный отсыл данных в очередь     
-        currentAction = wfaIdle;
-        flags.inSendData = true; // выставляем флаг, что мы отсылаем данные, и тогда очередь обработки клиентов не будет чухаться
-               
-      }
-      else
-      if(line.indexOf(F("FAIL")) != -1 || line.indexOf(F("ERROR")) != -1)
-      {
-         // всё плохо 
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Error sending data to IoT!"),currentAction);
-          CHECK_QUEUE_TAIL(wfaStartSendIoTData);
-        #endif 
-        actionsQueue.pop(); // убираем последнюю обработанную команду
-        currentAction = wfaIdle; // переходим в ждущий режим
-        // поскольку мы законнекчены - надо закрыть соединение
-        actionsQueue.push_back(wfaCloseIoTConnection);
-        EnsureIoTProcessed();
-      }
-    }
-    break;
-#endif // IOT
-
-    case wfaCIPSEND: // надо отослать данные клиенту
-    {
-      // wfaCIPSEND плюёт в очередь функция UpdateClients, перед отсылкой команды модулю.
-      // значит, мы сами должны разрулить ситуацию, как быть с обработкой этой команды. 
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Waiting for \">\"..."),currentAction);
-        #endif        
-            
-      if(line == F(">")) // дождались приглашения
-      {
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("\">\" FOUND, sending the data..."),currentAction);
-          CHECK_QUEUE_TAIL(wfaCIPSEND);
-        #endif        
-        actionsQueue.pop(); // убираем последнюю обработанную команду (wfaCIPSEND, которую плюнула в очередь функция UpdateClients)
-        actionsQueue.push_back(wfaACTUALSEND); // добавляем команду на актуальный отсыл данных в очередь     
-        currentAction = wfaIdle;
-        flags.inSendData = true; // выставляем флаг, что мы отсылаем данные, и тогда очередь обработки клиентов не будет чухаться
-      }
-      else
-      if(line.indexOf(F("FAIL")) != -1 || line.indexOf(F("ERROR")) != -1)
-      {
-        // передача данных клиенту неудачна, отсоединяем его принудительно
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Closing client connection unexpectedly!"),currentAction);
-          CHECK_QUEUE_TAIL(wfaCIPSEND);
-        #endif 
-                
-        clients[currentClientIDX].SetConnected(false); // выставляем текущему клиенту статус "отсоединён"
-        actionsQueue.pop(); // убираем последнюю обработанную команду (wfaCIPSEND, которую плюнула в очередь функция UpdateClients)
-        currentAction = wfaIdle; // переходим в ждущий режим
-        flags.inSendData = false;
-      }
-    }
-    break;
-
-    case wfaACTUALSEND: // отослали ли данные?
-    {
-      // может ли произойти ситуация, когда в очереди есть wfaACTUALSEND, помещенная туда обработчиком wfaCIPSEND,
-      // но до Update дело ещё не дошло? Считаем, что нет. Мы попали сюда после функции Update, которая в обработчике wfaACTUALSEND
-      // отослала нам пакет данных. Надо проверить результат отсылки.
-      if(IsKnownAnswer(line)) // получен результат отсылки пакета
-      {
-        #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("DATA SENT, go to IDLE mode..."),currentAction);
-        // проверяем валидность того, что в очереди
-        CHECK_QUEUE_TAIL(wfaACTUALSEND);
-        #endif
-        actionsQueue.pop(); // убираем последнюю обработанную команду (wfaACTUALSEND, которая в очереди)    
-        currentAction = wfaIdle; // разрешаем обработку следующего клиента
-        flags.inSendData = false; // выставляем флаг, что мы отправили пакет, и можем обрабатывать следующего клиента
-        if(!clients[currentClientIDX].HasPacket())
-        {
-           // данные у клиента закончились
-        #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(String(F("No packets in client #")) + String(currentClientIDX),currentAction);
-        #endif
-
-         #ifndef WIFI_TCP_KEEP_ALIVE  // если надо разрывать соединение после отсыла результатов - разрываем его
-          if(clients[currentClientIDX].IsConnected())
-          {
-            #ifdef WIFI_DEBUG
-            WIFI_DEBUG_WRITE(String(F("Client #")) + String(currentClientIDX) + String(F(" has no packets, closing connection...")),currentAction);
-            #endif
-            actionsQueue.push_back(wfaCIPCLOSE); // добавляем команду на закрытие соединения
-            flags.inSendData = true; // пока не обработаем отсоединение клиента - не разрешаем посылать пакеты другим клиентам
-          } // if
-        #endif  
-        
-        } // if
-      
-        if(line.indexOf(F("FAIL")) != -1 || line.indexOf(F("ERROR")) != -1)
-        {
-          // передача данных клиенту неудачна, отсоединяем его принудительно
-           #ifdef WIFI_DEBUG
-            WIFI_DEBUG_WRITE(F("Closing client connection unexpectedly!"),currentAction);
-          #endif 
-                  
-          clients[currentClientIDX].SetConnected(false);
-        }      
-
-      } // if known answer
-
-    }
-    break;
-
-    case wfaCIPCLOSE: // закрыли соединение
-    {
-      if(IsKnownAnswer(line)) // дождались приглашения
-      {
-        #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Client connection closed."),currentAction);
-        CHECK_QUEUE_TAIL(wfaCIPCLOSE);
-        #endif
-        clients[currentClientIDX].SetConnected(false);
-        actionsQueue.pop(); // убираем последнюю обработанную команду     
-        currentAction = wfaIdle;
-        flags.inSendData = false; // разрешаем обработку других клиентов
-      }
-    }
-    break;
-
-    case wfaIdle:
-    {
-    }
-    break;
-  } // switch
-
-  // смотрим, может - есть статус клиента
-  int idx = line.indexOf(F(",CONNECT"));
-  if(idx != -1)
-  {
-    // клиент подсоединился
-    String s = line.substring(0,idx);
-    int clientID = s.toInt();
-    if(clientID >= 0 && clientID < MAX_WIFI_CLIENTS-1) // последнему клиенту не даём статус законнекченного
-    {
-   #ifdef WIFI_DEBUG
-    WIFI_DEBUG_WRITE(String(F("[CLIENT CONNECTED] - ")) + s,currentAction);
-   #endif     
-      clients[clientID].SetConnected(true);
-    }
-  } // if
-  idx = line.indexOf(F(",CLOSED"));
- if(idx != -1)
-  {
-    // клиент отсоединился
-    String s = line.substring(0,idx);
-    int clientID = s.toInt();
-    if(clientID >= 0 && clientID < MAX_WIFI_CLIENTS)
-    {
-   #ifdef WIFI_DEBUG
-   WIFI_DEBUG_WRITE(String(F("[CLIENT DISCONNECTED] - ")) + s,currentAction);
-   #endif     
-      clients[clientID].SetConnected(false);
-      
-    }
-  } // if
-  
-  
-}
+#endif // defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+//--------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
 //--------------------------------------------------------------------------------------------------------------------------------
 bool WiFiModule::CanMakeQuery() // тестирует, может ли модуль сейчас сделать запрос
-{
-  //TODO: УБРАТЬ, ЭТО ТОЛЬКО ДЛЯ ЦЕЛЕЙ ТЕСТИРОВАНИЯ провайдера GSM, поскольку Wi-Fi имеет более высокий приоритет!!!
-  //return false;
-  
-  if(flags.inSendData || 
-    flags.inRebootMode || 
-    flags.wantIoTToProcess || 
-    flags.wantHTTPRequest || 
-    flags.inHTTPRequestMode || 
-    !flags.isAnyAnswerReceived ||
-    actionsQueue.size())
-  {
-    // не можем обработать запрос
-
-    return false;
-  }
-
-  return true;
+{ 
+ return ESP.ready();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void WiFiModule::MakeQuery(HTTPRequestHandler* handler) // начинаем запрос по HTTP
@@ -732,792 +124,382 @@ void WiFiModule::MakeQuery(HTTPRequestHandler* handler) // начинаем за
     // сохраняем обработчик запроса у себя
     httpHandler = handler;
 
-    // и говорим, что мы готовы работать по HTTP-запросу
-    flags.wantHTTPRequest = true;
-}
-//--------------------------------------------------------------------------------------------------------------------------------  
-void WiFiModule::ProcessQuery(const String& command)
-{
-  
-  int idx = command.indexOf(F(",")); // ищем первую запятую после +IPD
-  const char* ptr = command.c_str();
-  ptr += idx+1;
-  // перешли за запятую, парсим ID клиента
-  String connectedClientID = F("");
-  while(*ptr != ',')
-  {
-    connectedClientID += (char) *ptr;
-    ptr++;
-  }
-  ptr++; // за запятую
-  String dataLen;
-  while(*ptr != ':')
-  {
-    dataLen += (char) *ptr;
-    ptr++; // перешли на начало данных
-  }
-  
-  ptr++; // за двоеточие
-
-  // тут пришла команда, разбираем её
-  ProcessCommand(connectedClientID.toInt(),dataLen.toInt(),ptr);
-   
+    // спрашиваем о хосте у вызывающей стороны
+    String host;
+    int port;
+    httpHandler->OnAskForHost(host,port);
+    httpDataWritten = false;
+    httpClient.connect(host.c_str(),(uint16_t)port);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::ProcessCommand(int clientID, int dataLen, const char* command)
+void WiFiModule::sendDataToGardenbossRu()
 {
-  // обрабатываем команду, пришедшую по TCP/IP
+  if(!httpClient.connected() || !httpHandler)
+  { 
+    return;
+  }
+    
+  canCallHTTPEvent = true;
   
- #ifdef WIFI_DEBUG
-  WIFI_DEBUG_WRITE(String(F("Client ID = ")) + String(clientID) + String(F("; len= ")) + String(dataLen),currentAction);
-  WIFI_DEBUG_WRITE(String(F("Requested command: ")) + String(command),currentAction);
+  delete httpData;
+  httpData = new String();
+
+  // тут посылаем данные в gardenboss.ru
+  httpHandler->OnAskForData(httpData); // получили данные, которые надо отослать
+
+  // и пишем их в клиента
+  httpClient.write((uint8_t*)httpData->c_str(),httpData->length());
+
+  delete httpData;
+  httpData = new String();
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 #endif
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::OnClientConnect(CoreTransportClient& client, bool connected, int16_t errorCode)
+{
+  UNUSED(errorCode);
   
-  // работаем с клиентом
-  if(clientID >=0 && clientID < MAX_WIFI_CLIENTS-1) // последний клиент - наш, для IoT и HTTP - в него не пишем
+  #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+  if(thingSpeakClient)
   {
+    if(client == thingSpeakClient)
+    {
+      if(connected)
+      {
+            #ifdef WIFI_DEBUG
+              DEBUG_LOGLN(F("ThingSpeak connected!"));
+            #endif
+            // успешно соединились
+            sendDataToThingSpeak();        
+      }
+      else
+      {
+         #ifdef WIFI_DEBUG
+          DEBUG_LOGLN(F("ThingSpeak disconnected."));
+        #endif
+        EnsureIoTProcessed(thingSpeakDataWritten);
+        thingSpeakDataWritten = false;
+      }
+      
+      return;
+    } // if(client == thingSpeakClient)
+  }
+  #endif
+
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
+  if(httpClient)
+  {
+    if(client == httpClient) // клиент gardenboss.ru
+    {
+  
+      if(connected)
+      {
+        httpDataWritten = false;
+        sendDataToGardenbossRu();
+      }
+      else
+      {
+        if(httpDataWritten)
+          EnsureHTTPProcessed(HTTP_REQUEST_COMPLETED);
+        else
+          EnsureHTTPProcessed(ERROR_CANT_ESTABLISH_CONNECTION);        
+      }
+  
+      return;
+    } // if(client == httpClient)
+  } // if(httpClient)
+#endif  
 
 
-      if(!*command) // пустой пакет, с переводом строки
-        dataLen = 0;
+  // если мы здесь - это неизвестный клиент
+  if(!connected)
+  {
+    // раз клиент отсоединился - нам больше не нужны его данные
+    externalClientData.clear();
+  }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::processGardenbossData(uint8_t* data, size_t dataSize, bool isLastData)
+{
+  if(!canCallHTTPEvent || !httpHandler) // уже всё обработали
+    return;
 
-        // теперь нам надо сложить все данные в клиента - как только он получит полный пакет - он подготовит
-        // все данные к отправке. Признаком конца команды к контроллеру у нас служит перевод строки \r\n.
-        // следовательно, пока мы не получим в любом виде перевод строки - считается, что команда не получена.
-        // перевод строки может быть либо получен прямо в данных, либо - в следующем пакете.
+    bool enough = false;
 
-        // как только клиент накопит всю команду - он получает данные с контроллера в следующем вызове Update.
-        clients[clientID].CommandRequested(dataLen,command); // говорим клиенту, чтобы сложил во внутренний буфер
-  } // if
+    for(size_t i=0;i<dataSize;i++)
+    {
+
+      // тут надо бить данные по строкам, и скармливать их по одной.
+      // учитывая ещё тот факт, что может быть остаток, не вместившийся в пакет.
+      char ch = (char) data[i];
+      
+      if(ch == '\r')
+        continue;
+      else
+      if(ch == '\n') // есть строка
+      {
+          #ifdef WIFI_DEBUG
+            DEBUG_LOG(F("HTTP: line catched="));
+            DEBUG_LOGLN(*httpData);
+          #endif
+          httpHandler->OnAnswerLineReceived(*httpData,enough);
+          delete httpData;
+          httpData = new String();
+      }
+      else
+        *httpData += ch;
+  
+      if(enough)
+      {
+        #ifdef WIFI_DEBUG
+          DEBUG_LOGLN(F("HTTP: Handler reports DONE!"));
+        #endif
+        canCallHTTPEvent = false;
+  
+        delete httpData;
+        httpData = new String();
+        
+        break;
+      } // if(enough)
+    } // for
+
+    if(isLastData)
+    {
+      // это последние данные
+      if(canCallHTTPEvent)
+      {
+          #ifdef WIFI_DEBUG
+            DEBUG_LOG(F("HTTP: line catched on LAST DATA="));
+            DEBUG_LOGLN(*httpData);
+          #endif
+          
+        httpHandler->OnAnswerLineReceived(*httpData,enough);
+        
+        if(enough)
+        {
+            #ifdef WIFI_DEBUG
+              DEBUG_LOGLN(F("HTTP: Handler reports DONE ON LAST DATA!"));
+            #endif
+            canCallHTTPEvent = false;
+      
+        } // if(enough)
+        
+      } // if(canCallHTTPEvent
+
+
+      delete httpData;
+      httpData = new String();
+      
+    } // isLastData
+    
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::OnClientDataWritten(CoreTransportClient& client, int16_t errorCode)
+{
+  #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+      if(client == thingSpeakClient)
+      {
+        if(errorCode != CT_ERROR_NONE)
+        {
+          #ifdef WIFI_DEBUG
+            DEBUG_LOGLN(F("ThingSpeak data write ERROR!"));
+          #endif
+          thingSpeakDataWritten = false;
+          EnsureIoTProcessed(false);
+          thingSpeakClient.disconnect();        
+        }
+        else
+        {
+          thingSpeakDataWritten = true; // выставили флаг, что записали данные нормально
+        }
+
+        return;
+      } // if(client == thingSpeakClient)
+  #endif
+
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
+  if(client == httpClient) // клиент gardenboss.ru
+  {
+        delete httpData;
+        httpData = new String();
+
+        if(errorCode != CT_ERROR_NONE)
+        {
+          #ifdef WIFI_DEBUG
+            DEBUG_LOGLN(F("HTTP: can't write to gardenboss.ru!"));
+          #endif
+          EnsureHTTPProcessed(ERROR_HTTP_REQUEST_FAILED);
+          httpClient.disconnect();        
+        }
+        else
+        {
+          // всё нормально, данные отправлены, чистим приёмный буфер, который пригодится нам для пришедших данных
+          httpDataWritten = true;
+        }
+     return;   
+  } // if(client == httpClient)
+#endif  
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::ProcessUnknownClientQuery(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone)
+{
+  for(size_t i=0;i<dataSize;i++)
+    externalClientData.push_back(data[i]);
+
+   if(!isDone)
+   {
+      // ещё не вся команда пришла в клиент
+      return;
+   }
+    
+   String ctGetPrefix = F("CTGET=");
+   String ctSetPrefix = F("CTSET=");
+
+   const char* isGetFound = (const char*) MemFind(externalClientData.pData(),externalClientData.size(),ctGetPrefix.c_str(),ctGetPrefix.length());
+   const char* isSetFound = (const char*) MemFind(externalClientData.pData(),externalClientData.size(),ctSetPrefix.c_str(),ctSetPrefix.length());
+
+   if(isGetFound || isSetFound)
+   {
+      const char* readPtr = isGetFound ? isGetFound : isSetFound;
+      const char* endOfData = (const char*) (externalClientData.pData() + externalClientData.size());
+
+      String command;
+      while(readPtr < endOfData)
+      {
+        if(*readPtr == '\r' || *readPtr == '\n')
+          break;
+
+        command += *readPtr;
+        readPtr++;
+      } // while
+
+      // всё, нам больше не нужны данные с внешнего клиента
+      externalClientData.clear();
+
+      #ifdef WIFI_DEBUG
+        DEBUG_LOG(F("ESP: incoming command are: "));
+        DEBUG_LOGLN(command);
+      #endif
+
+      // теперь выполняем команду
+      CommandExecuteResult fakeStream;
+      CommandParser cParser;
+      Command cmd;
+      if(cParser.ParseCommand(command, cmd))
+      {
+              
+        cmd.SetIncomingStream(&fakeStream); 
+        MainController->ProcessModuleCommand(cmd);
+
+        // тут выгребаем всё из буфера результатов обработки команды - и пересылаем клиенту
+       client.write((uint8_t*) fakeStream.buffer.c_str(),fakeStream.buffer.length());
+      
+      } // if(cParser->ParseCommand(command, cmd))
+    
+   } // if(isGetFound || isSetFound)
+   
+   // просто очищаем буфер, он нам не нужен
+   externalClientData.clear();
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void WiFiModule::OnClientDataAvailable(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone)
+{
+  #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+    if(thingSpeakClient && client == thingSpeakClient)
+    {
+      #ifdef WIFI_DEBUG
+        DEBUG_LOGLN(F("DATA AVAILABLE FOR THINGSPEAK !!!"));
+      #endif
+      if(isDone)
+      {
+        EnsureIoTProcessed(thingSpeakDataWritten);
+        thingSpeakClient.disconnect();
+      }
+
+      return;
+    } // if(client == thingSpeakClient)
+  #endif
+
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
+   if(httpClient && client == httpClient) // данные для клиента gardenboss.ru
+   {
+      #ifdef WIFI_DEBUG
+        DEBUG_LOGLN(F("DATA AVAILABLE FOR GARDENBOSS.RU !!!"));
+      #endif
+
+      processGardenbossData(data, dataSize, isDone);
+      return;
+   } // if(client == httpClient)
+#endif
+
+   // если мы здесь - это данные с неизвестного клиента (например, с вебморды), обрабатываем их
+   ProcessUnknownClientQuery(client, data, dataSize, isDone);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void WiFiModule::Setup()
 {
-  // настройка модуля тут
-
+  streamBuffer = new String();
+  
  // сообщаем, что мы провайдер HTTP-запросов
- MainController->SetHTTPProvider(0,this); 
-  
-  for(uint8_t i=0;i<MAX_WIFI_CLIENTS;i++)
-    clients[i].Setup(i, WIFI_PACKET_LENGTH);
-
-
-
-  #ifdef USE_WIFI_REBOOT_PIN
-    WORK_STATUS.PinMode(WIFI_REBOOT_PIN,OUTPUT);
-    WORK_STATUS.PinWrite(WIFI_REBOOT_PIN,WIFI_POWER_ON);
-  #endif
-
-  // поднимаем сериал
-  WIFI_SERIAL.begin(WIFI_BAUDRATE);
-
-  if(&(WIFI_SERIAL) == &Serial) {
-       WORK_STATUS.PinMode(0,INPUT_PULLUP,true);
-       WORK_STATUS.PinMode(1,OUTPUT,false);
-  } else if(&(WIFI_SERIAL) == &Serial1) {
-       WORK_STATUS.PinMode(19,INPUT_PULLUP,true);
-       WORK_STATUS.PinMode(18,OUTPUT,false);
-  } else if(&(WIFI_SERIAL) == &Serial2) {
-       WORK_STATUS.PinMode(17,INPUT_PULLUP,true);
-       WORK_STATUS.PinMode(16,OUTPUT,false);
-  } else if(&(WIFI_SERIAL) == &Serial3) {
-       WORK_STATUS.PinMode(15,INPUT_PULLUP,true);
-       WORK_STATUS.PinMode(14,OUTPUT,false);
-  } 
-
-  flags.isAnyAnswerReceived = false;
-  flags.inRebootMode = false;
-  flags.wantIoTToProcess = false;
-  flags.wantHTTPRequest = false;
-  flags.inHTTPRequestMode = false;
+ #ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
   httpHandler = NULL;
-  httpData = NULL;
-  
-  rebootStartTime = 0;
-
-  InitQueue(); // инициализируем очередь
-
+  httpDataWritten = false;
+  httpData = new String();
+  MainController->SetHTTPProvider(0,this);
+  httpClient.accept(&ESP);
+ #endif
 
 #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-
      iotWriter = NULL;
      iotDone = NULL;
-     iotDataHeader = NULL;
-     iotDataFooter = NULL;
-     iotDataLength = 0;     
+     thingSpeakDataWritten = false;
      IoTList.RegisterGate(this); // регистрируем себя как отсылателя данных в IoT
-#endif  
+     thingSpeakClient.accept(&ESP);
+#endif
 
+  ESP.begin();
+  ESP.subscribe(this);
+
+  #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+    mqtt.begin(&ESP);
+  #endif  
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::InitQueue(bool addRebootCommand)
-{
-
-  while(actionsQueue.size() > 0) // чистим очередь 
-    actionsQueue.pop();
-
-  WaitForDataWelcome = false; // не ждём приглашения
-  
-  nextClientIDX = 0;
-  currentClientIDX = 0;
-  flags.inSendData = false;
-
-  // инициализируем время отсылки команды и получения ответа
-  sendCommandTime = millis();
-  answerWaitTimer = 0;
-
-  needToWaitTimer = 0; // сбрасываем таймер
-
-  // настраиваем то, что мы должны сделать
-  currentAction = wfaIdle; // свободны, ничего не делаем
-
-GlobalSettings* Settings = MainController->GetSettings();
-  
-  if(Settings->GetWiFiState() & 0x01) // коннектимся к роутеру
-    actionsQueue.push_back(wfaCWJAP); // коннектимся к роутеру совсем в конце
-  else  
-    actionsQueue.push_back(wfaCWQAP); // отсоединяемся от роутера
-    
-  actionsQueue.push_back(wfaCIPSERVER); // сервер поднимаем в последнюю очередь
-  actionsQueue.push_back(wfaCIPMUX); // разрешаем множественные подключения
-  actionsQueue.push_back(wfaCIPMODE); // устанавливаем режим работы
-  actionsQueue.push_back(wfaCWSAP); // создаём точку доступа
-  actionsQueue.push_back(wfaCWMODE); // // переводим в смешанный режим
-  actionsQueue.push_back(wfaEchoOff); // выключаем эхо
-  
-  if(addRebootCommand)
-    actionsQueue.push_back(wfaWantReady); // надо получить ready от модуля путём его перезагрузки    
-  
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::SendCommand(const String& command, bool addNewLine)
-{
-  #ifdef WIFI_DEBUG
-    WIFI_DEBUG_WRITE(String(F("==> Send the \"")) + command + String(F("\" command to ESP...")),currentAction);
-  #endif
-
-  // запоминаем время отсылки последней команды
-  sendCommandTime = millis();
-  answerWaitTimer = 0;
-
-  WIFI_SERIAL.write(command.c_str(),command.length());
-  
-  if(addNewLine)
-  {
-    WIFI_SERIAL.write(String(NEWLINE).c_str());
-  }
-      
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::ProcessQueue()
-{
-  if(currentAction != wfaIdle) // чем-то заняты, не можем ничего делать
-    return;
-
-    size_t sz = actionsQueue.size();
-    if(!sz) 
-    {
-      // в очереди ничего нет, можем проверять, что мы можем сделать
-      if(flags.wantHTTPRequest)
-      {
-        // от нас ждут запроса по HTTP
-        flags.wantHTTPRequest = false;
-        flags.inHTTPRequestMode = true;
-        actionsQueue.push_back(wfaStartHTTPSend);
-
-        return; // возвращаемся, здесь делать нефик
-      }
-
-      #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-
-      if(!flags.inHTTPRequestMode) // только если мы не в режиме отсыла HTTP-запроса
-      {
-        if(flags.wantIoTToProcess && iotWriter && iotDone)
-        {
-          // надо поместить в очередь команду на обработку запроса к IoT
-          flags.wantIoTToProcess = false;
-          flags.inSendData = true; // чтобы не дёргать очередь клиентов
-          actionsQueue.push_back(wfaStartIoTSend);
-          return;
-        }
-      }
-      #endif
-  
-      // тут проверяем - можем ли мы протестировать доступность модема?
-      if(millis() - sendCommandTime > WIFI_AVAILABLE_CHECK_TIME) {
-          // раз в минуту можно проверить доступность модема,
-          // и делаем мы это ТОЛЬКО тогда, когда очередь пуста как минимум WIFI_AVAILABLE_CHECK_TIME мс, т.е. все текущие команды отработаны.
-          actionsQueue.push_back(wfaCheckModemHang);
-      }      
-      return;
-  } // if(!sz)
-      
-    currentAction = actionsQueue[sz-1]; // получаем очередную команду
-
-    // смотрим, что за команда
-    switch(currentAction)
-    {
-
-      //////////////////////////// ЦИКЛ HTTP ////////////////////////////////////////
-      
-      case wfaStartHTTPSend: // начинаем запрос по HTTP
-      {
-        #ifdef HTTP_DEBUG
-          Serial.println(F("Start HTTP connection..."));
-        #endif
-
-        // получаем адрес хоста
-        String host;
-        httpHandler->OnAskForHost(host);
-
-        // теперь формируем команду
-        String comm = F("AT+CIPSTART=");
-        comm += String(MAX_WIFI_CLIENTS - 1); // коннектимся последним клиентом
-        comm += F(",\"TCP\",\"");
-        comm += host;
-        comm += F("\",80");
-
-        // и отсылаем её
-        SendCommand(comm);
-      }
-      break;
-
-      case wfaStartSendHTTPData: // можем отсылать данные по HTTP
-      {
-        #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("Make HTTP query AND send data..."),currentAction);
-        #endif        
-        // тут посылаем команду на отсыл данных по HTTP
-        // но сначала - запросим-ка мы данные у вызвавшей всю эту движуху стороны
-        delete httpData;
-        httpData = new String;
-
-        httpHandler->OnAskForData(httpData); // получили данные, которые надо отослать
-        
-        String comm = CIPSEND_COMMAND;
-        comm += String(MAX_WIFI_CLIENTS-1); // коннектимся последним клиентом
-        comm += F(",");
-        comm += httpData->length();
-        WaitForDataWelcome = true; // выставляем флаг, что мы ждём >
-        SendCommand(comm);
-                
-      }
-      break;
-
-      case wfaCloseHTTPConnection: // закрываем HTTP-соединение
-      {
-        // надо закрыть соединение
-        #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("Closing HTTP connection..."),currentAction);
-        #endif
-
-        flags.inSendData = true;
-        String comm = F("AT+CIPCLOSE=");
-        comm += String(MAX_WIFI_CLIENTS-1);
-        SendCommand(comm);
-                          
-      }
-      break;
-
-      case wfaActualSendHTTPData: // начинаем отсылать данные HTTP-запроса
-      {
-         #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("Send HTTP-query data..."),currentAction);
-        #endif  
-          if(httpData)
-          {      
-            // тут посылаем данные
-            SendCommand(*httpData,false);
-            delete httpData;
-            httpData = NULL;
-          }
-          else
-          {
-         #ifdef HTTP_DEBUG
-          WIFI_DEBUG_WRITE(F("HTTP-query data is INVALID!"),currentAction);
-        #endif  
-        // чего-то в процессе не задалось, вызываем коллбэк, и говорим, что всё плохо
-            EnsureHTTPProcessed(ERROR_HTTP_REQUEST_FAILED);
-            actionsQueue.pop();
-            currentAction = wfaIdle;
-            flags.inSendData = false; 
-          }
-      }
-      break;
-      
-      //////////////////////////// ЦИКЛ HTTP КОНЧИЛСЯ ////////////////////////////////////////      
-
-      
-      #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-
-      case wfaActualSendIoTData:
-      {
-        // отсылаем данные в IoT
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Send data to IoT using ESP..."),currentAction);
-        #endif  
-          if(iotDataHeader && iotDataFooter && iotWriter && iotDone)
-          {      
-            // тут посылаем данные в IoT
-            SendCommand(*iotDataHeader,false);
-            iotWriter(&(WIFI_SERIAL));
-            SendCommand(*iotDataFooter,false);       
-          }
-          else
-          {
-         #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IoT data is INVALID!"),currentAction);
-        #endif  
-        // чего-то в процессе не задалось, вызываем коллбэк, и говорим, что всё плохо
-            EnsureIoTProcessed();
-            actionsQueue.pop();
-            currentAction = wfaIdle;
-            flags.inSendData = false; 
-          }
-      }
-      break;
-
-      case wfaStartSendIoTData:
-      {
-
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Start sending data to IoT using ESP..."),currentAction);
-        #endif        
-        // тут посылаем команду на отсыл данных в IoT
-        String comm = CIPSEND_COMMAND;
-        comm += String(MAX_WIFI_CLIENTS-1); // коннектимся последним клиентом
-        comm += F(",");
-        comm += iotDataLength;
-        WaitForDataWelcome = true; // выставляем флаг, что мы ждём >
-        SendCommand(comm);
-      }
-      break;
-
-      case wfaStartIoTSend:
-      {
-          // надо отослать данные в IOT
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Connect to IoT using ESP..."),currentAction);
-        #endif
-    
-        String comm = F("AT+CIPSTART=");
-        comm += String(MAX_WIFI_CLIENTS - 1); // коннектимся последним клиентом
-        comm += F(",\"TCP\",\"");
-
-          // смотрим, в какой сервис запросили отсыл данных
-          switch(iotService)
-          {
-            case iotThingSpeak:
-              comm += THINGSPEAK_IP;
-            break;
-          }
-        comm += F("\",80");
-        SendCommand(comm);   
-      }     
-      break;
-
-      case wfaCloseIoTConnection:
-      {
-        // надо закрыть соединение
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("Closing IoT connection..."),currentAction);
-        #endif
-
-        flags.inSendData = true;
-        String comm = F("AT+CIPCLOSE=");
-        comm += String(MAX_WIFI_CLIENTS-1);
-        SendCommand(comm);
-                          
-      }
-      break;
-
-     #endif
-      
-      case wfaWantReady:
-      {
-        // надо рестартовать модуль
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Restart the ESP..."),currentAction);
-      #endif
-      SendCommand(F("AT+RST"));
-      }
-      break;
-
-      case wfaCheckModemHang:
-      {
-          // проверяем, не завис ли модем?
-        #ifdef WIFI_DEBUG
-          Serial.println(F("Check if modem available..."));
-        #endif
-        SendCommand(F("AT"));
-      }
-      break;
-
-      case wfaEchoOff:
-      {
-        // выключаем эхо
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Disable echo..."),currentAction);
-      #endif
-      SendCommand(F("ATE0"));
-      //SendCommand(F("AT+CIOBAUD=230400")); // переводим на другую скорость
-      }
-      break;
-
-      case wfaCWMODE:
-      {
-        // переходим в смешанный режим
-      #ifdef WIFI_DEBUG
-       WIFI_DEBUG_WRITE(F("Go to SoftAP mode..."),currentAction);
-      #endif
-      SendCommand(F("AT+CWMODE_DEF=3"));
-      }
-      break;
-
-      case wfaCWSAP: // создаём точку доступа
-      {
-
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Creating the access point..."),currentAction);
-      #endif
-
-        GlobalSettings* Settings = MainController->GetSettings();
-      
-        String com = F("AT+CWSAP_DEF=\"");
-        com += Settings->GetStationID();
-        com += F("\",\"");
-        com += Settings->GetStationPassword();
-        com += F("\",8,4");
-        
-        SendCommand(com);
-        
-      }
-      break;
-
-      case wfaCIPMODE: // устанавливаем режим работы сервера
-      {
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Set the TCP server mode to 0..."),currentAction);
-      #endif
-      SendCommand(F("AT+CIPMODE=0"));
-      
-      }
-      break;
-
-      case wfaCIPMUX: // разрешаем множественные подключения
-      {
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Allow the multiple connections..."),currentAction);
-      #endif
-      SendCommand(F("AT+CIPMUX=1"));
-        
-      }
-      break;
-
-      case wfaCIPSERVER: // запускаем сервер
-      {  
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Starting TCP-server..."),currentAction);
-      #endif
-      SendCommand(F("AT+CIPSERVER=1,1975"));
-      
-      }
-      break;
-
-      case wfaCWQAP: // отсоединяемся от точки доступа
-      {  
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Disconnect from router..."),currentAction);
-      #endif
-      SendCommand(F("AT+CWQAP"));
-      
-      }
-      break;
-
-      case wfaCWJAP: // коннектимся к роутеру
-      {
-      #ifdef WIFI_DEBUG
-        WIFI_DEBUG_WRITE(F("Connecting to the router..."),currentAction);
-      #endif
-
-        GlobalSettings* Settings = MainController->GetSettings();
-        
-        String com = F("AT+CWJAP_DEF=\"");
-        com += Settings->GetRouterID();
-        com += F("\",\"");
-        com += Settings->GetRouterPassword();
-        com += F("\"");
-        SendCommand(com);
-
-      }
-      break;
-
-      case wfaCIPSEND: // надо отослать данные клиенту
-      {
-        #ifdef WIFI_DEBUG
-       //  WIFI_DEBUG_WRITE(F("ASSERT: wfaCIPSEND in ProcessQueue!"),currentAction);
-        #endif
-        
-      }
-      break;
-
-      case wfaACTUALSEND: // дождались приглашения в функции ProcessAnswerLine, она поместила команду wfaACTUALSEND в очередь - отсылаем данные клиенту
-      {
-            #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(String(F("Sending data to the client #")) + String(currentClientIDX),currentAction);
-            #endif
-      
-            if(clients[currentClientIDX].IsConnected()) // не отвалился ли клиент?
-            {
-              // клиент по-прежнему законнекчен, посылаем данные
-              if(!clients[currentClientIDX].SendPacket(&(WIFI_SERIAL)))
-              {
-                // если мы здесь - то пакетов у клиента больше не осталось. Надо дождаться подтверждения отсылки последнего пакета
-                // в функции ProcessAnswerLine (обработчик wfaACTUALSEND), и послать команду на закрытие соединения с клиентом.
-              #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(String(F("All data to the client #")) + String(currentClientIDX) + String(F(" has sent, need to wait for last packet sent..")),currentAction);
-              #endif
- 
-              }
-              else
-              {
-                // ещё есть пакеты, продолжаем отправлять в следующих вызовах Update
-              #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(String(F("Client #")) + String(currentClientIDX) + String(F(" has ")) + String(clients[currentClientIDX].GetPacketsLeft()) + String(F(" packets left...")),currentAction);
-              #endif
-              } // else
-            } // is connected
-            else
-            {
-              // клиент отвалится, чистим...
-            #ifdef WIFI_DEBUG
-              WIFI_DEBUG_WRITE(F("Client disconnected, clear the client data..."),currentAction);
-            #endif
-              clients[currentClientIDX].SetConnected(false);
-            }
-
-      }
-      break;
-
-      case wfaCIPCLOSE: // закрываем соединение с клиентом
-      {
-        if(clients[currentClientIDX].IsConnected()) // только если клиент законнекчен 
-        {
-          #ifdef WIFI_DEBUG
-            WIFI_DEBUG_WRITE(String(F("Closing client #")) + String(currentClientIDX) + String(F(" connection...")),currentAction);
-          #endif
-          clients[currentClientIDX].SetConnected(false);
-          String command = F("AT+CIPCLOSE=");
-          command += currentClientIDX; // закрываем соединение
-          SendCommand(command);
-        }
-        
-        else
-        {
-          #ifdef WIFI_DEBUG
-            WIFI_DEBUG_WRITE(String(F("Client #")) + String(currentClientIDX) + String(F(" already broken!")),currentAction);
-            CHECK_QUEUE_TAIL(wfaCIPCLOSE);
-          #endif
-          // просто убираем команду из очереди
-           actionsQueue.pop();
-           currentAction = wfaIdle; // разрешаем обработку следующей команды
-           flags.inSendData = false; // разрешаем обработку следующего клиента
-        } // else
-        
-      }
-      break;
-
-      case wfaIdle:
-      {
-        // ничего не делаем
-
-      }
-      break;
-      
-    } // switch
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::RebootModem()
-{
-  // перезагружаем модем тут
-  #ifdef WIFI_DEBUG
-    Serial.println(F("[ERR] - ESP not answering, reboot it..."));
-  #endif
-
-  // мы в процессе перезагрузки
-  flags.inRebootMode = true;
-
-  // запоминаем время выключения питания
-  rebootStartTime = millis();
-
-  //Тут выключение питания модема
-  #ifdef USE_WIFI_REBOOT_PIN
-    WORK_STATUS.PinWrite(WIFI_REBOOT_PIN,WIFI_POWER_OFF);
-  #endif
-
-    
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-void WiFiModule::UpdateClients()
-{
-  if(currentAction != wfaIdle || flags.inSendData || flags.inHTTPRequestMode) // чем-то заняты, не можем ничего делать
-    return;
-    
-  // тут ищем, какой клиент сейчас хочет отослать данные
-
-  for(uint8_t idx = nextClientIDX;idx < MAX_WIFI_CLIENTS; idx++)
-  { 
-    ++nextClientIDX; // переходим на следующего клиента, как только текущему будет послан один пакет
-
-    clients[idx].Update(); // обновляем внутреннее состояние клиента - здесь он может подготовить данные к отправке, например
-    
-    if(clients[idx].IsConnected() && clients[idx].HasPacket())
-    {
-      currentAction = wfaCIPSEND; // говорим однозначно, что нам надо дождаться >
-      actionsQueue.push_back(wfaCIPSEND); // добавляем команду отсылки данных в очередь
-      
-    #ifdef WIFI_DEBUG
-      WIFI_DEBUG_WRITE(F("Sending data command to the ESP..."),currentAction);
-    #endif
-  
-      // клиент подсоединён и ждёт данных от нас - отсылаем ему следующий пакет
-      currentClientIDX = idx; // сохраняем номер клиента, которому будем посылать данные
-      String command = CIPSEND_COMMAND;
-      command += String(idx);
-      command += F(",");
-      command += String(clients[idx].GetPacketLength());
-      WaitForDataWelcome = true; // выставляем флаг, что мы ждём >
-
-      SendCommand(command);
-  
-      break; // выходим из цикла
-    } // if
-    
-  } // for
-  
-  if(nextClientIDX >= MAX_WIFI_CLIENTS) // начинаем обработку клиентов сначала
-    nextClientIDX = 0;  
-}
+#ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
 //--------------------------------------------------------------------------------------------------------------------------------
 void WiFiModule::EnsureHTTPProcessed(uint16_t statusCode)
 {
   if(!httpHandler) // не было флага запроса HTTP-адреса
     return;
-
-    #ifdef HTTP_DEBUG
-      Serial.print(F("EnsureHTTPProcessed: "));
-      Serial.println(statusCode);
-    #endif
   
-    
-   httpHandler->OnHTTPResult(statusCode); // сообщаем, что мы закончили обработку
-
-  flags.wantHTTPRequest = false;
-  flags.inHTTPRequestMode = false;
-  flags.inSendData = false;
+  httpHandler->OnHTTPResult(statusCode); // сообщаем, что мы закончили обработку
   httpHandler = NULL;
+
   delete httpData;
-  httpData = NULL;
+  httpData = new String();  
+
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-#if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-void WiFiModule::EnsureIoTProcessed(bool success)
-{
-     if(iotDone) 
-     {
-        // да, нас вызывали для отсыла данных в IoT, но что-то пошло не так
-        iotDone({success,iotService});
-        iotDone = NULL;
-        iotWriter = NULL;
-     }
-
-     delete iotDataHeader;
-     iotDataHeader = NULL;
-
-     delete iotDataFooter;
-     iotDataFooter = NULL;
-     
-     iotDataLength = 0;  
-     flags.wantIoTToProcess = false;         
-  
-}
 #endif
 //--------------------------------------------------------------------------------------------------------------------------------
 void WiFiModule::Update(uint16_t dt)
 { 
-  if(flags.inRebootMode) {
-    // мы в процессе перезагрузки модема, надо проверить, пора ли включать питание?
-    if(millis() - rebootStartTime > WIFI_REBOOT_TIME) {
-      // две секунды держали питание выключенным, можно включать
-      flags.inRebootMode = false;
-      flags.isAnyAnswerReceived = false; // говорим, что мы ничего от модема не получали
-
-      InitQueue(); // инициализируем очередь
-
-      // ТУТ включение питания модема 
-      #ifdef USE_WIFI_REBOOT_PIN
-        WORK_STATUS.PinWrite(WIFI_REBOOT_PIN,WIFI_POWER_ON);
-      #endif
-      needToWaitTimer = WIFI_WAIT_AFTER_REBOOT_TIME; // дадим модему WIFI_WAIT_AFTER_REBOOT_TIME мс на раздупление, прежде чем начнём что-либо делать
-
-      #ifdef WIFI_DEBUG
-        Serial.println(F("[REBOOT] - ESP rebooted, wait for ready..."));
-      #endif
-    }
-    
-    return;
-  }  
-
-  if(needToWaitTimer > 0) // надо ждать следующей команды запрошенное время
-  {
-    needToWaitTimer -= dt;
-    return;
-  }
-
-  needToWaitTimer = 0; // сбрасываем таймер ожидания  
-
-   if(currentAction != wfaIdle) // только если мы в процессе обработки команды, то
-    answerWaitTimer += dt; // увеличиваем время ожидания ответа на последнюю команду 
-
-
-   // сначала проверяем - а не слишком ли долго мы ждём ответа от модема?
-  if(answerWaitTimer > WIFI_MAX_ANSWER_TIME) {
-
-     // тут смотрим - возможно, нам надо вызвать функцию обратного вызова для IoT
-     #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
-      EnsureIoTProcessed();
-     #endif
-
-     // тут убеждаемся, что мы сообщили вызывающей стороне о неуспешном запросе по HTTP
-     EnsureHTTPProcessed(ERROR_MODEM_NOT_ANSWERING);
-     
-      // очень долго, надо перезапустить последнюю команду.
-     // причём лучше всего перезапустить всё сначала
-     InitQueue();
-     needToWaitTimer = WIFI_WAIT_AFTER_REBOOT_TIME; // ещё через 5 секунд попробуем
-     sendCommandTime = millis(); // сбросили таймера
-     answerWaitTimer = 0;
-
-     if(flags.isAnyAnswerReceived) {
-        // получали хоть один ответ от модема - возможно, он завис?
-        RebootModem();
-        
-     } else {
-        // ничего не получали, модема не подсоединено?
-        #ifdef WIFI_DEBUG
-          Serial.println(F("[ERR] - ESP not found, check for presence after short time..."));
-        #endif
-     }
-
-
-  }     
-
-  if(!flags.inRebootMode) { // если мы не в процессе перезагрузки - то можем отрабатывать очередь  
-    UpdateClients();
-    ProcessQueue();
-  }
-
+  UNUSED(dt);
+  
+  ESP.update();
+  
+  #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+    mqtt.update();
+  #endif // USE_WIFI_MODULE_AS_MQTT_CLIENT
+  
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
@@ -1544,10 +526,6 @@ bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
           String stationID = command.GetArg(4);
           String stationPassword = command.GetArg(5);
 
-          bool shouldReastartAP = Settings->GetStationID() != stationID ||
-          Settings->GetStationPassword() != stationPassword;
-
-
           Settings->SetWiFiState(shouldConnectToRouter);
           Settings->SetRouterID(routerID);
           Settings->SetRouterPassword(routerPassword);
@@ -1557,23 +535,25 @@ bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
           if(!routerID.length())
             Settings->SetWiFiState(0); // не коннектимся к роутеру
 
-//          Settings->Save(); // сохраняем настройки
+          // убеждаемся, что отработали IoT
+          #if defined(USE_IOT_MODULE) && defined(USE_WIFI_MODULE_AS_IOT_GATE)
+            thingSpeakClient.disconnect();
+            EnsureIoTProcessed(false);
+          #endif
 
-          if(Settings->GetWiFiState() & 0x01) // коннектимся к роутеру
-            actionsQueue.push_back(wfaCWJAP); // коннектимся к роутеру совсем в конце
-          else
-            actionsQueue.push_back(wfaCWQAP); // отсоединяемся от роутера
+          #ifdef USE_WIFI_MODULE_AS_HTTP_PROVIDER
+            httpClient.disconnect();
+            // убеждаемся, что мы освободили HTTP-модуль
+            EnsureHTTPProcessed(ERROR_HTTP_REQUEST_CANCELLED);
+          #endif
 
-          if(shouldReastartAP) // надо пересоздать точку доступа
-          {
-            actionsQueue.push_back(wfaCIPSERVER); // сервер поднимаем в последнюю очередь
-            actionsQueue.push_back(wfaCIPMUX); // разрешаем множественные подключения
-            actionsQueue.push_back(wfaCIPMODE); // устанавливаем режим работы
-            actionsQueue.push_back(wfaCWSAP); // создаём точку доступа
-          }
-           
-          
-          PublishSingleton.Status = true;
+          #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+          mqtt.reset();
+          #endif
+
+          ESP.restart(); // начинаем работу снова
+                     
+          PublishSingleton.Flags.Status = true;
           PublishSingleton = t; 
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
         }
@@ -1581,6 +561,118 @@ bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
           PublishSingleton = PARAMS_MISSED; // мало параметров
         
       } // WIFI_SETTINGS_COMMAND
+      #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+      else
+      if(t == F("MQTT_DEL")) // удалить все топики
+      {
+            mqtt.DeleteAllTopics();
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton = t; 
+            PublishSingleton << PARAM_DELIMITER << REG_SUCC;        
+      } // MQTT_DEL
+      else
+      if(t == F("MQTT_ADD")) // добавить топик, CTSET=WIFI|MQTT_ADD|Index|Topic name|Module name|Sensor type|Sensor index|Topic type
+      {
+        if(argsCnt > 6)
+        {
+          const char* topicIndex = command.GetArg(1);
+          const char* topicName = command.GetArg(2);
+          const char* moduleName = command.GetArg(3);
+          const char* sensorType = command.GetArg(4);
+          const char* sensorIndex = command.GetArg(5);
+          const char* topicType = command.GetArg(6);
+
+          mqtt.AddTopic(topicIndex,topicName,moduleName,sensorType,sensorIndex,topicType);
+          
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton = t; 
+          PublishSingleton << PARAM_DELIMITER << REG_SUCC;
+        }
+        else
+        {
+          PublishSingleton = PARAMS_MISSED; // мало параметров
+        }
+        
+      } // MQTT_ADD
+      else
+      if(t == F("MQTT")) // установить настройки MQTT: CTSET=WIFI|MQTT|Enabled flag|Server address|Server port|Interval between topics|Client id|User|Pass
+      {        
+        if(argsCnt > 7)
+        {
+            byte mqttEnabled = atoi(command.GetArg(1));
+            String mqttServer = command.GetArg(2);
+            String mqttPort = command.GetArg(3);
+            byte mqttInterval = atoi(command.GetArg(4));
+            String mqttClient = command.GetArg(5);
+            String mqttUser = command.GetArg(6);
+            String mqttPass = command.GetArg(7);
+
+            if(mqttServer == "_")
+              mqttServer = "";
+
+            if(mqttPort == "_")
+              mqttPort = "";
+
+            if(mqttClient == "_")
+              mqttClient = "";
+
+            if(mqttUser == "_")
+              mqttUser = "";
+
+            if(mqttPass == "_")
+              mqttPass = "";
+
+            MemWrite(MQTT_ENABLED_FLAG_ADDRESS,mqttEnabled);
+            MemWrite(MQTT_INTERVAL_BETWEEN_TOPICS_ADDRESS,mqttInterval);
+
+            if(MainController->HasSDCard())
+            {
+              String mqttSettingsFileName = F("mqtt.ini");
+              String newline = "\n";
+              
+              SdFile f;
+              
+              #define MQTT_WRITE_TO_FILE(f,str) f.write((const uint8_t*) str.c_str(),str.length())
+              
+              if(f.open(mqttSettingsFileName.c_str(), FILE_WRITE | O_TRUNC))
+              {
+                // адрес сервера
+                MQTT_WRITE_TO_FILE(f,mqttServer);
+                MQTT_WRITE_TO_FILE(f,newline);
+                
+                // порт
+                MQTT_WRITE_TO_FILE(f,mqttPort);
+                MQTT_WRITE_TO_FILE(f,newline);
+
+                // ID клиента
+                MQTT_WRITE_TO_FILE(f,mqttClient);
+                MQTT_WRITE_TO_FILE(f,newline);
+
+                // user
+                MQTT_WRITE_TO_FILE(f,mqttUser);
+                MQTT_WRITE_TO_FILE(f,newline);
+
+                // pass
+                MQTT_WRITE_TO_FILE(f,mqttPass);
+                MQTT_WRITE_TO_FILE(f,newline);
+                
+                f.close();
+              } // 
+              
+            } // if
+
+            mqtt.reloadSettings(); // говорим клиенту, что настройки изменились
+            
+          
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton = t; 
+            PublishSingleton << PARAM_DELIMITER << REG_SUCC;
+        }
+        else
+          PublishSingleton = PARAMS_MISSED;
+        
+      }
+      #endif // USE_WIFI_MODULE_AS_MQTT_CLIENT
     }
     else
       PublishSingleton = PARAMS_MISSED; // мало параметров
@@ -1595,110 +687,204 @@ bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
       
       if(t == IP_COMMAND) // получить данные об IP
       {
-        if(currentAction != wfaIdle) // не можем ответить на запрос немедленно
+        if(!ESP.ready()) // не можем ответить на запрос немедленно
           PublishSingleton = BUSY;
         else
         {
-        #ifdef WIFI_DEBUG
-         WIFI_DEBUG_WRITE(F("Request for IP info..."),currentAction);
-        #endif
-        
-        
-        SendCommand(F("AT+CIFSR"));
-        // поскольку у нас serialEvent не основан на прерываниях, на самом-то деле (!),
-        // то мы должны получить ответ вот прямо вот здесь, и разобрать его.
-
-
-        String line; // тут принимаем данные до конца строки
-        String apCurrentIP;
-        String stationCurrentIP;
-        bool  apIpDone = false;
-        bool staIpDone = false;
-        
-
-        char ch;
-        while(1)
-        { 
-          if(apIpDone && staIpDone) // получили оба IP
-            break;
-            
-          while(WIFI_SERIAL.available())
-          {
-            ch = WIFI_SERIAL.read();
-        
-            if(ch == '\r')
-              continue;
-            
-            if(ch == '\n')
+            String staIP;
+            String apIP;
+            if(ESP.getIP(staIP,apIP))
             {
-              // получили строку, разбираем её
-                if(line.startsWith(F("+CIFSR:APIP"))) // IP нашей точки доступа
-                 {
-                    #ifdef WIFI_DEBUG
-                      WIFI_DEBUG_WRITE(F("AP IP found, parse..."),currentAction);
-                    #endif
-            
-                   int idx = line.indexOf("\"");
-                   if(idx != -1)
-                   {
-                      apCurrentIP = line.substring(idx+1);
-                      idx = apCurrentIP.indexOf("\"");
-                      if(idx != -1)
-                        apCurrentIP = apCurrentIP.substring(0,idx);
-                      
-                   }
-                   else
-                    apCurrentIP = F("0.0.0.0");
-
-                    apIpDone = true;
-                 } // if(line.startsWith(F("+CIFSR:APIP")))
-                 else
-                  if(line.startsWith(F("+CIFSR:STAIP"))) // IP нашей точки доступа, назначенный роутером
-                 {
-                    #ifdef WIFI_DEBUG
-                      WIFI_DEBUG_WRITE(F("STA IP found, parse..."),currentAction);
-                    #endif
-            
-                   int idx = line.indexOf("\"");
-                   if(idx != -1)
-                   {
-                      stationCurrentIP = line.substring(idx+1);
-                      idx = stationCurrentIP.indexOf("\"");
-                      if(idx != -1)
-                        stationCurrentIP = stationCurrentIP.substring(0,idx);
-                      
-                   }
-                   else
-                    stationCurrentIP = F("0.0.0.0");
-
-                    staIpDone = true;
-                 } // if(line.startsWith(F("+CIFSR:STAIP")))
-             
-              line = F("");
-            } // ch == '\n'
+              PublishSingleton.Flags.Status = true;
+              PublishSingleton = t; 
+              PublishSingleton << PARAM_DELIMITER << apIP << PARAM_DELIMITER << staIP;
+            }
             else
             {
-                  line += ch;
+              PublishSingleton = BUSY;
             }
-        
-         if(apIpDone && staIpDone) // получили оба IP
-            break;
- 
-          } // while
           
-        } // while(1)
-        
 
-
-        #ifdef WIFI_DEBUG
-          WIFI_DEBUG_WRITE(F("IP info requested."),currentAction);
-        #endif
-
-        PublishSingleton.Status = true;
-        PublishSingleton = t; 
-        PublishSingleton << PARAM_DELIMITER << apCurrentIP << PARAM_DELIMITER << stationCurrentIP;
         } // else not busy
       } // IP_COMMAND
+      else
+      if(t == F("PING"))
+      {
+        if(!ESP.ready()) // не можем ответить на запрос немедленно
+          PublishSingleton = BUSY;
+        else
+        {
+          bool pingResult = false;
+          if(ESP.pingGoogle(pingResult))
+          {
+            String pingLine;
+            
+            if(pingResult)
+              pingLine = F("OK");
+            else
+              pingResult = F("ERROR");
+              
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton = t; 
+            PublishSingleton << PARAM_DELIMITER << pingLine;
+          }
+          else
+          {
+             PublishSingleton = BUSY;
+          }
+
+        } // else not busy                
+      } // ping
+      else
+      if(t == F("MAC"))
+      {
+        if(!ESP.ready()) // не можем ответить на запрос немедленно
+          PublishSingleton = BUSY;
+        else
+        {
+          String staMAC, apMAC;
+          if(ESP.getMAC(staMAC, apMAC))
+          {
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton = t; 
+            PublishSingleton << PARAM_DELIMITER << staMAC << PARAM_DELIMITER << apMAC;            
+          }
+          else
+          {
+            PublishSingleton = BUSY;
+          }
+        } // else not busy        
+      } // получить MAC-адрес
+      else
+      if(t == WIFI_SETTINGS_COMMAND)
+      {
+         // получить настройки Wi-Fi
+
+        GlobalSettings* Settings = MainController->GetSettings();  
+
+        PublishSingleton.Flags.Status = true;
+        PublishSingleton = t; 
+        PublishSingleton << PARAM_DELIMITER << Settings->GetWiFiState() << PARAM_DELIMITER << Settings->GetRouterID()
+        << PARAM_DELIMITER << Settings->GetRouterPassword()
+        << PARAM_DELIMITER << Settings->GetStationID()
+        << PARAM_DELIMITER << Settings->GetStationPassword();
+        
+      } // WIFI_SETTINGS_COMMAND
+      #ifdef USE_WIFI_MODULE_AS_MQTT_CLIENT
+      else
+      if(t == F("MQTT_CNT"))
+      {
+        // получить кол-во топиков, сохранённых на карточке
+        PublishSingleton.Flags.Status = true;
+        PublishSingleton = t;
+        PublishSingleton << PARAM_DELIMITER << mqtt.GetSavedTopicsCount();        
+        
+      } // MQTT_CNT
+      else
+      if(t == F("MQTT_VIEW")) // посмотреть топик по индексу, CTGET=WIFI|MQTT_VIEW|Index
+      {
+        if(argsCnt > 1)
+        {
+          String topicFileName = MQTT_FILENAME_PATTERN;
+          topicFileName += command.GetArg(1);
+        
+          // тут можем читать из файла настроек топика
+                SdFile f;
+                
+                if(f.open(topicFileName.c_str(),FILE_READ))
+                {   
+                  // теперь читаем настройки топика
+                  // первой строкой идёт имя топика
+                  String topicName;
+                  FileUtils::readLine(f,topicName);
+          
+                  // второй строкой - идёт имя модуля, в котором взять нужные показания
+                  String moduleName;
+                  FileUtils::readLine(f,moduleName);
+          
+                  // в третьей строке - тип датчика, числовое значение соответствует перечислению ModuleStates
+                  String sensorTypeString;
+                  FileUtils::readLine(f,sensorTypeString);
+                            
+                  // в четвёртой строке - индекс датчика в модуле
+                  String sensorIndexString;
+                  FileUtils::readLine(f,sensorIndexString);
+          
+                  // в пятой строке - тип топика: показания с датчиков (0), или статус контроллера (1).
+                  // в случае статуса контроллера во второй строке - тип статуса, третья и четвёртая - зависят от типа статуса
+                  String topicType;
+                  FileUtils::readLine(f,topicType);
+                  
+                  // не забываем закрыть файл
+                  f.close(); 
+
+                  PublishSingleton.Flags.Status = true;
+                  PublishSingleton = t;
+                  PublishSingleton << PARAM_DELIMITER << command.GetArg(1); // index
+                  PublishSingleton << PARAM_DELIMITER << topicName; // topic name
+                  PublishSingleton << PARAM_DELIMITER << moduleName; // module name
+                  PublishSingleton << PARAM_DELIMITER << sensorTypeString; // sensor type
+                  PublishSingleton << PARAM_DELIMITER << sensorIndexString; // sensor index
+                  PublishSingleton << PARAM_DELIMITER << topicType; // topic type
+                  
+                }
+                else
+                {
+                  PublishSingleton = PARAMS_MISSED; // мало параметров
+                }
+                        
+         
+        }
+        else
+        {
+          PublishSingleton = PARAMS_MISSED; // мало параметров
+        }
+        
+      } // MQTT_VIEW
+      else
+      if(t == F("MQTT")) // получить настройки MQTT, CTGET=WIFI|MQTT, возвращает OK=WIFI|MQTT|Enabled flag|Server address|Server port|Interval between topics|Client id|User|Pass
+      {
+        if(MainController->HasSDCard())
+        {
+           // есть карта, читаем настройки
+           byte mqttEnabled = MemRead(MQTT_ENABLED_FLAG_ADDRESS);
+           if(mqttEnabled == 0xFF)
+            mqttEnabled = 0;
+            
+           byte mqttInterval = MemRead(MQTT_INTERVAL_BETWEEN_TOPICS_ADDRESS);
+           if(mqttInterval == 0xFF)
+            mqttInterval = 10;
+
+           String mqttServer, mqttPort, mqttClientId, mqttUser, mqttPass;
+
+           String mqttSettingsFileName = F("mqtt.ini");
+           SdFile f;
+
+           if(f.open(mqttSettingsFileName.c_str(),FILE_READ))
+           {
+            FileUtils::readLine(f,mqttServer); // адрес сервера
+            FileUtils::readLine(f,mqttPort); // порт сервера
+            FileUtils::readLine(f,mqttClientId); // ID клиента
+            FileUtils::readLine(f,mqttUser); // user
+            FileUtils::readLine(f,mqttPass); // pass
+            
+            f.close();
+           }
+           
+            // Всё прочитали, можно постить
+            PublishSingleton.Flags.Status = true;
+            PublishSingleton = t;
+            PublishSingleton << PARAM_DELIMITER << mqttEnabled; 
+            PublishSingleton << PARAM_DELIMITER << mqttServer; 
+            PublishSingleton << PARAM_DELIMITER << mqttPort; 
+            PublishSingleton << PARAM_DELIMITER << mqttInterval; 
+            PublishSingleton << PARAM_DELIMITER << mqttClientId; 
+            PublishSingleton << PARAM_DELIMITER << mqttUser; 
+            PublishSingleton << PARAM_DELIMITER << mqttPass; 
+           
+        }
+      }
+      #endif // USE_WIFI_MODULE_AS_MQTT_CLIENT
     }
     else
       PublishSingleton = PARAMS_MISSED; // мало параметров
@@ -1706,7 +892,8 @@ bool  WiFiModule::ExecCommand(const Command& command, bool wantAnswer)
 
   MainController->Publish(this,command);
 
-  return PublishSingleton.Status;
+  return PublishSingleton.Flags.Status;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_WIFI_MODULE
 

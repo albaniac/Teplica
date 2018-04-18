@@ -3,10 +3,166 @@
 
 #include "UniversalSensors.h"
 #include "AlertModule.h"
-
+#if defined(USE_WIFI_MODULE) || defined(USE_SMS_MODULE)
+#include "CoreTransport.h"
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
 PublishStruct PublishSingleton;
 ModuleController* MainController = NULL;
+SdFat SDFat;
+//--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_DS3231_REALTIME_CLOCK
+void setFileDateTime(uint16_t* date, uint16_t* time) 
+{
+  DS3231Clock rtc = MainController->GetClock();
+  DS3231Time tm = rtc.getTime();
 
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(tm.year, tm. month, tm. dayOfMonth);
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(tm.hour, tm. minute, tm. second);
+}
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+void FileUtils::RemoveFiles(const String& dirName, bool recursive)
+{
+  const char* dirP = dirName.c_str();
+  
+  if(!SDFat.exists(dirP))
+  {
+    yield();
+    return;
+  }
+
+  SdFile root;
+  if(!root.open(dirP,FILE_READ))
+  {
+    yield();
+    return;
+  }
+
+  root.rewind();
+  yield();
+
+
+  SdFile entry;
+  while(entry.openNext(&root,FILE_READ))
+  {
+    yield();
+    
+    if(entry.isDir())
+    {
+      if(recursive)
+      {
+        String subPath = dirName + "/";
+        subPath += FileUtils::GetFileName(entry);        
+        FileUtils::RemoveFiles(subPath,recursive);
+
+        if(!SDFat.rmdir(subPath.c_str()))
+        {
+        }
+        else
+        {
+          entry.close();
+        }
+      }
+    }
+    else
+    {
+     String subPath = dirName + "/" + FileUtils::GetFileName(entry);
+
+      if(!SDFat.remove(subPath.c_str()))
+      {
+      }
+      else
+      {
+        entry.close();
+      }
+      yield();
+    }
+  } // while
+
+
+  root.close();
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+int FileUtils::CountFiles(const String& dirName, bool recursive)
+{
+  int result = 0;
+  const char* dirP = dirName.c_str();
+  
+  if(!SDFat.exists(dirP))
+    return result;
+
+  SdFile root;
+  if(!root.open(dirP,O_READ))
+    return result;
+
+  yield();
+  root.rewind();
+
+  SdFile entry;
+  while(entry.openNext(&root,O_READ))
+  {
+    yield();
+    if(entry.isDir())
+    {
+      if(recursive)
+      {
+        String subPath = dirName + "/";
+        subPath += FileUtils::GetFileName(entry);
+        result += FileUtils::CountFiles(subPath,recursive);      
+      }
+    }
+    else
+    {      
+      result++;
+    }
+    entry.close();
+  } // while
+
+
+  root.close();
+  return result;
+
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+String FileUtils::GetFileName(SdFile& f)
+{
+      char nameBuff[50] = {0};
+      f.getName(nameBuff,50);
+      yield();
+      return nameBuff;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void FileUtils::readLine(SdFile& f, String& result)
+{
+  if(!f.isOpen())
+    return;
+    
+    while(1)
+    {
+      int iCh = f.read();
+      
+      if(iCh == -1)
+        break;
+
+      yield();
+
+      char ch = (char) iCh;
+
+      if(ch == '\r')
+        continue;
+
+      if(ch == '\n')
+        break;
+
+      result += ch;
+    }  
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 ModuleController::ModuleController() : cParser(NULL)
 #ifdef USE_LOG_MODULE
 ,logWriter(NULL)
@@ -17,19 +173,26 @@ ModuleController::ModuleController() : cParser(NULL)
   httpQueryProviders[1] = NULL;
   PublishSingleton.Text.reserve(SHARED_BUFFER_LENGTH); // 500 байт для ответа от модуля должно хватить.
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_DS3231_REALTIME_CLOCK
 DS3231Clock& ModuleController::GetClock()
 {
   return _rtc;
 }
 #endif
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::begin()
 {
  // тут можно написать код, который выполнится непосредственно перед началом работы
  
  UniDispatcher.Setup(); // настраиваем диспетчера универсальных датчиков
+
+ #ifdef USE_FEEDBACK_MANAGER
+ FeedbackManager.Setup();
+ #endif
  
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 OneState* ModuleController::GetReservedState(AbstractModule* sourceModule, ModuleStates sensorType, uint8_t sensorIndex)
 {
   if(!reservationResolver)
@@ -37,18 +200,36 @@ OneState* ModuleController::GetReservedState(AbstractModule* sourceModule, Modul
 
   return reservationResolver->GetReservedState(sourceModule,sensorType, sensorIndex);
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::Setup()
 {  
   MainController = this;
 
-//  settings.Load(); // загружаем настройки
-
 #ifdef USE_DS3231_REALTIME_CLOCK
 _rtc.begin();
+SdFile::dateTimeCallback(setFileDateTime);
 #endif
 
-#if  defined(USE_WIFI_MODULE) || defined(USE_LOG_MODULE) || defined(USE_SMS_MODULE)|| (defined(SENSORS_SETTINGS_ON_SD_ENABLED) && defined(USE_LCD_MODULE))
-  sdCardInitFlag = SD.begin(SDCARD_CS_PIN); // пробуем инициализировать SD-модуль
+
+#if  defined(USE_WIFI_MODULE) || defined(USE_LOG_MODULE) || defined(USE_SMS_MODULE) || (defined(SENSORS_SETTINGS_ON_SD_ENABLED) && defined(USE_LCD_MODULE))
+
+  pinMode(SDCARD_CS_PIN,OUTPUT);
+  digitalWrite(SDCARD_CS_PIN,HIGH);
+
+ #if TARGET_BOARD == DUE_BOARD
+  delay(400);
+  for(int i=0;i<5;i++)
+  {
+      sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN, SPI_HALF_SPEED); // пробуем инициализировать SD-модуль
+      if(sdCardInitFlag)
+        break;
+        
+    delay(500);
+  }
+ #else
+    sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN); // пробуем инициализировать SD-модуль
+ #endif
+ 
   WORK_STATUS.PinMode(SDCARD_CS_PIN,OUTPUT,false);
   WORK_STATUS.PinMode(MOSI,OUTPUT,false);
   WORK_STATUS.PinMode(MISO,INPUT,false);
@@ -63,7 +244,7 @@ _rtc.begin();
   #endif 
   
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::Log(AbstractModule* mod, const String& message)
 {
  #ifdef USE_LOG_MODULE
@@ -79,6 +260,7 @@ void ModuleController::Log(AbstractModule* mod, const String& message)
   UNUSED(message);
  #endif
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::RegisterModule(AbstractModule* mod)
 {
   if(mod)
@@ -87,7 +269,25 @@ void ModuleController::RegisterModule(AbstractModule* mod)
     modules.push_back(mod);
   }
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+void ModuleController::streamWrite(Stream* s, const String& str)
+{
+    for(size_t i=0;i<str.length();i++)
+    {
+      #ifdef USE_WIFI_MODULE
+        ESP.readFromStream();
+      #endif
 
+     #ifdef USE_SMS_MODULE
+     // и модуль GSM тоже тут обновим
+     SIM800.readFromStream();
+     #endif       
+      
+      s->write(str[i]);
+     
+    } // for
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::PublishToCommandStream(AbstractModule* module,const Command& sourceCommand)
 {
 
@@ -95,48 +295,39 @@ void ModuleController::PublishToCommandStream(AbstractModule* module,const Comma
  
   // Публикуем в переданный стрим
   if(!ps)
-  {
-#ifdef _DEBUG
-  if(PublishSingleton.Text.length())
-    Serial.println(String(F("No ps, but have answer: ")) + PublishSingleton.Text);
-#endif    
-    PublishSingleton.Busy = false; // освобождаем структуру
+  { 
+    PublishSingleton.Flags.Busy = false; // освобождаем структуру
     return;
   }
 
-     ps->print(PublishSingleton.Status ? OK_ANSWER : ERR_ANSWER);
-     ps->print(COMMAND_DELIMITER);
+     //ps->print(PublishSingleton.Flags.Status ? OK_ANSWER : ERR_ANSWER);
+     streamWrite(ps,PublishSingleton.Flags.Status ? OK_ANSWER : ERR_ANSWER);
 
-    if(PublishSingleton.AddModuleIDToAnswer && module) // надо добавить имя модуля в ответ
+     streamWrite(ps,COMMAND_DELIMITER);
+     //ps->print(COMMAND_DELIMITER);
+
+    if(PublishSingleton.Flags.AddModuleIDToAnswer && module) // надо добавить имя модуля в ответ
     {
-       ps->print(module->GetID());
-       ps->print(PARAM_DELIMITER);
+       streamWrite(ps,module->GetID());
+       //ps->print(module->GetID());
+
+       streamWrite(ps,PARAM_DELIMITER);
+       //ps->print(PARAM_DELIMITER);
     }
-    
-     ps->println(PublishSingleton.Text);
+
+     streamWrite(ps,PublishSingleton.Text);
+     streamWrite(ps,NEWLINE);
+     //ps->println(PublishSingleton.Text);
 
    
-   PublishSingleton.Busy = false; // освобождаем структуру
+   PublishSingleton.Flags.Busy = false; // освобождаем структуру
 }
-
-void ModuleController::CallRemoteModuleCommand(AbstractModule* mod, const String& command)
-{
-
-  UNUSED(mod);
-  UNUSED(command);
-  
-#ifdef _DEBUG  
-  Serial.println("BROADCAST THE COMMAND \"" + command + "\"");
-#endif
-  
-}
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::Publish(AbstractModule* module,const Command& sourceCommand)
 {
-
-  PublishToCommandStream(module,sourceCommand);
-  
+  PublishToCommandStream(module,sourceCommand); 
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 AbstractModule* ModuleController::GetModuleByID(const String& id)
 {
   size_t sz = modules.size();
@@ -148,42 +339,30 @@ AbstractModule* ModuleController::GetModuleByID(const String& id)
   } // for
   return NULL;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::ProcessModuleCommand(const Command& c, AbstractModule* mod)
 {
-
-#ifdef _DEBUG
-///Serial.println("called: " +  c.GetTargetModuleID() + PARAM_DELIMITER + c.GetRawArguments());
-#endif  
 
 if(!mod) // ничего не передали, надо искать модуль
   mod =  GetModuleByID(c.GetTargetModuleID());
   
  if(!mod)
  {
-  //TODO: МОДУЛЬ НЕ НАЙДЕН, ВОТ ЗАСАДА! НО: ТУТ МОЖНО ПЕРЕНАПРАВЛЯТЬ ЗАПРОС БРОАДКАСТОМ В СЕТЬ,
-  // МОЖЕТ - КАКОЙ-НИБУДЬ МОДУЛЬ НА НЕЁ ОТВЕТИТ. ЕЩЁ ЛУЧШЕ - КОГДА БУДЕТ РЕАЛИЗОВАНА ПРОЗРАЧНАЯ
-  // РЕГИСТРАЦИЯ МОДУЛЕЙ В СИСТЕМЕ - ПРОСТО СМОТРЕТЬ СПИСОК ТАКИХ МОДУЛЕЙ И ИСКАТЬ НУЖНЫЙ МОДУЛЬ ТАМ.
-  // ПРИ ТАКОМ ПОДХОДЕ НАКЛАДНЫЕ РАСХОДЫ ВОЗРАСТУТ НЕЗНАЧИТЕЛЬНО.
-
-  // А ПОКА - МЫ ПРОСТО СООБЩАЕМ, ЧТО МОДУЛЬ С ПЕРЕДАННЫМ ИМЕНЕМ НАМ НЕИЗВЕСТЕН.
   // Сообщаем в тот поток, откуда пришел запрос.
-  PublishSingleton.AddModuleIDToAnswer = false;
-  PublishSingleton.Status = false;
+  PublishSingleton.Flags.AddModuleIDToAnswer = false;
+  PublishSingleton.Flags.Status = false;
   PublishSingleton = UNKNOWN_MODULE;
   PublishToCommandStream(mod,c);
   return;
  }
-     // нашли модуль
-
-CHECK_PUBLISH_CONSISTENCY;
-
+ 
+ // нашли модуль
  PublishSingleton.Reset(); // очищаем структуру для публикации
- PublishSingleton.Busy = true; // говорим, что структура занята для публикации
+ PublishSingleton.Flags.Busy = true; // говорим, что структура занята для публикации
  mod->ExecCommand(c,true);//c.GetIncomingStream() != NULL); // выполняем его команду
  
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::Alarm(AlertRule* rule)
 {
   #ifdef USE_ALARM_DISPATCHER
@@ -192,9 +371,14 @@ void ModuleController::Alarm(AlertRule* rule)
     UNUSED(rule);
   #endif
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void ModuleController::UpdateModules(uint16_t dt, CallbackUpdateFunc func)
 {  
+  
+ #ifdef USE_FEEDBACK_MANAGER
+ FeedbackManager.Update(dt); // обновляем состояние менеджера обратной связи
+ #endif
+  
   size_t sz = modules.size();
   for(size_t i=0;i<sz;i++)
   { 
@@ -208,4 +392,5 @@ void ModuleController::UpdateModules(uint16_t dt, CallbackUpdateFunc func)
   
   } // for
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 

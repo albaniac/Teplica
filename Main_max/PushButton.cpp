@@ -5,7 +5,6 @@
 PushButton::PushButton(uint8_t _pin)
 {
   buttonPin = _pin;
-  WORK_STATUS.PinMode(buttonPin, INPUT_PULLUP); // подтягиваем к питанию
   
   userData = NULL;
   OnClick = NULL;
@@ -39,6 +38,9 @@ void PushButton::init(void* _userData
     , PushButtonEvent _onInactive
     , PushButtonEvent _onRetention)
 {
+
+  WORK_STATUS.PinMode(buttonPin, INPUT_PULLUP); // подтягиваем к питанию
+  
   userData = _userData;
   OnClick = _onClick;
   OnPress = _onPress;
@@ -94,7 +96,7 @@ void PushButton::update()
   {
     state.lastBounce = curBounce; // сохраняем текущее
 
-    if (!state.lastButtonState && !curBounce) // если кнопка была нажата в момент последнего замера и сейчас - значит, дребезг прошёл и мы можем сохранять состояние
+    if (!state.lastButtonState && curBounce) // если кнопка была нажата в момент последнего замера и сейчас - значит, дребезг прошёл и мы можем сохранять состояние
     {
       state.click_down = true; // выставляем флаг, что кнопка нажата
 

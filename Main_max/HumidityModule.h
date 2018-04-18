@@ -6,7 +6,7 @@
 
 #include "Si7021Support.h"
 #include "DHTSupport.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 typedef struct
 {
   uint8_t pin;
@@ -14,7 +14,7 @@ typedef struct
   HumiditySensorType type;
   
 } HumiditySensorRecord;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 class HumidityModule : public AbstractModule // модуль управления влажностью
 {
   private:
@@ -28,6 +28,8 @@ class HumidityModule : public AbstractModule // модуль управлени�
 
     uint16_t lastUpdateCall;
 
+    uint8_t lastSi7021StrobeBreakPin;
+
     
   public:
     HumidityModule() : AbstractModule("HUMIDITY")
@@ -39,6 +41,5 @@ class HumidityModule : public AbstractModule // модуль управлени�
     void Update(uint16_t dt);
 
 };
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #endif

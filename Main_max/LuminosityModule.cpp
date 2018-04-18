@@ -1,14 +1,22 @@
 #include "LuminosityModule.h"
 #include "ModuleController.h"
+#include "Max44009.h"
+//--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_LUMINOSITY_MODULE
 
 #if LAMP_RELAYS_COUNT > 0
 static uint8_t LAMP_RELAYS[] = { LAMP_RELAYS_PINS }; // объявляем массив пинов реле
 #endif
 
+#if LIGHT_SENSORS_COUNT > 0
+static uint8_t LIGHT_SENSORS_MAPPING[] = { LIGHT_SENSORS };
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
 BH1750Support::BH1750Support()
 {
 
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void BH1750Support::begin(BH1750Address addr, BH1750Mode mode)
 {
   deviceAddress = addr;
@@ -19,12 +27,15 @@ void BH1750Support::begin(BH1750Address addr, BH1750Mode mode)
   writeByte(BH1750PowerOn); // включаем датчик
   ChangeMode(mode); 
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void BH1750Support::ChangeMode(BH1750Mode mode) // смена режима работы
 {
    currentMode = mode; // сохраняем текущий режим опроса
    writeByte((uint8_t)currentMode);
-  _delay_ms(10);
+  //_delay_ms(10);
+  delay(10);
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void BH1750Support::ChangeAddress(BH1750Address newAddr)
 {
   if(newAddr != deviceAddress) // только при смене адреса включаем датчик
@@ -35,18 +46,20 @@ void BH1750Support::ChangeAddress(BH1750Address newAddr)
     ChangeMode(currentMode); // меняем режим опроса на текущий
   } // if
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void BH1750Support::writeByte(uint8_t toWrite) 
 {
   Wire.beginTransmission(deviceAddress);
   BH1750_WIRE_WRITE(toWrite);
   Wire.endTransmission();
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 long BH1750Support::GetCurrentLuminosity() 
 {
 
   long curLuminosity = NO_LUMINOSITY_DATA;
 
-  Wire.beginTransmission(deviceAddress); // начинаем опрос датчика освещенности
+ //// Wire.beginTransmission(deviceAddress); // начинаем опрос датчика освещенности
  if(Wire.requestFrom(deviceAddress, 2) == 2)// ждём два байта
  {
   // читаем два байта
@@ -56,34 +69,63 @@ long BH1750Support::GetCurrentLuminosity()
   curLuminosity = curLuminosity/1.2; // конвертируем в люксы
  }
 
-  Wire.endTransmission();
+////  Wire.endTransmission();
 
 
   return curLuminosity;
 }
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void LuminosityModule::Setup()
 {
 
  #if LIGHT_SENSORS_COUNT > 0
+
+   bool bh1750NotFirst = false;
+   bool max44009NotFirst = false;
+ 
   for(uint8_t i=0;i<LIGHT_SENSORS_COUNT;i++)
   {
     State.AddState(StateLuminosity,i); // добавляем в состояние нужные индексы датчиков
-  } // for
-  #endif
-  
-  #if LIGHT_SENSORS_COUNT > 0
-  lightMeter.begin(); // запускаем первый датчик освещенности
-  #endif
 
-  #if LIGHT_SENSORS_COUNT > 1
-  lightMeter2.begin(BH1750Address2); // запускаем второй датчик освещённости
+    switch(LIGHT_SENSORS_MAPPING[i])
+    {
+       case BH1750_SENSOR:
+       {
+          BH1750Support* bh = new BH1750Support;
+          if(bh1750NotFirst)
+            bh->begin(BH1750Address2);
+          else
+            bh->begin();
+
+          bh1750NotFirst = true;
+
+          lightSensors[i] = bh;
+       }
+       break;
+
+       case MAX44009_SENSOR:
+       {
+          Max44009* bh = new Max44009;
+          if(max44009NotFirst)
+            bh->begin(MAX44009_ADDRESS2);
+          else
+            bh->begin(MAX44009_ADDRESS1);
+
+          max44009NotFirst = true;
+
+          lightSensors[i] = bh;
+       }
+       break;
+      
+    } // switch
+    
+  } // for
+
+  
   #endif
 
   
   // настройка модуля тут
-  //settings = MainController->GetSettings();
 
   flags.workMode = lightAutomatic; // автоматический режим работы
   flags.bRelaysIsOn = false; // все реле выключены
@@ -93,11 +135,12 @@ void LuminosityModule::Setup()
   SAVE_STATUS(LIGHT_MODE_BIT,1); // сохраняем, что мы в автоматическом режиме работы
   
 #ifdef USE_LIGHT_MANUAL_MODE_DIODE
-  blinker.begin(DIODE_LIGHT_MANUAL_MODE_PIN);//,F("LX")); // настраиваем блинкер на нужный пин
+  blinker.begin(DIODE_LIGHT_MANUAL_MODE_PIN); // настраиваем блинкер на нужный пин
 #endif
 
   #if LAMP_RELAYS_COUNT > 0
    // выключаем все реле
+   
     for(uint8_t i=0;i<LAMP_RELAYS_COUNT;i++)
     {
       #if LIGHT_DRIVE_MODE == DRIVE_DIRECT
@@ -121,6 +164,7 @@ void LuminosityModule::Setup()
     
        
  }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void LuminosityModule::Update(uint16_t dt)
 { 
   // обновление модуля тут
@@ -160,20 +204,54 @@ void LuminosityModule::Update(uint16_t dt)
   else
     lastUpdateCall = 0;
 
-  long lum = NO_LUMINOSITY_DATA;
 
   #if LIGHT_SENSORS_COUNT > 0
-    lum = lightMeter.GetCurrentLuminosity();
-    State.UpdateState(StateLuminosity,0,(void*)&lum);
-  #endif
+
+    for(int i=0;i<LIGHT_SENSORS_COUNT;i++)
+    {
+        long lum = NO_LUMINOSITY_DATA;
+        
+        switch(LIGHT_SENSORS_MAPPING[i])
+        {
+           case BH1750_SENSOR:
+           {
+              BH1750Support* bh = (BH1750Support*) lightSensors[i];
+              lum = bh->GetCurrentLuminosity();
+              
+           }
+           break;
     
-  #if LIGHT_SENSORS_COUNT > 1
-    lum = lightMeter2.GetCurrentLuminosity();
-    State.UpdateState(StateLuminosity,1,(void*)&lum);
+           case MAX44009_SENSOR:
+           {
+              Max44009* bh = (Max44009*) lightSensors[i];
+              float curLum = bh->readLuminosity();
+              
+             if(curLum < 0)
+              lum = NO_LUMINOSITY_DATA;
+            else
+            {
+              unsigned long ulLum = (unsigned long) curLum;
+              if(ulLum > 65535)
+                ulLum = 65535;
+
+              lum = ulLum;
+            }
+        
+           }
+           break;
+                  
+      
+          
+        } // switch 
+
+       State.UpdateState(StateLuminosity,i,(void*)&lum);
+    } // for
+  
+    
   #endif   
 
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
 {
   if(wantAnswer) 
@@ -217,7 +295,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
 
             flags.bRelaysIsOn = true; // включаем реле досветки
             
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             if(wantAnswer) 
               PublishSingleton = STATE_ON;
 
@@ -257,7 +335,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
 
             flags.bRelaysIsOn = false; // выключаем реле досветки
             
-            PublishSingleton.Status = true;
+            PublishSingleton.Flags.Status = true;
             if(wantAnswer) 
               PublishSingleton = STATE_OFF;
 
@@ -295,7 +373,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
                 #endif
               }
 
-              PublishSingleton.Status = true;
+              PublishSingleton.Flags.Status = true;
               if(wantAnswer)
               {
                 PublishSingleton = WORK_MODE; 
@@ -317,7 +395,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
     if(!argsCnt) // нет аргументов, попросили дать показания с датчика
     {
       
-      PublishSingleton.Status = true;
+      PublishSingleton.Flags.Status = true;
       if(wantAnswer) 
       {
          PublishSingleton = "";
@@ -359,7 +437,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
        String s = command.GetArg(0);
        if(s == WORK_MODE) // запросили режим работы
        {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           if(wantAnswer) 
           {
             PublishSingleton = WORK_MODE;
@@ -376,7 +454,7 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
             PublishSingleton << PARAM_DELIMITER << (flags.bRelaysIsOn ? STATE_ON : STATE_OFF) << PARAM_DELIMITER << (flags.workMode == lightAutomatic ? WM_AUTOMATIC : WM_MANUAL);
           }
           
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
              
        } // LIGHT_STATE_COMMAND
         
@@ -392,4 +470,5 @@ bool  LuminosityModule::ExecCommand(const Command& command, bool wantAnswer)
     
   return true;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_LUMINOSITY_MODULE

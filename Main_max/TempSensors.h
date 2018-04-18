@@ -4,21 +4,25 @@
 #include "AbstractModule.h"
 #include "DS18B20Query.h"
 #include "InteropStream.h"
+//--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_TEMP_SENSORS
 
+#pragma pack(push,1)
 typedef struct
 {
   uint8_t pin;
   uint8_t type;
   
 } TempSensorSettings; // настройки сенсоров
-
+#pragma pack(pop)
+//--------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
   wmAutomatic, // автоматический режим управления окнами
   wmManual // мануальный режим управления окнами
   
 } WindowWorkMode;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
   dirNOTHING,
@@ -26,9 +30,9 @@ typedef enum
   dirCLOSE
   
 } DIRECTION;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 class TempSensors;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 typedef struct
 {
   bool OnMyWay : 1; // флаг того, что фрамуга в процессе открытия/закрытия
@@ -36,15 +40,13 @@ typedef struct
   uint8_t pad : 4;
   
 } WindowStateFlags;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 class WindowState
 {
  private:
  
   unsigned long CurrentPosition; // текущая позиция фрамуги
-  unsigned long RequestedPosition; // какую позицию запросили
   unsigned long TimerInterval; // сколько работать фрамуге?
-  unsigned long TimerTicks; // сколько проработали уже?
 
   void SwitchRelays(uint8_t rel1State = SHORT_CIRQUIT_STATE, uint8_t rel2State = SHORT_CIRQUIT_STATE);
 
@@ -57,24 +59,24 @@ public:
 
   bool IsBusy() {return flags.OnMyWay;} // заняты или нет?
   
-  bool ChangePosition(uint8_t dir, unsigned long newPos); // меняет позицию
+  bool ChangePosition(unsigned long newPos); // меняет позицию
   
   unsigned long GetCurrentPosition() {return CurrentPosition;}
-  unsigned long GetRequestedPosition() {return RequestedPosition;}
+  void ResetToMaxPosition();
   uint8_t GetDirection() {return flags.Direction;}
 
   void UpdateState(uint16_t dt); // обновляет состояние фрамуги
   
-  void Setup(/*TempSensors* parent,*/uint8_t relayChannel1, uint8_t relayChannel2); // настраиваем перед пуском
+  void Setup(uint8_t relayChannel1, uint8_t relayChannel2); // настраиваем перед пуском
+
+  void Feedback(bool isCloseSwitchTriggered, bool isOpenSwitchTriggered, bool hasPosition, uint8_t positionPercents,bool isFirstFeedback);
 
 
   WindowState() 
   {
     CurrentPosition = 0;
-    RequestedPosition = 0;
     flags.OnMyWay = false;
     TimerInterval = 0;
-    TimerTicks = 0;
     RelayChannel1 = 0;
     RelayChannel2 = 0;
     flags.Direction = dirNOTHING;
@@ -82,7 +84,7 @@ public:
   
   
 };
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 class TempSensors : public AbstractModule // модуль опроса температурных датчиков и управления фрамугами
 {
   private:
@@ -111,7 +113,7 @@ class TempSensors : public AbstractModule // модуль опроса темп�
 #endif    
 
     DS18B20Support tempSensor;
-    DS18B20Temperature tempData;
+    //DS18B20Temperature tempData;
     
   public:
     TempSensors() : AbstractModule("STATE"){}
@@ -126,9 +128,15 @@ class TempSensors : public AbstractModule // модуль опроса темп�
     void SaveChannelState(uint8_t channel, uint8_t state); // сохраняем состояние каналов
     
     bool IsWindowOpen(uint8_t windowNumber); // сообщает, открывается или открыто ли нужное окно
+    void CloseAllWindows();
+
+    // получена информация обратной связи по состоянию окна
+    void WindowFeedback(uint8_t windowNumber, bool isCloseSwitchTriggered, bool isOpenSwitchTriggered, bool hasPosition, uint8_t positionPercents, bool isFirstFeedback);
 
 };
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 extern TempSensors* WindowModule; // тут будет лежать указатель на класс диспетчера окон, чтобы его публичные методы можно было дёргать напрямую
+//--------------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_TEMP_SENSORS
 
 #endif

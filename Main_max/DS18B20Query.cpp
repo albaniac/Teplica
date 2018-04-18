@@ -2,13 +2,13 @@
 #include <OneWire.h>
 #include "Globals.h"
 #include "AbstractModule.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DS18B20Support::begin(uint8_t _pin) 
 {
   pin = _pin;
   WORK_STATUS.PinMode(pin,INPUT,false);
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void DS18B20Support::setResolution(DS18B20Resolution res)
 {
   if(!pin)
@@ -34,6 +34,7 @@ void DS18B20Support::setResolution(DS18B20Resolution res)
    ow.reset();
    
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool DS18B20Support::readTemperature(DS18B20Temperature* result,DSSensorType type)
 {
   result->Whole = NO_TEMPERATURE_DATA; // нет данных с датчика
@@ -84,16 +85,20 @@ bool DS18B20Support::readTemperature(DS18B20Temperature* result,DSSensorType typ
     case DS18S20:
       tc_100 = (temp*100)/2;
     break;
-	case DS1820:
-		tc_100 = (temp * 100) / 2;
-		break;
   }
    
 
   result->Whole = tc_100/100;
   result->Fract = tc_100 % 100;
 
+  if(result->Whole < -55 || result->Whole > 125)
+  {
+    result->Whole = NO_TEMPERATURE_DATA;
+    result->Fract = 0;
+  }
+
   return true;
     
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 

@@ -1,10 +1,10 @@
 #include "Si7021Support.h"
 #include "AbstractModule.h"
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 Si7021::Si7021()
 {
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void Si7021::begin()
 {
   /*
@@ -15,6 +15,7 @@ void Si7021::begin()
   */
   sensor.begin();
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 /*
 uint8_t Si7021::read8(uint8_t reg)
 {
@@ -26,6 +27,7 @@ uint8_t Si7021::read8(uint8_t reg)
   return SI7021_READ();
  
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void Si7021::setResolution()
 {
   uint8_t userRegisterData;
@@ -42,15 +44,22 @@ void Si7021::setResolution()
 
 }
 */
+//--------------------------------------------------------------------------------------------------------------------------------------
 const HumidityAnswer& Si7021::read()
 {
  
   dt.IsOK = false;
+  dt.Humidity = NO_TEMPERATURE_DATA;
+  dt.Temperature = NO_TEMPERATURE_DATA;
+  
   float humidity, temperature;
   humidity = sensor.readHumidity();
   temperature = sensor.readTemperature();
 
-  if(((int)humidity) == HTU21D_ERROR || ((int)temperature) == HTU21D_ERROR)
+  byte humError = (byte) humidity;
+  byte tempError = (byte) temperature;
+
+  if(humError == HTU21D_ERROR || tempError == HTU21D_ERROR)
   {
     dt.IsOK = false;
   }
@@ -62,11 +71,25 @@ const HumidityAnswer& Si7021::read()
     
     dt.Humidity = iTmp/100;
     dt.HumidityDecimal = iTmp%100;
+
+    if(dt.Humidity < 0 || dt.Humidity > 100)
+    {
+      dt.Humidity = NO_TEMPERATURE_DATA;
+      dt.HumidityDecimal = 0;
+    }
+      
     
     iTmp = temperature*100;
     
     dt.Temperature = iTmp/100;
-    dt.TemperatureDecimal = iTmp%100;   
+    dt.TemperatureDecimal = iTmp%100;
+
+    if(dt.Temperature < -40 || dt.Temperature > 125)
+    {
+      dt.Temperature = NO_TEMPERATURE_DATA;
+      dt.TemperatureDecimal = 0;
+    }
+       
   }
 
  /* 
@@ -159,3 +182,4 @@ const HumidityAnswer& Si7021::read()
   
   return dt;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------

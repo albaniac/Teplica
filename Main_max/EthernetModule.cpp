@@ -1,16 +1,22 @@
 #include "EthernetModule.h"
 #include "ModuleController.h"
+
+#ifdef USE_W5100_MODULE
+
 #include <Ethernet.h>
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 // наш локальный мак-адрес
+//--------------------------------------------------------------------------------------------------------------------------------------
 byte local_mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 // IP-адрес по умолчанию
+//--------------------------------------------------------------------------------------------------------------------------------------
 IPAddress default_ip(192, 168, 0, 177);
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 // наш сервер, который будет обработывать клиентов
+//--------------------------------------------------------------------------------------------------------------------------------------
 EthernetServer lanServer(1975);
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void EthernetModule::Setup()
 {
   // настраиваем всё необходимое добро тут
@@ -22,7 +28,7 @@ void EthernetModule::Setup()
   bInited = false;
   
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void EthernetModule::Update(uint16_t dt)
 { 
   UNUSED(dt);
@@ -32,7 +38,7 @@ void EthernetModule::Update(uint16_t dt)
   {
 
    #ifdef ETHERNET_DEBUG
-    Serial.println(F("[LAN] Start server using DHCP... "));
+    DEBUG_LOGLN(F("[LAN] Start server using DHCP... "));
    #endif 
 
     // пытаемся по DHCP получить конфигурацию
@@ -40,7 +46,7 @@ void EthernetModule::Update(uint16_t dt)
     {
 
      #ifdef ETHERNET_DEBUG
-      Serial.println(F("[LAN] DHCP failed, start with defailt IP 192.168.0.177 "));
+      DEBUG_LOGLN(F("[LAN] DHCP failed, start with defailt IP 192.168.0.177 "));
      #endif      
       // стартуем пока с настройками по умолчанию
       Ethernet.begin(local_mac, default_ip);
@@ -49,8 +55,8 @@ void EthernetModule::Update(uint16_t dt)
     lanServer.begin();    
 
   #ifdef ETHERNET_DEBUG
-    Serial.print(F("[LAN] server started at "));
-    Serial.println(Ethernet.localIP());
+    DEBUG_LOG(F("[LAN] server started at "));
+    DEBUG_LOGLN(String(Ethernet.localIP()));
   #endif
 
   WORK_STATUS.PinMode(10,OUTPUT,false);
@@ -99,7 +105,7 @@ void EthernetModule::Update(uint16_t dt)
         client.stop();
 
         // очищаем внутренний буфер, подготавливая его к приёму следующей команды
-        clientCommands[sockNumber] = F(""); 
+        clientCommands[sockNumber] = ""; 
         
         break; // выходим из цикла
         
@@ -117,7 +123,7 @@ void EthernetModule::Update(uint16_t dt)
   } // if(client)
 
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool EthernetModule::ExecCommand(const Command& command, bool wantAnswer)
 {
   UNUSED(wantAnswer);
@@ -125,4 +131,6 @@ bool EthernetModule::ExecCommand(const Command& command, bool wantAnswer)
 
   return true;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_W5100_MODULE
 

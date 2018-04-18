@@ -1,8 +1,48 @@
-#include "Globals.h"
+/*
+ ПЕРЕД КОМПИЛЯЦИЕЙ!
 
-#ifdef _DEBUG
-#include "PDUClasses.h"
-#endif
+ 1. УСТАНОВИТЬ ВСЕ БИБЛИОТЕКИ ИМЕННО ИЗ АРХИВА С ПРОЕКТОМ (НЕКОТОРЫЕ БИБЛИОТЕКИ ПРАВЛЕНЫ ИМЕННО ПОД ПРОЕКТ)!!!
+ 
+ 2. ПРИ СБОРКЕ ПОД Mega2560: пойти в папку установки Arduino, найти в подпапке hardware\arduino\avr\cores\arduino
+    файл HardwareSerial.h, открыть его в текстовом редакторе, найти внутри строчку
+      #define SERIAL_RX_BUFFER_SIZE 64
+      
+    и поменять 64 на 128 
+    
+    ПЕРЕЗАПУСТИТЬ Arduino IDE !!!
+
+
+ 3. ПРИ СБОРКЕ ПОД Due, после установки через менеджер плат пакета "Arduino SAM boards" (в пакете одна плата Arduino Due),
+    пойти в C:\Documents and Settings\ТУТ_ИМЯ_ЮЗЕРА\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino
+    (версия 1.6.11 - для примера, смотрите, какая у вас версия будет лежать в подпапке "sam"), найти внутри папки файл
+    RingBuffer.h, открыть его в текстовом редакторе, найти внутри строчку
+
+    #define SERIAL_BUFFER_SIZE 128
+
+    и поменять 128 на 1024
+
+    ПЕРЕЗАПУСТИТЬ Arduino IDE !!!!
+
+ 4. В зависимости от типа платы (Mega2560 или Due) - пойти в настройки Configuration_MEGA.h или Configuration_DUE.h,
+    привести настройки в тот вид, который вам нужен, внимательно читая инструкции.
+
+ 5. Если что-то работает не так - есть отладочные режимы (конфигуратор с ними не работает!) - пойти в Configuration_DEBUG.h,
+    раскомментировать нужный отладочный режим, в мониторе порта (или любой другой терминальной программе) смотреть, что происходит.
+    Если ничего не понятно, то: создать документ, где описать проблему (я, такой-то такой-то, делал то-то и то-то, не получается что-то),
+    приложить к документу лог из монитора порта и выложить на форум, с просьбой к разработчику посмотреть, в чём дело. Не забыть приложить
+    ваш файл настроек, а также указать, под какую плату компилируете и что из железа используете. Чем больше информации - тем проще будет вам помочь!
+
+ После всех указанных действий проект готов к загрузке. Если что-то не получается, то: 1) всегда есть форум 2) во всяком софте есть ошибки 3) наверняка
+ вы что-то недопоняли или делаете не так. Для утрясания всего этого добра есть форум, и раз вы пользуетесь этим проектом - вы уже знаете, где идёт обсуждение ;)
+
+ Но уж если не знаете - пишите на spywarrior@gmail.com, я вам кину ссылку на обсуждение. Только помните: я делаю этот проект в свободное время, и физически не 
+ способен удовлетворить все ваши потребности, ответить на тысячу вопросов сразу и т.п. Короче, такт и понимание - приветствуются.
+
+ (с) Порохня Дмитрий, 2015-2018.
+ 
+*/
+ 
+#include "Globals.h"
 
 #include "CommandBuffer.h"
 #include "CommandParser.h"
@@ -10,7 +50,7 @@
 #include "AlertModule.h"
 #include "ZeroStreamListener.h"
 #include "Memory.h"
-
+#include "InteropStream.h"
 
 #ifdef USE_HTTP_MODULE
 #include "HttpModule.h"
@@ -19,7 +59,6 @@
 #ifdef USE_PIN_MODULE
 #include "PinModule.h"
 #endif
-
 
 #ifdef USE_STAT_MODULE
 #include "StatModule.h"
@@ -97,10 +136,12 @@
 #include "IoTModule.h"
 #endif
 
+#ifdef USE_TFT_MODULE
+#include "TFTModule.h"
+#endif
 
 // таймер
 unsigned long lastMillis = 0;
-
 
 // Ждем команды из сериала
 CommandBuffer commandsFromSerial(&Serial);
@@ -111,12 +152,10 @@ CommandParser commandParser;
 // Контроллер модулей
 ModuleController controller;
 
-
 #ifdef USE_PIN_MODULE
 //  Модуль управления цифровыми пинами
 PinModule pinModule;
 #endif
-
 
 #ifdef USE_STAT_MODULE
 // Модуль вывода статистики
@@ -141,44 +180,6 @@ HttpModule httpModule;
 #ifdef USE_SMS_MODULE
 // модуль управления по SMS
  SMSModule smsModule;
- String* smsReceiveBuff;
- 
-void GSM_EVENT_FUNC()
-{
-  char ch;
-  while(GSM_SERIAL.available())
-  {
-    ch = GSM_SERIAL.read();
-    
-    if(ch == '\r')
-      continue;
-    
-    if(ch == '\n')
-    {
-      smsModule.ProcessAnswerLine(*smsReceiveBuff);
-      delete smsReceiveBuff;
-      smsReceiveBuff = new String();
-    }
-    
-    else
-    {
-        
-        if(smsModule.WaitForSMSWelcome && ch == '>') // ждут команду >
-        {         
-          smsModule.WaitForSMSWelcome = false;
-          String s = F(">");
-          smsModule.ProcessAnswerLine(s);
-          delete smsReceiveBuff;
-          smsReceiveBuff = new String();
-        }
-        else
-          *smsReceiveBuff += ch;
-    }
-
-    
-  } // while
-
-}
 #endif
 
 #ifdef USE_WATERING_MODULE
@@ -249,6 +250,10 @@ ReservationModule reservationModule;
 TimerModule timerModule;
 #endif
 
+#ifdef USE_TFT_MODULE
+TFTModule tftModule;
+#endif
+
 #ifdef USE_READY_DIODE
   #ifdef BLINK_READY_DIODE
    BlinkModeInterop readyDiodeBlinker;
@@ -258,56 +263,10 @@ TimerModule timerModule;
 #ifdef USE_WIFI_MODULE
 // модуль работы по Wi-Fi
 WiFiModule wifiModule;
-String* wiFiReceiveBuff;
-
-void WIFI_EVENT_FUNC()
-{
-  char ch;
-  while(WIFI_SERIAL.available())
-  {
-    ch = WIFI_SERIAL.read();
-
-   
-    if(ch == '\r')
-      continue;
-    
-    if(ch == '\n')
-    {    
-        if(wiFiReceiveBuff->startsWith(F("+IPD")))
-        {
-          // Не убираем переводы строки, когда пришёл пакет с данными, поскольку \r\n может придти прямо в пакете данных.
-          // Т.к. у нас \r\n служит признаком окончания команды - значит, мы должны учитывать эти символы в пакете,
-          // и не можем самовоизвольно их отбрасывать.
-          *wiFiReceiveBuff += NEWLINE; 
-        }
-          
-        wifiModule.ProcessAnswerLine(*wiFiReceiveBuff);
-
-        delete wiFiReceiveBuff;
-        wiFiReceiveBuff = new String();
-    }
-    else
-    {     
-        if(wifiModule.WaitForDataWelcome && ch == '>') // ждут команду >
-        {
-          wifiModule.WaitForDataWelcome = false;
-          String s = F(">");
-          wifiModule.ProcessAnswerLine(s);
-        }
-        else
-          *wiFiReceiveBuff += ch;
-    }
-  
-    
-  } // while
-   
-}
-
 #endif
 
 ZeroStreamListener zeroStreamModule;
 AlertModule alertsModule;
-
 
 #ifdef USE_EXTERNAL_WATCHDOG
   typedef enum
@@ -324,13 +283,18 @@ AlertModule alertsModule;
 
   ExternalWatchdogSettings watchdogSettings;
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void setup() 
-{ 
-  // инициализируем память (EEPROM не надо, а вот I2C - надо)
-  MemInit();
-  
+{
+
+#if (TARGET_BOARD == DUE_BOARD)
+  while(!Serial); // ждём инициализации Serial
+#endif
+
   Serial.begin(SERIAL_BAUD_RATE); // запускаем Serial на нужной скорости
+
+  // инициализируем память (EEPROM не надо, а вот I2C - надо)
+  MemInit();  
 
   WORK_STATUS.PinMode(0,INPUT,false);
   WORK_STATUS.PinMode(1,OUTPUT,false);
@@ -349,13 +313,11 @@ void setup()
   // устанавливаем провайдера команд для контроллера
   controller.SetCommandParser(&commandParser);
 
-
   // регистрируем модули  
   #ifdef USE_PIN_MODULE  
   controller.RegisterModule(&pinModule);
   #endif
   
-
   #ifdef USE_STAT_MODULE
   controller.RegisterModule(&statModule);
   #endif
@@ -423,12 +385,10 @@ void setup()
 
   // модуль Wi-Fi регистрируем до модуля SMS, поскольку Wi-Fi дешевле, чем GPRS, для отсыла данных в IoT-хранилища
   #ifdef USE_WIFI_MODULE
-  wiFiReceiveBuff = new String();
   controller.RegisterModule(&wifiModule);
   #endif 
 
   #ifdef USE_SMS_MODULE
-  smsReceiveBuff = new String();
   controller.RegisterModule(&smsModule);
   #endif
 
@@ -439,19 +399,20 @@ void setup()
   #ifdef USE_HTTP_MODULE
     controller.RegisterModule(&httpModule);
   #endif
+
+  #ifdef USE_TFT_MODULE
+    controller.RegisterModule(&tftModule);
+  #endif
   
- // модуль алертов регистрируем последним, т.к. он должен вычитать зависимости с уже зарегистрированными модулями
   controller.RegisterModule(&zeroStreamModule);
+ // модуль алертов регистрируем последним, т.к. он должен вычитать зависимости с уже зарегистрированными модулями
   controller.RegisterModule(&alertsModule);
 
   controller.begin(); // начинаем работу
 
-//    ProcessInitCommands(); // запускаем на обработку команды инициализации
-
   // Печатаем в Serial готовность
   Serial.print(READY);
 
-  // тест часов реального времени
   #ifdef USE_DS3231_REALTIME_CLOCK
   
    DS3231Clock rtc = controller.GetClock();
@@ -463,21 +424,21 @@ void setup()
    Serial.print(rtc.getDateStr(tm));
    Serial.print(F(" - "));
    Serial.print(rtc.getTimeStr(tm));
-
-   
+      
   #endif 
 
-    Serial.println(F(""));
+  Serial.println(F(""));
 
   #ifdef USE_LOG_MODULE
     controller.Log(&logModule,READY); // печатаем в файл действий строчку Ready, которая скажет нам, что мега стартовала
   #endif
-
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 // эта функция вызывается после обновления состояния каждого модуля.
 // передаваемый параметр - указатель на обновлённый модуль.
 // если модулю предстоит долгая работа - помимо этого инструмента
 // модуль должен дёргать функцию yield, если чем-то долго занят!
+//--------------------------------------------------------------------------------------------------------------------------------
 void ModuleUpdateProcessed(AbstractModule* module)
 {
   UNUSED(module);
@@ -485,12 +446,12 @@ void ModuleUpdateProcessed(AbstractModule* module)
   // используем её, чтобы проверить состояние порта UART для WI-FI-модуля - вдруг надо внеочередно обновить
     #ifdef USE_WIFI_MODULE
     // модуль Wi-Fi обновляем каждый раз после обновления очередного модуля
-    WIFI_EVENT_FUNC(); // вызываем функцию проверки данных в порту
+     ESP.update();
     #endif
 
    #ifdef USE_SMS_MODULE
    // и модуль GSM тоже тут обновим
-   GSM_EVENT_FUNC();
+    SIM800.update();
    #endif     
 }
 
@@ -510,7 +471,6 @@ void updateExternalWatchdog()
         {
           if(watchdogSettings.timer >= WATCHDOG_WORK_INTERVAL)
           {
-           // Serial.println("set high");
             watchdogSettings.timer = 0;
             watchdogSettings.state = WAIT_FOR_LOW;
             digitalWrite(WATCHDOG_REBOOT_PIN, HIGH);
@@ -522,7 +482,6 @@ void updateExternalWatchdog()
         {
           if(watchdogSettings.timer >= WATCHDOG_PULSE_DURATION)
           {
-          //  Serial.println("set low");
             watchdogSettings.timer = 0;
             watchdogSettings.state = WAIT_FOR_HIGH;
             digitalWrite(WATCHDOG_REBOOT_PIN, LOW);
@@ -533,8 +492,7 @@ void updateExternalWatchdog()
   
 }
 #endif
-
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
 // отсюда можно добавлять любой сторонний код
@@ -556,7 +514,8 @@ void loop()
 #ifdef USE_READY_DIODE
 
   #ifdef BLINK_READY_DIODE
-   // static uint16_t ready_diode_timer = 0;
+
+    // будем мигать информационным диодом
     static bool blink_ready_diode_inited = false;
     if(!blink_ready_diode_inited) {
       blink_ready_diode_inited = true;
@@ -570,15 +529,26 @@ void loop()
     if(!blink_ready_diode_inited) {
       blink_ready_diode_inited = true;
 
-      // просто зажигаем светодиод при старте
-      WORK_STATUS.PinMode(6,OUTPUT);
-      WORK_STATUS.PinWrite(6,HIGH);
+      // просто зажигаем информационный светодиод при старте
+      
+      #if INFO_DIODES_DRIVE_MODE == DRIVE_DIRECT
+        WORK_STATUS.PinMode(DIODE_READY_PIN,OUTPUT);
+        WORK_STATUS.PinWrite(DIODE_READY_PIN,HIGH);
+      #elif INFO_DIODES_DRIVE_MODE == DRIVE_MCP23S17
+        #if defined(USE_MCP23S17_EXTENDER) && COUNT_OF_MCP23S17_EXTENDERS > 0
+          WORK_STATUS.MCP_SPI_PinMode(INFO_DIODES_MCP23S17_ADDRESS,DIODE_READY_PIN,OUTPUT);
+          WORK_STATUS.MCP_SPI_PinWrite(INFO_DIODES_MCP23S17_ADDRESS,DIODE_READY_PIN,HIGH);
+        #endif
+      #elif INFO_DIODES_DRIVE_MODE == DRIVE_MCP23017
+        #if defined(USE_MCP23017_EXTENDER) && COUNT_OF_MCP23017_EXTENDERS > 0
+          WORK_STATUS.MCP_I2C_PinMode(INFO_DIODES_MCP23017_ADDRESS,DIODE_READY_PIN,OUTPUT);
+          WORK_STATUS.MCP_I2C_PinWrite(INFO_DIODES_MCP23017_ADDRESS,DIODE_READY_PIN,HIGH);
+        #endif
+      #endif        
     }
   #endif
 
 #endif
-
-
 
   // смотрим, есть ли входящие команды
    if(commandsFromSerial.HasCommand())
@@ -610,13 +580,14 @@ void loop()
    
 // отсюда можно добавлять любой сторонний код
 
-
 // до сюда можно добавлять любой сторонний код
 
 }
+//--------------------------------------------------------------------------------------------------------------------------------
 // обработчик простоя, используем и его. Если сторонняя библиотека устроена правильно - она будет
 // вызывать yield периодически - этим грех не воспользоваться, чтобы избежать потери данных
 // в портах UART. 
+//--------------------------------------------------------------------------------------------------------------------------------
 void yield()
 {
 // отсюда можно добавлять любой сторонний код, который надо вызывать, когда МК чем-то долго занят (например, чтобы успокоить watchdog)
@@ -630,22 +601,59 @@ void yield()
 
    #ifdef USE_WIFI_MODULE
     // модуль Wi-Fi обновляем каждый раз при вызове функции yield
-    WIFI_EVENT_FUNC(); // вызываем функцию проверки данных в порту
+    ESP.readFromStream(); // вызываем функцию проверки данных в порту
     #endif
 
    #ifdef USE_SMS_MODULE
    // и модуль GSM тоже тут обновим
-   GSM_EVENT_FUNC();
+   SIM800.readFromStream();
    #endif 
 
    #ifdef USE_LCD_MODULE
     rotaryEncoder.update(); // обновляем энкодер меню
    #endif
 
-// отсюда можно добавлять любой сторонний код, который надо вызывать, когда МК чем-то долго занят (например, чтобы успокоить watchdog)
+   #ifdef USE_TFT_MODULE
+    tftModule.UpdateBuzzer(); // обновляем пищалку
+   #endif   
 
+// отсюда можно добавлять любой сторонний код, который надо вызывать, когда МК чем-то долго занят (например, чтобы успокоить watchdog)
 
 // до сюда можно добавлять любой сторонний код
 
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+void serialEvent1()
+{
+   #ifdef USE_WIFI_MODULE
+    ESP.readFromStream();
+    #endif
+
+   #ifdef USE_SMS_MODULE
+   SIM800.readFromStream();
+   #endif   
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void serialEvent2()
+{
+   #ifdef USE_WIFI_MODULE
+    ESP.readFromStream();
+    #endif
+
+   #ifdef USE_SMS_MODULE
+   SIM800.readFromStream();
+   #endif   
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void serialEvent3()
+{
+   #ifdef USE_WIFI_MODULE
+    ESP.readFromStream();
+    #endif
+
+   #ifdef USE_SMS_MODULE
+   SIM800.readFromStream();
+   #endif   
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 

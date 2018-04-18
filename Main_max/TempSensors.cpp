@@ -1,81 +1,91 @@
 #include "TempSensors.h"
 #include "ModuleController.h"
+//--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef USE_TEMP_SENSORS
 
 TempSensors* WindowModule = NULL;
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #if SUPPORTED_SENSORS > 0
 static TempSensorSettings TEMP_SENSORS[] = { TEMP_SENSORS_PINS };
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifndef USE_WINDOWS_SHIFT_REGISTER
 static uint8_t WINDOWS_RELAYS[] = { WINDOWS_RELAYS_PINS };
 #endif
-
+//--------------------------------------------------------------------------------------------------------------------------------------
+void WindowState::ResetToMaxPosition()
+{
+  CurrentPosition = MainController->GetSettings()->GetOpenInterval();
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 void WindowState::Setup(uint8_t relayChannel1, uint8_t relayChannel2)
 {
-//  Parent = parent;
-
+  #ifdef USE_FEEDBACK_MANAGER
+    CurrentPosition = 0;
+  #else
   // считаем, что как будто мы открыты, т.к. при старте контроллера надо принудительно закрыть окна
-  CurrentPosition = MainController->GetSettings()->GetOpenInterval();
-  RequestedPosition = CurrentPosition;
-
+  ResetToMaxPosition();
+  #endif
+  
   // запоминаем, какие каналы модуля реле мы используем (в случае со сдвиговым регистром - это номера битов)
   RelayChannel1 = relayChannel1;
   RelayChannel2 = relayChannel2;
 
 }
-
-bool WindowState::ChangePosition(uint8_t dir, unsigned long newPos)
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool WindowState::ChangePosition(unsigned long newPos)
 {
-  bool bRet = false;
+//  Serial.print(F("POSITION REQUESTED: ")); Serial.println(newPos);
+//  Serial.print(F("POSITION CURRENT: ")); Serial.println(CurrentPosition);
   
-  if(IsBusy()) // заняты сменой позиции
-    return bRet;
-
-  if(CurrentPosition == newPos) // та же самая позиция запрошена, ничего не делаем
-    return bRet;
-
+ // GlobalSettings* settings = MainController->GetSettings();
+//  unsigned long interval = settings->GetOpenInterval();
   
+  long currentDifference = 0;
+  if(CurrentPosition > newPos)
+    currentDifference = CurrentPosition - newPos;
+  else
+    currentDifference = newPos - CurrentPosition;
+
+  if(CurrentPosition == newPos || currentDifference < FEEDBACK_MANAGER_POSITION_HISTERESIS) 
+  {
+    // та же самая позиция запрошена, или разница текущей позиции и запрошеной - в пределах гистерезиса.
+    // в этом случае мы ничего не делаем.
+    
+ //   Serial.println(F("SAME POSITION!"));
+    // говорим, что мы сменили позицию
+    SAVE_STATUS(WINDOWS_POS_CHANGED_BIT,1);    
+    return false;
+  }
+
+  // если текущая позиция больше запрошенной - надо закрывать, иначе - открывать
+  uint8_t dir = CurrentPosition > newPos ? dirCLOSE : dirOPEN;
+ 
   if(dir == dirOPEN)
   {
-      if(newPos < CurrentPosition) // запросили открыть назад - невозможно.
-      {
-       //  do Nothing();
-      }
-      else
-      {  
+
        // открываем тут
        TimerInterval = newPos - CurrentPosition;
-       TimerTicks = 0;
-       RequestedPosition = newPos;
        flags.Direction = dir;
-       flags.OnMyWay = true; // поогнали!
-       bRet = true;
 
-       //Serial.println("OPEN FROM POSITION " + String(CurrentPosition) + " to " + String(newPos));
-      }
+ //      Serial.println("OPEN FROM POSITION " + String(CurrentPosition) + " TO " + String(newPos));
   }
   else
   if(dir == dirCLOSE)
   {
-      if(newPos > CurrentPosition) // запросили закрыть вперёд - невозможно
-      {
-       // do Nothing();
-      }
-      else
-       {
         TimerInterval = CurrentPosition - newPos;
-        TimerTicks = 0;
-        RequestedPosition = newPos;
         flags.Direction = dir;
-        flags.OnMyWay = true; // поогнали!
-        bRet = true;
 
-       // Serial.println("CLOSE FROM POSITION " + String(CurrentPosition) + " to " + String(newPos));
-       }
+ //       Serial.println("CLOSE FROM POSITION " + String(CurrentPosition) + " TO " + String(newPos));
+
   }
-    return bRet;
+
+// Serial.println();
+  
+  flags.OnMyWay = true; // поогнали!
+  return true;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void WindowState::SwitchRelays(uint8_t rel1State, uint8_t rel2State)
 {
 
@@ -88,6 +98,70 @@ void WindowState::SwitchRelays(uint8_t rel1State, uint8_t rel2State)
   WORK_STATUS.SaveWindowState(RelayChannel2,rel2State);
     
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+void WindowState::Feedback(bool isCloseSwitchTriggered, bool isOpenSwitchTriggered, bool hasPosition, uint8_t positionPercents, bool isFirstFeedback)
+{  
+  UNUSED(isFirstFeedback);
+  
+  GlobalSettings* settings = MainController->GetSettings();
+  unsigned long interval = settings->GetOpenInterval();
+
+  if(isCloseSwitchTriggered || isOpenSwitchTriggered) // если сработал один из концевиков, то это значит, что нам надо выключить моторы, и обновить позицию
+  {
+    if(IsBusy())
+    {
+      // двигаемся, надо останавливаться
+      flags.OnMyWay = false;
+      SwitchRelays(); // держим реле выключенными
+      flags.Direction = dirNOTHING; // уже никуда не движемся
+    } 
+    
+      // говорим, что мы сменили позицию, модуль правил при этом очистит очередь обработанных правил, и сможет нами рулить
+      SAVE_STATUS(WINDOWS_POS_CHANGED_BIT,1);  
+  
+     // теперь смотрим, какой концевик сработал
+     if(isCloseSwitchTriggered)
+     {
+      // концевик на закрытие
+      CurrentPosition = 0;
+     }
+     else
+     if(isOpenSwitchTriggered)
+     {
+      // концевик на открытие
+      CurrentPosition = interval; 
+     }
+   
+   return;  // поскольку сработали концевики - мы установили позицию по ним, и переданную можно игнорировать
+
+  } // if(isCloseSwitchTriggered || isOpenSwitchTriggered)
+
+  if(hasPosition && !IsBusy())
+  {
+    // есть информация о позиции, и это первая информация с обратной связи - мы должны запомнить, в какой позиции находится окно 
+    unsigned long requestedPosition = (interval*positionPercents)/100;
+    long currentDifference = 0;
+    if(CurrentPosition > requestedPosition)
+      currentDifference = CurrentPosition - requestedPosition;
+    else
+      currentDifference = requestedPosition - CurrentPosition;
+      
+    if(currentDifference > FEEDBACK_MANAGER_POSITION_HISTERESIS)
+    {
+      // разница позиций больше, чем гистерезис - обновляем позицию.
+      // само окно, понятное дело, никуда не движется, но мы должны
+      // исключить вариант, когда правила открывают окна на 50%,
+      // а модуль обратной связи выдаёт позицию в 49% - в таком
+      // случае надо исключить дёрганье моторов на короткие промежутки
+      // и через равные интервалы времени, равные промежутку опроса
+      // моделй обратной связи.
+      CurrentPosition = requestedPosition;
+      SAVE_STATUS(WINDOWS_POS_CHANGED_BIT,1);
+    }
+  }
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 void WindowState::UpdateState(uint16_t dt)
 {
   
@@ -98,38 +172,46 @@ void WindowState::UpdateState(uint16_t dt)
     }
 
    uint8_t bRelay1State, bRelay2State; // состояние выходов реле
-   
+
+   if(TimerInterval < dt)
+    dt = TimerInterval;
+
+   TimerInterval -= dt;
+       
    switch(flags.Direction)
    {
       case dirOPEN:
+      {
         bRelay1State = RELAY_ON; // крутимся в одну сторону
         bRelay2State = RELAY_OFF;
-        
+        CurrentPosition += dt;
+      } 
       break;
 
       case dirCLOSE:
+      {
         bRelay1State = RELAY_OFF; // или в другую
         bRelay2State = RELAY_ON;
-        
+        CurrentPosition -= dt;
+      } 
       break;
 
       case dirNOTHING:
       default:
-
+      {
         bRelay1State = SHORT_CIRQUIT_STATE; // накоротко, мотор не крутится
         bRelay2State = SHORT_CIRQUIT_STATE;
-        
+      } 
       break;
    } // switch
 
-    TimerTicks += dt;
-    if(TimerTicks >= TimerInterval) // отработали, выключаем
-    {
-        CurrentPosition = RequestedPosition; // сохранили текущую позицию
-        TimerInterval = 0; // обнуляем интервал
-        TimerTicks = 0; // и таймер
-        flags.Direction = dirNOTHING; // уже никуда не движемся
 
+
+     if(!TimerInterval)
+     {
+       // приехали, останавливаемся
+       flags.Direction = dirNOTHING; // уже никуда не движемся
+       
         //ВЫКЛЮЧАЕМ РЕЛЕ
         SwitchRelays();
         
@@ -138,14 +220,16 @@ void WindowState::UpdateState(uint16_t dt)
         // говорим, что мы сменили позицию
         SAVE_STATUS(WINDOWS_POS_CHANGED_BIT,1);
 
-        return;
-        
-    } // if
+       // Serial.println(F("Position changed!"));
+
+        return;     
+     }
 
     // продолжаем работу, включаем реле в нужное состояние
     SwitchRelays(bRelay1State,bRelay2State);
   
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_WINDOWS_SHIFT_REGISTER
 void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ РЕГИСТР
 {
@@ -163,43 +247,30 @@ void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ Р�
   if(!hasChanges)
     return;
 
-/*
-  Serial.print("Writing to shift register: ");
-  
-  for(uint8_t i=0;i<shiftRegisterDataSize;i++) {
-    byte b = shiftRegisterData[i];
-      for(byte k=0;k<8;k++) {
-        if(b & (1 << k))
-          Serial.print('1');
-        else
-          Serial.print('0');
-      }
-  }
-    
-  Serial.println("");
-*/
    if(shiftRegisterDataSize > 0)
    {
     
     //Тут пишем в сдвиговый регистр
 
     // сначала разрешаем установить состояние на выходах
-    digitalWrite(WINDOWS_SHIFT_OE_PIN,LOW);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_OE_PIN,LOW);
     
     // Отключаем вывод на регистре
-    digitalWrite(WINDOWS_SHIFT_LATCH_PIN, LOW);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_LATCH_PIN, LOW);
 
     // проталкиваем все байты один за другим, начиная со старшего к младшему
       uint8_t i=shiftRegisterDataSize;
     
+      #if (WINDOWS_SHIFT_DATA_PIN < VIRTUAL_PIN_START_NUMBER) && (WINDOWS_SHIFT_CLOCK_PIN < VIRTUAL_PIN_START_NUMBER)
       do
       {    
         // проталкиваем байт в регистр
-        shiftOut(WINDOWS_SHIFT_DATA_PIN, WINDOWS_SHIFT_CLOCK_PIN, MSBFIRST, shiftRegisterData[--i]);
+          shiftOut(WINDOWS_SHIFT_DATA_PIN, WINDOWS_SHIFT_CLOCK_PIN, MSBFIRST, shiftRegisterData[--i]);
       } while(i > 0);
+      #endif
 
       // "защелкиваем" регистр, чтобы байт появился на его выходах
-      digitalWrite(WINDOWS_SHIFT_LATCH_PIN, HIGH);
+      WORK_STATUS.PinWrite(WINDOWS_SHIFT_LATCH_PIN, HIGH);
     
    } // if
   
@@ -209,6 +280,7 @@ void TempSensors::WriteToShiftRegister() // ПИШЕМ В СДВИГОВЫЙ Р�
     lastShiftRegisterData[i] = shiftRegisterData[i];
 }
 #endif
+//--------------------------------------------------------------------------------------------------------------------------------------
 void TempSensors::SaveChannelState(uint8_t channel, uint8_t state)
 {
   #ifdef USE_WINDOWS_SHIFT_REGISTER
@@ -230,7 +302,7 @@ void TempSensors::SaveChannelState(uint8_t channel, uint8_t state)
     WORK_STATUS.PinWrite(WINDOWS_RELAYS[channel],state);
   #endif
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool TempSensors::IsWindowOpen(uint8_t windowNumber)
 {
   if(windowNumber >= SUPPORTED_WINDOWS)
@@ -251,9 +323,7 @@ bool TempSensors::IsWindowOpen(uint8_t windowNumber)
 
   return false; // окно закрывается или закрыто
 }
-
-
-
+//--------------------------------------------------------------------------------------------------------------------------------------
 void TempSensors::SetupWindows()
 {
   // настраиваем фрамуги  
@@ -277,11 +347,25 @@ void TempSensors::SetupWindows()
           WORK_STATUS.PinWrite(pin2,RELAY_OFF);        
      #endif
 
+    #ifdef USE_FEEDBACK_MANAGER
+      // используем менеджер обратной связи
+    #else
     // просим окна закрыться при старте контроллера
-    Windows[i].ChangePosition(dirCLOSE,0);
+    Windows[i].ChangePosition(0);
+    #endif
+    
   } // for
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
+void TempSensors::CloseAllWindows()
+{
+  for(int i=0;i<SUPPORTED_WINDOWS;i++)
+  {
+     Windows[i].ResetToMaxPosition();
+     Windows[i].ChangePosition(0); // закрываем окно
+  }
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 void TempSensors::Setup()
 {
   WindowModule = this;
@@ -298,6 +382,8 @@ void TempSensors::Setup()
   
    // добавляем датчики температуры
    #if SUPPORTED_SENSORS > 0
+
+   DS18B20Temperature tempData;
    tempData.Whole = 0;
    tempData.Fract = 0;
    for(uint8_t i=0;i<SUPPORTED_SENSORS;i++)
@@ -319,19 +405,19 @@ void TempSensors::Setup()
 
     // настраиваем пины для сдвигового регистра на выход
     WORK_STATUS.PinMode(WINDOWS_SHIFT_LATCH_PIN,OUTPUT);
-    digitalWrite(WINDOWS_SHIFT_LATCH_PIN, LOW);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_LATCH_PIN, LOW);
     
     WORK_STATUS.PinMode(WINDOWS_SHIFT_DATA_PIN,OUTPUT);
-    digitalWrite(WINDOWS_SHIFT_DATA_PIN, LOW);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_DATA_PIN, LOW);
     
     WORK_STATUS.PinMode(WINDOWS_SHIFT_CLOCK_PIN,OUTPUT);
-    digitalWrite(WINDOWS_SHIFT_CLOCK_PIN, LOW);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_CLOCK_PIN, LOW);
 
     // переводим все выводы в High-Z состояние (они и так уже в нём, 
     // поскольку пин, управляющий OE, подтянут к питанию,
     // но мы не будем мелочиться :) ).
     WORK_STATUS.PinMode(WINDOWS_SHIFT_OE_PIN,OUTPUT);
-    digitalWrite(WINDOWS_SHIFT_OE_PIN,HIGH);
+    WORK_STATUS.PinWrite(WINDOWS_SHIFT_OE_PIN,HIGH);
     
    
     // настраиваем кол-во байт, в котором мы будем держать состояние каналов для сдвигового регистра.
@@ -375,6 +461,7 @@ void TempSensors::Setup()
  
 
  }
+//--------------------------------------------------------------------------------------------------------------------------------------
 void TempSensors::Update(uint16_t dt)
 { 
 #ifdef USE_WINDOWS_MANUAL_MODE_DIODE
@@ -407,6 +494,9 @@ void TempSensors::Update(uint16_t dt)
     t.Fract = 0;
     
     tempSensor.begin(TEMP_SENSORS[i].pin);
+    
+    DS18B20Temperature tempData;
+    
     if(tempSensor.readTemperature(&tempData,(DSSensorType)TEMP_SENSORS[i].type))
     {
       t.Value = tempData.Whole;
@@ -415,6 +505,11 @@ void TempSensors::Update(uint16_t dt)
         t.Value = -t.Value;
 
       t.Fract = tempData.Fract + smallSensorsChange;
+
+      // convert to Fahrenheit if needed
+      #ifdef MEASURE_TEMPERATURES_IN_FAHRENHEIT
+       t = Temperature::ConvertToFahrenheit(t);
+      #endif      
       
     }
     State.UpdateState(StateTemperature,i,(void*)&t); // обновляем состояние температуры, индексы датчиков у нас идут без дырок, поэтому с итератором цикла вызывать можно
@@ -425,6 +520,17 @@ void TempSensors::Update(uint16_t dt)
 
 
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+void TempSensors::WindowFeedback(uint8_t windowNumber, bool isCloseSwitchTriggered, bool isOpenSwitchTriggered, bool hasPosition, uint8_t positionPercents, bool isFirstFeedback)
+{
+  #if SUPPORTED_WINDOWS > 0
+    if(windowNumber >= SUPPORTED_WINDOWS)
+      windowNumber = SUPPORTED_WINDOWS-1;
+
+      Windows[windowNumber].Feedback(isCloseSwitchTriggered,isOpenSwitchTriggered,hasPosition,positionPercents,isFirstFeedback);
+  #endif
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 {
   GlobalSettings* sett = MainController->GetSettings();
@@ -443,6 +549,21 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
       commandRequested.toUpperCase();
       if(commandRequested == PROP_WINDOW) // надо записать состояние окна, от нас просят что-то сделать
       {
+
+        // тут проверяем, можем ли мы выполнить команду на смену позиции.
+        // если используется менеджер обратной связи - мы не можем ничего делать,
+        // пока менеджер ждёт первого пакета обратной связи
+        #ifdef USE_FEEDBACK_MANAGER
+          if(FeedbackManager.IsWaitingForFirstWindowsFeedback())
+          {
+            // ничего не делаем, поскольку всё ещё ждём информации по положению окон
+            // отвечаем на команду
+              MainController->Publish(this,command);
+            
+              return PublishSingleton.Flags.Status;
+          }
+        #endif
+        
         if(command.IsInternal() // если команда пришла от другого модуля
         && workMode == wmManual) // и мы в ручном режиме, то
         {
@@ -466,30 +587,67 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 
           String whichCommand = command.GetArg(2); // какую команду запросили?
           whichCommand.toUpperCase();
-          bool bOpen = (whichCommand == STATE_OPEN); // запросили открытие фрамуг?
           
+          bool bOpen = (whichCommand == STATE_OPEN); // запросили открытие фрамуг?          
           bool bAll = (token == ALL); // на все окна распространяется запрос?
           bool bIntervalAsked = token.indexOf("-") != -1; // запросили интервал каналов?
-          uint8_t channelIdx = token.toInt();
-          unsigned long interval = sett->GetOpenInterval();
+          uint8_t channelIdx = token.toInt(); // номер канала окна
           
-          if(command.GetArgsCount() > 3)
-            interval = (unsigned long) atol(command.GetArg(3)); // получили интервал для работы реле
+          unsigned long motorsFullWorkTime = sett->GetOpenInterval();
+          unsigned long targetPosition = bOpen ? motorsFullWorkTime : 0; // если не запрошено интервала - будем использовать настройки прощивки, и открываем/закрываем полностью
+
+          //Serial.print(F("Motors FULL work time: "));
+          //Serial.println(motorsFullWorkTime);
+                        
+          if(command.GetArgsCount() > 3) // запрошен интервал или проценты на позицию
+          {
+            String strIntervalPassed = command.GetArg(3);
+            bool bPercentsRequested = strIntervalPassed.endsWith("%");
+            
+            if(bPercentsRequested)
+              strIntervalPassed.remove(strIntervalPassed.length()-1);
+              
+            targetPosition = (unsigned long) atol(strIntervalPassed.c_str()); // получили интервал для работы реле
+
+            if(bPercentsRequested)
+            {
+             // Serial.print(F("Percents requested: "));
+             // Serial.println(targetPosition);
+              
+              // конвертируем запрошенные проценты в актуальный интервал
+              targetPosition = (motorsFullWorkTime*targetPosition)/100;
+
+              //Serial.print(F("Computed interval: "));
+              //Serial.println(targetPosition);
+              
+            }
+            else // запросили обычный интервал
+            {
+              // тут надо проверить - не выходим ли за границы диапазона работы приводов?
+              if(targetPosition > motorsFullWorkTime)
+                targetPosition = motorsFullWorkTime;
+            }
+          } // if(command.GetArgsCount() > 3)
 
  
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
+
           // откуда до куда шаримся
           uint8_t from = 0;
           uint8_t to = SUPPORTED_WINDOWS;
 
-
           if(bIntervalAsked)
           {
-             // парсим интервал
+             // парсим интервал окон, с которыми надо работать
              int delim = token.indexOf("-");
              from = token.substring(0,delim).toInt();
              to = token.substring(delim+1,token.length()).toInt();
              
+          }
+          else if(!bAll) // если не интервал окон и не все окна - значит, одно окно
+          {            
+            from = channelIdx;
+            to = from;
           }
 
           // правильно расставляем шаги - от меньшего к большему
@@ -497,99 +655,28 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
           to = max(from,to);
           from = tmp;
 
-             to++; // включаем to в интервал, это надо, если пришла команда интервала, например, 2-3, тогда в этом случае опросятся третий и четвертый каналы
-             if(to >= SUPPORTED_WINDOWS)
+          to++; // включаем to в интервал, это надо, если пришла команда интервала, например, 2-3, тогда в этом случае опросятся третий и четвертый каналы
+           
+           if(to >= SUPPORTED_WINDOWS)
               to = SUPPORTED_WINDOWS;
           
-          if(bAll || bIntervalAsked)
+          for(uint8_t i=from;i<to;i++)
           {
-            // по всем каналам шаримся
-            bool bAnyPosChanged = false;
-            
-            for(uint8_t i=from;i<to;i++)
-            {
-              if(Windows[i].ChangePosition(bOpen? dirOPEN : dirCLOSE,bOpen ? interval : 0))
-              {
-                if(wantAnswer) 
-                  PublishSingleton = (bOpen ? STATE_OPENING : STATE_CLOSING);
-                bAnyPosChanged = true;
-              } 
-            } // for
-            
-            if(!bAnyPosChanged) // позицию окон не сменили, значит, они либо в этой позиции, либо в процессе смены позиции
-            {
-              // проверяем, заняты ли окна чем-то
-              if(Windows[from].IsBusy())
-               {
-                // окно занято сменой позиции
-                if(wantAnswer) 
-                  PublishSingleton = (Windows[from].GetDirection() == dirOPEN ? STATE_OPENING : STATE_CLOSING);
+            // просим окно сменить позицию
+            Windows[i].ChangePosition(targetPosition);
+          } // for
 
-                SAVE_STATUS(WINDOWS_STATUS_BIT,Windows[from].GetDirection() == dirOPEN ? 1 : 0); // сохраняем состояние окон
-               }
-               else
-               {
-                // окно не сменяет позицию
-                if(wantAnswer) 
-                  PublishSingleton =  (bOpen ? STATE_OPEN : STATE_CLOSED);
+          // если запрошенный или рассчитанный интервал больше нуля - окна открыты, иначе - закрыты
+          SAVE_STATUS(WINDOWS_STATUS_BIT,targetPosition > 0 ? 1 : 0); // сохраняем состояние окон
+          SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
 
-                SAVE_STATUS(WINDOWS_STATUS_BIT,bOpen ? 1 : 0); // сохраняем состояние окон  
-               }
-               
-              SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
-
-            } // не смогли сменить позицию
-            else
-            {
-              // сменили позицию, пишем в лог действие
-              MainController->Log(this,commandRequested + String(PARAM_DELIMITER) + whichCommand);
-
-              SAVE_STATUS(WINDOWS_STATUS_BIT,bOpen ? 1 : 0); // сохраняем состояние окон
-              SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
-
-            } // else
-
-          }
-          else
-          { 
-            
-              if(Windows[channelIdx].ChangePosition( bOpen ? dirOPEN : dirCLOSE, bOpen ? interval : 0) ) // смогли сменить позицию окна
-              {
-                  // сменили позицию, пишем в лог действие
-                  MainController->Log(this,commandRequested + String(PARAM_DELIMITER) + whichCommand);
-                  if(wantAnswer) 
-                    PublishSingleton = (bOpen ? STATE_OPENING : STATE_CLOSING);
-
-              SAVE_STATUS(WINDOWS_STATUS_BIT,bOpen ? 1 : 0); // сохраняем состояние окон
-              SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
-                    
-              }
-               else
-               {
-                // позицию окна не сменили, смотрим - занято ли оно?
+          // какую команду запросили, такую и возвращаем, всё равно в результате выполнения
+          // все запрошенные окна встанут в одну позицию
+          PublishSingleton = token;
+          PublishSingleton << PARAM_DELIMITER << (bOpen ? STATE_OPENING : STATE_CLOSING);
                 
-                    if(Windows[channelIdx].IsBusy()) // занято, возвращаем состояние - открывается или закрывается
-                    {
-                       if(wantAnswer) 
-                        PublishSingleton = (Windows[channelIdx].GetDirection() == dirOPEN ? STATE_OPENING : STATE_CLOSING);
-    
-                       SAVE_STATUS(WINDOWS_STATUS_BIT,Windows[channelIdx].GetDirection() == dirOPEN ? 1 : 0); // сохраняем состояние окон  
-                        
-                    }   
-                    else // окно ничем не занято, возвращаем положение - открыто или закрыто
-                    {
-                      if(wantAnswer) 
-                          PublishSingleton =  (bOpen ? STATE_OPEN : STATE_CLOSED);
-    
-                      SAVE_STATUS(WINDOWS_STATUS_BIT,bOpen ? 1 : 0); // сохраняем состояние окон
-                    }
-    
-                    SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
-                
-               } // else не сменили позицию
-          }
 
-        } // else can process
+        } // else command from user
         
       } // if PROP_WINDOW
       else
@@ -602,10 +689,10 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
         sett->SetCloseTemp(tClose);
 //        sett->Save();
         
-        PublishSingleton.Status = true;
+        PublishSingleton.Flags.Status = true;
         if(wantAnswer) 
         {
-          PublishSingleton = TEMP_SETTINGS;
+          PublishSingleton = commandRequested;
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
         }
       } // TEMP_SETTINGS
@@ -625,7 +712,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 
         if(commandRequested == WM_AUTOMATIC)
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           if(wantAnswer) 
           {
             PublishSingleton = WORK_MODE;
@@ -639,7 +726,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
         }
         else if(commandRequested == WM_MANUAL)
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           if(wantAnswer) 
           {
             PublishSingleton = WORK_MODE;
@@ -655,6 +742,34 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
         SAVE_STATUS(WINDOWS_MODE_BIT,workMode == wmAutomatic ? 1 : 0); // сохраняем режим работы окон
         
       } // WORK_MODE
+      else if(commandRequested == TOPEN_COMMAND)
+      {
+        // установка температуры открытия
+        uint8_t tOpen = (uint8_t) atoi(command.GetArg(1));
+        sett->SetOpenTemp(tOpen);
+        
+        PublishSingleton.Flags.Status = true;
+        if(wantAnswer) 
+        {
+          PublishSingleton = commandRequested;
+          PublishSingleton << PARAM_DELIMITER << REG_SUCC;
+        }
+         
+      }
+      else if(commandRequested == TCLOSE_COMMAND)
+      {
+        // установка температуры закрытия
+        uint8_t tClose = (uint8_t) atoi(command.GetArg(1));
+        sett->SetCloseTemp(tClose);
+        
+        PublishSingleton.Flags.Status = true;
+        if(wantAnswer) 
+        {
+          PublishSingleton = commandRequested;
+          PublishSingleton << PARAM_DELIMITER << REG_SUCC;
+        }
+         
+      }
       else if(commandRequested == WM_INTERVAL) // запросили установку интервала
       {
               unsigned long newInt = (unsigned long) atol(command.GetArg(1));
@@ -664,10 +779,10 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
                 sett->SetOpenInterval(newInt);
 //                sett->Save();
                 
-                PublishSingleton.Status = true;
+                PublishSingleton.Flags.Status = true;
                 if(wantAnswer) 
                 {
-                  PublishSingleton = WM_INTERVAL;
+                  PublishSingleton = commandRequested;
                   PublishSingleton << PARAM_DELIMITER << REG_SUCC;
                 }
               } // if
@@ -675,7 +790,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
     } // argsCnt > 1
   } // SET
   else
-  if(command.GetType() == ctGET) // запросили показание датчика
+  if(command.GetType() == ctGET) // запросили показания
   {
       uint8_t argsCnt = command.GetArgsCount();
        
@@ -693,11 +808,11 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 
               if(commandRequested == PROP_TEMP_CNT) // кол-во датчиков
               {
-                 PublishSingleton.Status = true;
+                 PublishSingleton.Flags.Status = true;
                  if(wantAnswer) 
                  {
                   uint8_t _tempCnt = State.GetStateCount(StateTemperature);
-                  PublishSingleton = PROP_TEMP_CNT;
+                  PublishSingleton = commandRequested;
                   PublishSingleton << PARAM_DELIMITER << _tempCnt;
                  }
               } // if
@@ -706,7 +821,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
                 if(commandRequested == ALL)
                 {
                   // все датчики
-                  PublishSingleton.Status = true;
+                  PublishSingleton.Flags.Status = true;
                   if(wantAnswer)
                   { 
                    PublishSingleton = PROP_TEMP;
@@ -739,7 +854,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
                  else
                   {
                     // получаем текущее значение датчика
-                    PublishSingleton.Status = true;
+                    PublishSingleton.Flags.Status = true;
 
                     if(wantAnswer)
                     {
@@ -756,6 +871,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
               } // else
               
           } // if
+          
           else if(commandRequested == PROP_WINDOW) // статус окна
           {
             commandRequested = command.GetArg(1);
@@ -763,10 +879,10 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
 
             if(commandRequested == PROP_WINDOW_CNT)
             {
-                    PublishSingleton.Status = true;
+                    PublishSingleton.Flags.Status = true;
                     if(wantAnswer)
                     {
-                      PublishSingleton = PROP_WINDOW_CNT;
+                      PublishSingleton = commandRequested;
                       PublishSingleton << PARAM_DELIMITER  << SUPPORTED_WINDOWS;
                     }
 
@@ -775,11 +891,11 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
             if(commandRequested == PROP_WINDOW_STATEMASK)
             {
                // получить состояние окон в виде маски, для каждого окна - два бита в маске
-               PublishSingleton.Status = true;
+               PublishSingleton.Flags.Status = true;
                if(wantAnswer)
                {
                  PublishSingleton = PROP_WINDOW;
-                 PublishSingleton << PARAM_DELIMITER << PROP_WINDOW_STATEMASK;
+                 PublishSingleton << PARAM_DELIMITER << commandRequested;
                  PublishSingleton << PARAM_DELIMITER << SUPPORTED_WINDOWS << PARAM_DELIMITER;
 
                  // теперь выводим маску. для начала считаем, сколько байт нам нужно вывести.
@@ -888,7 +1004,7 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
                   } // for
 
                   // тут мы уже имеем состояние, обобщённое для всех окон
-                  PublishSingleton.Status = true;
+                  PublishSingleton.Flags.Status = true;
                   PublishSingleton = PROP_WINDOW;
                   PublishSingleton << PARAM_DELIMITER << commandRequested << PARAM_DELIMITER;
                   
@@ -940,11 +1056,19 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
                       } // else
                       
                       
-                      PublishSingleton.Status = true;
+                      PublishSingleton.Flags.Status = true;
                       if(wantAnswer)
                       {
                         PublishSingleton = PROP_WINDOW;
-                        PublishSingleton << PARAM_DELIMITER << commandRequested << PARAM_DELIMITER << sAdd;
+                        PublishSingleton << PARAM_DELIMITER << commandRequested << PARAM_DELIMITER << sAdd << PARAM_DELIMITER;
+
+                        // тут просчитываем положение окна в процентах от максимального
+                        unsigned long curWindowPosition = ws->GetCurrentPosition();
+                        unsigned long maxOpenPosition = MainController->GetSettings()->GetOpenInterval();
+
+                        unsigned long positionPercents = (curWindowPosition*100)/maxOpenPosition;
+
+                        PublishSingleton << positionPercents;// << '%';
                       }
                     } // else хороший индекс
                                     
@@ -964,33 +1088,70 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
         if(commandRequested == WORK_MODE) // запросили режим работы
         {
           
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           if(wantAnswer)
           {
-            PublishSingleton = WORK_MODE;
+            PublishSingleton = commandRequested;
             PublishSingleton << PARAM_DELIMITER << (workMode == wmAutomatic ? WM_AUTOMATIC : WM_MANUAL);
           }
           
         } // if
+        else if(commandRequested == F("WINDOWPOS")) // запросили состояние открытости окон
+        {
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton = commandRequested;
+          PublishSingleton << PARAM_DELIMITER << SUPPORTED_WINDOWS;
+
+          unsigned long maxOpenPosition = MainController->GetSettings()->GetOpenInterval();
+
+          for(int i=0;i<SUPPORTED_WINDOWS;i++)
+          {
+              unsigned long curWindowPosition = Windows[i].GetCurrentPosition();
+              unsigned long positionPercents = (curWindowPosition*100)/maxOpenPosition;
+              PublishSingleton << PARAM_DELIMITER << positionPercents;
+          } // for
+        }
         else
         if(commandRequested == WM_INTERVAL) // запросили интервал срабатывания форточек
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           if(wantAnswer)
           {
-            PublishSingleton = WM_INTERVAL;
+            PublishSingleton = commandRequested;
             PublishSingleton << PARAM_DELIMITER  << (sett->GetOpenInterval());
           }
         } // WM_INTERVAL
         else
         if(commandRequested == TEMP_SETTINGS) // запросили температуры открытия и закрытия
         {
-          PublishSingleton.Status = true;
+          PublishSingleton.Flags.Status = true;
           
           if(wantAnswer)
           {
-            PublishSingleton = TEMP_SETTINGS;
+            PublishSingleton = commandRequested;
             PublishSingleton << PARAM_DELIMITER << (sett->GetOpenTemp()) << PARAM_DELIMITER << (sett->GetCloseTemp());
+          }
+        }
+        else
+        if(commandRequested == TOPEN_COMMAND) // запросили температуру открытия
+        {
+          PublishSingleton.Flags.Status = true;
+          
+          if(wantAnswer)
+          {
+            PublishSingleton = commandRequested;
+            PublishSingleton << PARAM_DELIMITER << (sett->GetOpenTemp());
+          }
+        }
+        else
+        if(commandRequested == TCLOSE_COMMAND) // запросили температуру закрытия
+        {
+          PublishSingleton.Flags.Status = true;
+          
+          if(wantAnswer)
+          {
+            PublishSingleton = commandRequested;
+            PublishSingleton << PARAM_DELIMITER << (sett->GetCloseTemp());
           }
         }
         
@@ -1000,7 +1161,8 @@ bool  TempSensors::ExecCommand(const Command& command, bool wantAnswer)
  // отвечаем на команду
   MainController->Publish(this,command);
 
-  return PublishSingleton.Status;
+  return PublishSingleton.Flags.Status;
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------------
+#endif // USE_TEMP_SENSORS
 
