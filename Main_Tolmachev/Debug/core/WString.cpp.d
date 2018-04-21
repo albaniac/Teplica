@@ -1,6 +1,6 @@
-C:\Users\moseichuk\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\core\WString.cpp.o: \
- C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\WString.cpp \
- C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\WString.h \
- C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
- C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\itoa.h \
- C:\Users\moseichuk\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\avr/dtostrf.h
+C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\core\WString.cpp.o: \
+ C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\WString.cpp \
+ C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\WString.h \
+ C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
+ C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\itoa.h \
+ C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino\avr/dtostrf.h

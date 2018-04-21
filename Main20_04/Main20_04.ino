@@ -473,7 +473,8 @@ void updateExternalWatchdog()
           {
             watchdogSettings.timer = 0;
             watchdogSettings.state = WAIT_FOR_LOW;
-            digitalWrite(WATCHDOG_REBOOT_PIN, HIGH);
+            digitalWrite(WATCHDOG_REBOOT_PIN, LOW);
+			//digitalWrite(WATCHDOG_REBOOT_PIN, HIGH);
           }
         }
         break;
@@ -484,7 +485,8 @@ void updateExternalWatchdog()
           {
             watchdogSettings.timer = 0;
             watchdogSettings.state = WAIT_FOR_HIGH;
-            digitalWrite(WATCHDOG_REBOOT_PIN, LOW);
+            digitalWrite(WATCHDOG_REBOOT_PIN, HIGH);
+			//digitalWrite(WATCHDOG_REBOOT_PIN, LOW);
           }          
         }
         break;
