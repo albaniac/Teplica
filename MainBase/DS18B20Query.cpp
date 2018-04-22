@@ -86,9 +86,8 @@ bool DS18B20Support::readTemperature(DS18B20Temperature* result,DSSensorType typ
       tc_100 = (temp*100)/2;
     break;
   }
- // random(21, 30);
-  //result->Whole = random(21, 30);
-  //result->Fract = random(30, 70);
+   
+
   result->Whole = tc_100/100;
   result->Fract = tc_100 % 100;
 
