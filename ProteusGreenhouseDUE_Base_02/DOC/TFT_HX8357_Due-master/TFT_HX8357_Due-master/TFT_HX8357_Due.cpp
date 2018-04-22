@@ -19,28 +19,28 @@
   Display port to Mega and Due pin mapping:
 
 	TFT	Mega	Due
-	D15	PA7	D.6
-	D14	PA6	D.3
-	D13	PA5	D.2
-	D12	PA4	D.1
-	D11	PA3	D.0
-	D10	PA2	A.15
-	D9	PA1	A.14
-	D8	PA0	B.26
+	D15	PA7	D.6    - 27 
+	D14	PA6	D.3    - 28
+	D13	PA5	D.2    - 27
+	D12	PA4	D.1    - 26
+	D11	PA3	D.0    - 25
+	D10	PA2	A.15   - 24
+	D9	PA1	A.14   - 23
+	D8	PA0	B.26   - 22
 
-	D7	PC7	D.9
-	D6	PC6	A.7
-	D5	PC5	D.10
-	D4	PC4	C.1
-	D3	PC3	C.2
-	D2	PC2	C.3
-	D1	PC1	C.4
-	D0	PC0	C.5
+	D7	PC7	D.9    - 30
+	D6	PC6	A.7    - 31
+	D5	PC5	D.10   - 32
+	D4	PC4	C.1    - 33
+	D3	PC3	C.2    - 34
+	D2	PC2	C.3    - 35
+	D1	PC1	C.4    - 36
+	D0	PC0	C.5    - 37
 		
-	RS	PD7	C.6
-	WR	PG2	C.7
-	CS	PG1	C.8
-	RST	PG0	C.9
+	RS	PD7	C.6    - 38
+	WR	PG2	C.7    - 39
+	CS	PG1	C.8    - 40
+	RST	PG0	C.9    - 41
 
   This library has been derived from the Adafruit_GFX
   library and the associated driver library. See text
