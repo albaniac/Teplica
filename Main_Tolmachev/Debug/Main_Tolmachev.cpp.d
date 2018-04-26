@@ -1,5 +1,5 @@
-C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Main_Tolmachev.cpp.o: \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Main_Tolmachev.cpp \
+C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Main_Tolmachev.cpp.o: \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Main_Tolmachev.cpp \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/arduino.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/interrupt.h \
@@ -136,25 +136,25 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/USB/USBAPI.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/RingBuffer.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Stream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Globals.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_DUE.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_DEBUG.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_Shared.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\CommandBuffer.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\CommandParser.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Globals.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_DUE.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_DEBUG.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_Shared.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\CommandBuffer.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\CommandParser.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/WString.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\TinyVector.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\ModuleController.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\AbstractModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\MCP23S17.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\TinyVector.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\ModuleController.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\AbstractModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\MCP23S17.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\libraries\SPI\src/SPI.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Settings.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\AlarmDispatcher.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\AlertModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\DS3231Support.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Settings.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\AlarmDispatcher.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\AlertModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\DS3231Support.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\libraries\Wire\src/Wire.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\system/libsam/include/twi.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\LogModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\LogModule.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/SdFat.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/SdSpiCard.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/SdFatConfig.h \
@@ -178,39 +178,39 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/utility/FatFileSystem.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/utility/StdioStream.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\SdFat/utility/fstream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\HTTPInterfaces.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\ZeroStreamListener.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Memory.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\InteropStream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\HttpModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\PinModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\StatModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\TempSensors.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\DS18B20Query.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\SMSModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\CoreTransport.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\WateringModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\LuminosityModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\HumidityModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\HumidityGlobals.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Si7021Support.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\HTU21D.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\DHTSupport.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\WiFiModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\IoT.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\DeltaModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\WaterflowModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\CompositeCommandsModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\SoilMoistureModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\ReservationModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\TimerModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\IoTModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\TFTModule.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFTMenu.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\HTTPInterfaces.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\ZeroStreamListener.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Memory.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\InteropStream.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\HttpModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\PinModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\StatModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\TempSensors.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\DS18B20Query.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\SMSModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\CoreTransport.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\WateringModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\LuminosityModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\HumidityModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\HumidityGlobals.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Si7021Support.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\HTU21D.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\DHTSupport.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\WiFiModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\IoT.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\DeltaModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\WaterflowModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\CompositeCommandsModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\SoilMoistureModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\ReservationModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\TimerModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\IoTModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\TFTModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFTMenu.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\UTFT/UTFT.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\UTFT/hardware/arm/HW_ARM_defines.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\URTouch/URTouchCD.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\URTouch/URTouch.h \
  D:\2\ GITTeplica\Main_Tolmachev\libraries\URTouch/hardware/arm/HW_ARM_defines.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFT_Buttons_Rus.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFTRus.h
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFT_Buttons_Rus.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFTRus.h

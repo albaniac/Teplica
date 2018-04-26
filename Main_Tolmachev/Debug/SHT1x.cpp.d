@@ -1,5 +1,5 @@
-C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\SHT1x.cpp.o: \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\SHT1x.cpp \
+C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\SHT1x.cpp.o: \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\SHT1x.cpp \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Arduino.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/interrupt.h \
@@ -135,4 +135,4 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/USB/USBAPI.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/RingBuffer.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Stream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\SHT1x.h
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\SHT1x.h

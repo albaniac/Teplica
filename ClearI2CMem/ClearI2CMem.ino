@@ -66,7 +66,7 @@ void i2c_test1()
     Serial.print(" - "); //print content to serial port
     Serial.println(b); //print content to serial port
   }
-  
+     Serial.print("Clear End"); //print content to serial port
 }
 
 void i2c_test()
@@ -100,7 +100,7 @@ void i2c_test()
 
 void setup() 
 {
-    Serial.begin(9600); 
+    Serial.begin(57600); 
   Wire.begin();
 i2c_test1();
 }

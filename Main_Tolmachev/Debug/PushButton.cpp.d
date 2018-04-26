@@ -1,6 +1,6 @@
-C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\PushButton.cpp.o: \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\PushButton.cpp \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\PushButton.h \
+C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\PushButton.cpp.o: \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\PushButton.cpp \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\PushButton.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Arduino.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/interrupt.h \
@@ -136,13 +136,13 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/USB/USBAPI.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/RingBuffer.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Stream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\AbstractModule.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\AbstractModule.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/WString.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Globals.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_DUE.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_DEBUG.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\Configuration_Shared.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\CommandParser.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\TinyVector.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\MCP23S17.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Globals.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_DUE.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_DEBUG.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\Configuration_Shared.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\CommandParser.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\TinyVector.h \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\MCP23S17.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\libraries\SPI\src/SPI.h

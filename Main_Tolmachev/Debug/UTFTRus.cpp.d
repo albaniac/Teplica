@@ -1,6 +1,6 @@
-C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFTRus.cpp.o: \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFTRus.cpp \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x_dbg\Debug\UTFTRus.h \
+C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFTRus.cpp.o: \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFTRus.cpp \
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Tolmachev\arduino_due_x\Debug\UTFTRus.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Arduino.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/pgmspace.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/avr/interrupt.h \
