@@ -17,7 +17,7 @@
   <ph_column_w>30</ph_column_w>
   <wph_column_w>30</wph_column_w>
   <delta_column_w>40</delta_column_w>
-  <lastControllerGUID>83ab6c66d4f34c22b4dfbe943b5dcd6d</lastControllerGUID>
+  <lastControllerGUID>d57b0d31ac7143ebbf65bc2d24f9bd87</lastControllerGUID>
   <widgetMemory>false</widgetMemory>
   <widgetWorkTime>false</widgetWorkTime>
   <widgetControllerTime>true</widgetControllerTime>
@@ -38,13 +38,13 @@
   <def_t_open>26</def_t_open>
   <def_t_close>24</def_t_close>
   <sel_idx>0</sel_idx>
-  <w_interval>1000</w_interval>
-  <phone />
+  <w_interval>4000</w_interval>
+  <phone>+79162632701</phone>
   <m_t_out_module>STATE</m_t_out_module>
   <m_t_in_module>STATE</m_t_in_module>
   <m_t_in_idx>0</m_t_in_idx>
   <m_t_out_idx>1</m_t_out_idx>
-  <watering>0</watering>
+  <watering>2</watering>
   <watering_days>0</watering_days>
   <watering_time>0</watering_time>
   <start_watering_time>0</start_watering_time>
@@ -57,9 +57,9 @@
   <lux_gisteresis>0</lux_gisteresis>
   <min_lux_value>250</min_lux_value>
   <connect_to_router>true</connect_to_router>
-  <router_id>WiFi-Repeater1</router_id>
+  <router_id>WiFi-Repeater2</router_id>
   <router_password>panasonic</router_password>
-  <station_id>Teplitca</station_id>
+  <station_id>Teplitca2</station_id>
   <station_password>12345678</station_password>
   <work_without_ls>false</work_without_ls>
   <widgets>
