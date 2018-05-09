@@ -64,7 +64,8 @@ extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
 //UTFT myGLCD(CTE50,25,26,27,28);
 //UTFT          myGLCD(ITDB32S,25,26,27,28);//Due
-UTFT    myGLCD(ITDB32S,38,39,40,41);   // Remember to change the model parameter to suit your display module!
+//UTFT    myGLCD(ITDB32S,38,39,40,41);   // Remember to change the model parameter to suit your display module!
+UTFT    myGLCD(CTE50,38,39,40,41);   // Remember to change the model parameter to suit your display module!
 //#ifndef AQUALED_SHIELD
 UTouch  myTouch(6,5,4,3,2);
 //#else
@@ -416,10 +417,12 @@ void ds18s20()
   myGLCD.setColor(255, 255, 255);
   myGLCD.printNumF(celsius,3, 223, 180);
 }
-
+const int ledPin13 = 13;
 
 void setup()
 {
+	pinMode(ledPin13, OUTPUT);
+	digitalWrite(ledPin13, LOW);
   myGLCD.InitLCD();
   myGLCD.setFont(BigFont);
 

@@ -180,4 +180,6 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Neverov\arduino_due_x_dbg\Debug\U
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Neverov\arduino_due_x_dbg\Debug\HTTPInterfaces.h \
  D:\2\ GITTeplica\Main_Neverov\libraries\OneWire/OneWire.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Neverov\arduino_due_x_dbg\Debug\Memory.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Neverov\arduino_due_x_dbg\Debug\InteropStream.h
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Neverov\arduino_due_x_dbg\Debug\InteropStream.h \
+ D:\2\ GITTeplica\Main_Neverov\libraries\RF24/RF24.h \
+ D:\2\ GITTeplica\Main_Neverov\libraries\RF24/RF24_config.h
