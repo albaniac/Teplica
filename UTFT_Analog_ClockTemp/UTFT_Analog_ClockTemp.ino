@@ -1,37 +1,4 @@
-// UTFT_Analog_Clock (C)2010-2012 Henning Karlsen
-// web: http://www.henningkarlsen.com/electronics
-//
-// This program was made simply because I was bored.
-//
-// Hardware requirements:
-//  - Arduino Mega
-//  - Display module supported by UTFT
-//  - DS1307 RTC
-//  - Some method of connecting the display module to the Arduino
-//    like the old ITDB02 Mega Shield v1.1 as it already contains
-//    the DS1307 or the All in One Super Screw Shield from
-//    AquaLEDSource which also has everything you need on the
-//    shield.
-//
-// Software requirements:
-//  - UTFT library    http://www.henningkarlsen.com/electronics/library.php?id=51
-//  - UTouch library  http://www.henningkarlsen.com/electronics/library.php?id=55
-//  - DS1307 library  http://www.henningkarlsen.com/electronics/library.php?id=34
-//
-// This program should work on all the supported display modules
-// from the 2.4" ones and up to the 5.0" ones, but keep in mind 
-// that this program was made to work on a 320x240 module, so it 
-// may look a little silly on larger displays.
-// It will not work on the 2.2" modules without modification as 
-// the resolution on those modules are too low.
-//
-// Default serial speed for this sketch is 115200 baud.
-//
-// You can buy the AquaLEDSource All in One Super Screw Shield here:
-// English:    http://www.aqualedsource.com/prods/screwshield.php
-// Portuguese: http://www.aqualed-light.com/?sec=home&id=1818
-//
-/**************************************************************************/
+
 
 // Enable (1) or disable (0) VT100 terminal mode
 // Enable this if your terminal program supports VT100 control sequences.
@@ -39,22 +6,15 @@
 // If using the Serial Monitor the line ending should be set to 'No line ending'.
 #define VT100_MODE  1
 
-// Enable or disable the use of the AquaLEDSource All in One Super Screw Shield
-// Uncomment the following line if you are using this shield
-//#define AQUALED_SHIELD 1
-//#define CTE_DUE_SHIELD 1
+
 #include <UTFT.h>
 #include <DS1307.h>
 #include <UTouch.h>
 #include <OneWire.h>
 #include "DHT.h"
 
-#define DHTPIN 9     // what digital pin we're connected to
+#define DHTPIN 50     // what digital pin we're connected to
 #define DHTTYPE DHT11   // DHT 11
-
-
-
-
 DHT dht(DHTPIN, DHTTYPE);
 
 
@@ -62,11 +22,8 @@ DHT dht(DHTPIN, DHTTYPE);
 // Declare which fonts we will be using
 extern uint8_t SmallFont[];
 extern uint8_t BigFont[];
-//UTFT myGLCD(CTE50,25,26,27,28);
-//UTFT          myGLCD(ITDB32S,25,26,27,28);//Due
-//UTFT    myGLCD(ITDB32S,38,39,40,41);   // Remember to change the model parameter to suit your display module!
-UTFT    myGLCD(CTE50,38,39,40,41);   // Remember to change the model parameter to suit your display module!
-//#ifndef AQUALED_SHIELD
+
+UTFT    myGLCD(TFT01_70, 38, 39, 40, 41);       // Дисплей 7,0"  800x480
 UTouch  myTouch(6,5,4,3,2);
 //#else
  // UTouch  myTouch(62,63,64,65,66);
@@ -74,7 +31,7 @@ UTouch  myTouch(6,5,4,3,2);
 
 // Init the DS1307
 DS1307 rtc(20, 21);
-OneWire  ds(8);  // on pin 10 (a 4.7K resistor is necessary)
+OneWire  ds(A0);  // on pin 10 (a 4.7K resistor is necessary)
 // Init a Time-data structure
 Time  t;
 

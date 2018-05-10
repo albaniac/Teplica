@@ -64,3 +64,9 @@ Version:
 	2.78	08 Sep 2014  -  fixed compatibility-issues with Arduino 1.5.7
 	2.79	28 Sep 2014  -  added support for more display shields and modules from ElecFreaks
 				removed all support for display modules from GE-Tech (including the ILI9320 driver)
+	2.80	17 May 2015  -  added support TI CC3200 LaunchPad
+				fixed a bug with transparent text so it is faster than it was
+				updated tools to support TI CC3200 LaunchPad
+	2.81	21 May 2015  -  fixed a bug which stopped the library from compiling with Arduino 1.6.x
+	2.82	12 Jul 2016  -  added support for the new 3.2" (Rev2 ILI9341-based) display module from Coldtears
+				TFT controllers used only by display modules and shields that have been retired are now disabled by default

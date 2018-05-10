@@ -61,6 +61,7 @@
 #include "ZeroStreamListener.h"
 #include "Memory.h"
 #include "InteropStream.h"
+#include <DS3231.h>
 
 #ifdef USE_HTTP_MODULE
 #include "HttpModule.h"
@@ -293,6 +294,10 @@ AlertModule alertsModule;
 
   ExternalWatchdogSettings watchdogSettings;
 #endif
+
+  DS3231  rtc(SDA, SCL);
+  Time  tm;
+
 //--------------------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
@@ -424,16 +429,18 @@ void setup()
   Serial.print(READY);
 
   #ifdef USE_DS3231_REALTIME_CLOCK
-  
-   DS3231Clock rtc = controller.GetClock();
-   DS3231Time tm = rtc.getTime();
 
+  
+  // DS3231Clock rtc = controller.GetClock();
+  // DS3231Time tm = rtc.getTime();
+   tm = rtc.getTime();
+  
    Serial.print(F(", "));
-   Serial.print(rtc.getDayOfWeekStr(tm));
+   //Serial.print(rtc.getDayOfWeekStr(tm));
    Serial.print(F(" "));
-   Serial.print(rtc.getDateStr(tm));
+  // Serial.print(rtc.getDateStr(tm));
    Serial.print(F(" - "));
-   Serial.print(rtc.getTimeStr(tm));
+   //Serial.print(rtc.getTimeStr(tm));
       
   #endif 
 
