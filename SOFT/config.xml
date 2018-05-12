@@ -21,7 +21,7 @@
   <widgetMemory>false</widgetMemory>
   <widgetWorkTime>false</widgetWorkTime>
   <widgetControllerTime>true</widgetControllerTime>
-  <widgetControllerTemperature>false</widgetControllerTemperature>
+  <widgetControllerTemperature>true</widgetControllerTemperature>
   <widgetTemperatureInside>true</widgetTemperatureInside>
   <widgetTemperatureOutside>true</widgetTemperatureOutside>
   <widgetWindowsPosition>true</widgetWindowsPosition>
@@ -35,9 +35,9 @@
   <widgetWaterChannels>false</widgetWaterChannels>
   <create_t_rules>true</create_t_rules>
   <logs_directory>D:\2 GITTeplica\SOFT\logs\</logs_directory>
-  <def_t_open>26</def_t_open>
+  <def_t_open>25</def_t_open>
   <def_t_close>24</def_t_close>
-  <sel_idx>0</sel_idx>
+  <sel_idx>1</sel_idx>
   <w_interval>333000</w_interval>
   <phone>+79162632701</phone>
   <m_t_out_module>STATE</m_t_out_module>

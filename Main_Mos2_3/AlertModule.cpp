@@ -1,7 +1,6 @@
 #include "AlertModule.h"
 #include "ModuleController.h"
 #include "Memory.h"
-#include <DS3231.h>
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 AlertModule* RulesDispatcher = NULL;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1174,12 +1173,8 @@ void AlertModule::Update(uint16_t dt)
     return;
      
 #ifdef USE_DS3231_REALTIME_CLOCK
-  // rtc = MainController->GetClock();
-  // tm = rtc.getTime();
-   DS3231  rtc(SDA, SCL);
-   Time  tm;
- // DS3231Clock rtc = MainController->GetClock();
-  //DS3231Time tm = rtc.getTime();
+  DS3231Clock rtc = MainController->GetClock();
+  DS3231Time tm = rtc.getTime();
 #endif
 
 
@@ -1194,7 +1189,7 @@ void AlertModule::Update(uint16_t dt)
       // сначала обновляем состояние правила
       r->Update(lastUpdateCall
 #ifdef USE_DS3231_REALTIME_CLOCK
-,tm.hour, tm.min, tm.dow
+,tm.hour, tm.minute, tm.dayOfWeek
 #endif
         );
 

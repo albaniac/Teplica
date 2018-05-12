@@ -61,7 +61,6 @@
 #include "ZeroStreamListener.h"
 #include "Memory.h"
 #include "InteropStream.h"
-#include <DS3231.h>
 
 #ifdef USE_HTTP_MODULE
 #include "HttpModule.h"
@@ -149,6 +148,20 @@
 
 #ifdef USE_TFT_MODULE
 #include "TFTModule.h"
+#endif
+
+#ifdef USE_BUZZER_ON_TOUCH
+#include "Buzzer.h"
+#endif
+
+#include "DelayedEvents.h"
+
+#include<Wire.h>
+
+#ifdef DUE_START_DEBUG
+#define START_LOG(x) {Serial.println((x)); Serial.flush(); }
+#else
+#define START_LOG(x) (void) 0
 #endif
 
 // таймер
@@ -294,10 +307,6 @@ AlertModule alertsModule;
 
   ExternalWatchdogSettings watchdogSettings;
 #endif
-
-  DS3231  rtc(SDA, SCL);
-  Time  tm;
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void setup() 
 {
@@ -308,11 +317,46 @@ void setup()
 
   Serial.begin(SERIAL_BAUD_RATE); // запускаем Serial на нужной скорости
 
+  START_LOG(1);
+
+  uint8_t wireScl = 21;
+  #if TARGET_BOARD == STM32_BOARD
+  WORK_STATUS.PinMode(20,INPUT,false);
+  WORK_STATUS.PinMode(21,OUTPUT,false);
+  #else
+  WORK_STATUS.PinMode(SDA,INPUT,false);
+  WORK_STATUS.PinMode(SCL,OUTPUT,false);
+  wireScl = SCL;
+  #endif
+
+  START_LOG(2);
+  
+  pinMode(wireScl,OUTPUT);
+  for(uint8_t i=0;i<8;i++)
+  {
+    digitalWrite(wireScl,HIGH);
+    delayMicroseconds(3);
+    digitalWrite(wireScl,LOW);
+    delayMicroseconds(3);   
+  }
+  
+  pinMode(wireScl,INPUT);
+
+  START_LOG(3);
+  
+   Wire.begin();
+
+   START_LOG(4);
+
   // инициализируем память (EEPROM не надо, а вот I2C - надо)
-  MemInit();  
+  MemInit(); 
+
+  START_LOG(5);
 
   WORK_STATUS.PinMode(0,INPUT,false);
   WORK_STATUS.PinMode(1,OUTPUT,false);
+
+  START_LOG(6);
 
   #ifdef USE_EXTERNAL_WATCHDOG
     WORK_STATUS.PinMode(WATCHDOG_REBOOT_PIN,OUTPUT,true);
@@ -324,131 +368,200 @@ void setup()
  
   // настраиваем все железки
   controller.Setup();
+
+  START_LOG(7);
+
+  #ifdef USE_BUZZER_ON_TOUCH
+  Buzzer.begin();
+  #endif
+
+  START_LOG(8);
    
   // устанавливаем провайдера команд для контроллера
   controller.SetCommandParser(&commandParser);
 
+  START_LOG(9);
+  
   // регистрируем модули  
   #ifdef USE_PIN_MODULE  
   controller.RegisterModule(&pinModule);
   #endif
+
+  START_LOG(10);
   
   #ifdef USE_STAT_MODULE
   controller.RegisterModule(&statModule);
   #endif
 
+  START_LOG(11);
+
   #ifdef USE_TEMP_SENSORS
   controller.RegisterModule(&tempSensors);
   #endif
+
+  START_LOG(12);
 
   #ifdef USE_WATERING_MODULE
   controller.RegisterModule(&wateringModule);
   #endif
 
+  START_LOG(13);
+
   #ifdef USE_LUMINOSITY_MODULE
   controller.RegisterModule(&luminosityModule);
   #endif
+
+  START_LOG(14);
 
   #ifdef USE_HUMIDITY_MODULE
   controller.RegisterModule(&humidityModule);
   #endif
 
+  START_LOG(15);
+
   #ifdef USE_DELTA_MODULE
   controller.RegisterModule(&deltaModule);
   #endif
+
+  START_LOG(16);
   
   #ifdef USE_LCD_MODULE
   controller.RegisterModule(&lcdModule);
   #endif
 
+  START_LOG(17);
+
   #ifdef USE_NEXTION_MODULE
   controller.RegisterModule(&nextionModule);
   #endif
+
+  START_LOG(18);
 
   #ifdef USE_WATERFLOW_MODULE
   controller.RegisterModule(&waterflowModule);
   #endif
 
+  START_LOG(19);
+
   #ifdef USE_COMPOSITE_COMMANDS_MODULE
   controller.RegisterModule(&compositeCommands);
   #endif
-  
+
+  START_LOG(20);
+ 
   #ifdef USE_SOIL_MOISTURE_MODULE
   controller.RegisterModule(&soilMoistureModule);
   #endif
+
+  START_LOG(21);
 
   #ifdef USE_PH_MODULE
   controller.RegisterModule(&phModule);
   #endif
 
+  START_LOG(22);
+
   #ifdef USE_W5100_MODULE
   controller.RegisterModule(&ethernetModule);
   #endif
+
+  START_LOG(23);
 
   #ifdef USE_RESERVATION_MODULE
   controller.RegisterModule(&reservationModule);
   #endif
 
+  START_LOG(24);
+
   #ifdef USE_TIMER_MODULE
   controller.RegisterModule(&timerModule);
   #endif
+
+  START_LOG(25);
 
   #ifdef USE_LOG_MODULE
   controller.RegisterModule(&logModule);
   controller.SetLogWriter(&logModule); // задаём этот модуль как модуль, который записывает события в лог
   #endif
 
+  START_LOG(26);
+
   // модуль Wi-Fi регистрируем до модуля SMS, поскольку Wi-Fi дешевле, чем GPRS, для отсыла данных в IoT-хранилища
   #ifdef USE_WIFI_MODULE
   controller.RegisterModule(&wifiModule);
   #endif 
 
+  START_LOG(27);
+
   #ifdef USE_SMS_MODULE
   controller.RegisterModule(&smsModule);
   #endif
+
+  START_LOG(28);
 
   #ifdef USE_IOT_MODULE
     controller.RegisterModule(&iotModule);
   #endif
 
+  START_LOG(29);
+
   #ifdef USE_HTTP_MODULE
     controller.RegisterModule(&httpModule);
   #endif
 
+  START_LOG(30);
+
   #ifdef USE_TFT_MODULE
     controller.RegisterModule(&tftModule);
   #endif
-  
+
+ START_LOG(31);
+
   controller.RegisterModule(&zeroStreamModule);
+
+ START_LOG(32);
+
  // модуль алертов регистрируем последним, т.к. он должен вычитать зависимости с уже зарегистрированными модулями
   controller.RegisterModule(&alertsModule);
 
+ START_LOG(33);
+
   controller.begin(); // начинаем работу
+
+ START_LOG(34);
 
   // Печатаем в Serial готовность
   Serial.print(READY);
 
   #ifdef USE_DS3231_REALTIME_CLOCK
+  
+   DS3231Clock rtc = controller.GetClock();
+   DS3231Time tm = rtc.getTime();
 
-  
-  // DS3231Clock rtc = controller.GetClock();
-  // DS3231Time tm = rtc.getTime();
-   tm = rtc.getTime();
-  
    Serial.print(F(", "));
-   //Serial.print(rtc.getDayOfWeekStr(tm));
+   Serial.print(rtc.getDayOfWeekStr(tm));
    Serial.print(F(" "));
-  // Serial.print(rtc.getDateStr(tm));
+   Serial.print(rtc.getDateStr(tm));
    Serial.print(F(" - "));
-   //Serial.print(rtc.getTimeStr(tm));
+   Serial.print(rtc.getTimeStr(tm));
       
   #endif 
 
-  Serial.println(F(""));
+  Serial.println();
+
+ START_LOG(35);
 
   #ifdef USE_LOG_MODULE
     controller.Log(&logModule,READY); // печатаем в файл действий строчку Ready, которая скажет нам, что мега стартовала
   #endif
+
+  // пискнем при старте, если есть баззер
+  #ifdef USE_BUZZER_ON_TOUCH
+  Buzzer.buzz();
+  #endif
+
+ START_LOG(36);
+  
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // эта функция вызывается после обновления состояния каждого модуля.
@@ -593,6 +706,7 @@ void loop()
     // обновляем состояние всех зарегистрированных модулей
    controller.UpdateModules(dt,ModuleUpdateProcessed);
 
+   CoreDelayedEvent.update();
 
    
 // отсюда можно добавлять любой сторонний код
@@ -630,9 +744,8 @@ void yield()
     rotaryEncoder.update(); // обновляем энкодер меню
    #endif
 
-   #ifdef USE_TFT_MODULE
-    tftModule.UpdateBuzzer(); // обновляем пищалку
-   #endif   
+   CoreDelayedEvent.update();
+
 
 // отсюда можно добавлять любой сторонний код, который надо вызывать, когда МК чем-то долго занят (например, чтобы успокоить watchdog)
 

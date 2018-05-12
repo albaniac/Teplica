@@ -33,6 +33,9 @@
     <ClInclude Include="AT24CX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Buzzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CommandBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -66,6 +69,9 @@
     <ClInclude Include="CoreTransport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DelayedEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DeltaModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -73,6 +79,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DS18B20Query.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DS3231Support.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Encoder.h">
@@ -139,9 +148,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MODULE_FISH.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NextionController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NextionModule.h">
@@ -233,6 +239,9 @@
     <ClCompile Include="AT24CX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Buzzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CommandBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -248,6 +257,9 @@
     <ClCompile Include="CoreTransport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DelayedEvents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DeltaModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -255,6 +267,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DS18B20Query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DS3231Support.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Encoder.cpp">
@@ -312,9 +327,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MODULE_FISH.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NextionController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NextionModule.cpp">

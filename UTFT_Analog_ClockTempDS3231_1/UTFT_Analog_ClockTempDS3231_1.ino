@@ -336,12 +336,12 @@ void ds18s20()
 //  Serial.print("  Data = ");
 //  Serial.print(present, HEX);
 //  Serial.print(" ");
-  for ( i = 0; i < 9; i++) 
-  {           // we need 9 bytes
-    data[i] = ds.read();
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
-  }
+  //for ( i = 0; i < 9; i++) 
+  //{           // we need 9 bytes
+  //  data[i] = ds.read();
+  //  Serial.print(data[i], HEX);
+  //  Serial.print(" ");
+  //}
 //  Serial.print(" CRC=");
 //  Serial.print(OneWire::crc8(data, 8), HEX);
 //  Serial.println();
@@ -409,7 +409,7 @@ void setup()
 
 void loop()
 {
-  delay(2000);
+ // delay(2000);
   int x, y;
  
   t = rtc.getTime();

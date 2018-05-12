@@ -3,7 +3,6 @@
 #include "InteropStream.h"
 #include "TempSensors.h"
 #include "Globals.h"
-#include <DS3231.h>
 //--------------------------------------------------------------------------------------------------------------------------------
 #define HTTP_START_OF_HEADERS F("POST /check HTTP/1.1\r\nConnection: close\r\nContent-Type: application/x-www-form-urlencoded\r\nHost: ")
 #define HTTP_CONTENT_LENGTH_HEADER F("Content-Length: ")
@@ -537,8 +536,8 @@ void HttpModule::OnAskForData(String* data)
         int addedLength = 0;
         #ifdef USE_DS3231_REALTIME_CLOCK
           addedLength = 6;
-		  DS3231 rtc = MainController->GetClock();
-          Time tm = rtc.getTime();
+          DS3231Clock rtc = MainController->GetClock();
+          DS3231Time tm = rtc.getTime();
           String dateStr = rtc.getDateStr(tm);
           String timeStr = rtc.getTimeStr(tm);
 
@@ -626,8 +625,8 @@ void HttpModule::OnAskForData(String* data)
 
         #ifdef USE_DS3231_REALTIME_CLOCK
           addedLength = 6;
-          DS3231 rtc = MainController->GetClock();
-          Time tm = rtc.getTime();
+          DS3231Clock rtc = MainController->GetClock();
+          DS3231Time tm = rtc.getTime();
           String dateStr = rtc.getDateStr(tm);
           String timeStr = rtc.getTimeStr(tm);
 
