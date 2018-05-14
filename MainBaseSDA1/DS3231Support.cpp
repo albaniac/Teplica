@@ -183,10 +183,7 @@ void DS3231Clock::begin(uint8_t wireNumber)
     wireInterface = &Wire;
   #else
     if(wireNumber == 1)
-	{ 
-		wireInterface = &Wire1;
-	
-	}
+      wireInterface = &Wire1;
     else
       wireInterface = &Wire;
   #endif
