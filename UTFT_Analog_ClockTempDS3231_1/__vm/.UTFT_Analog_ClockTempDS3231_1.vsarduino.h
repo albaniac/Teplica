@@ -14,7 +14,11 @@
 #define _VSARDUINO_H_
 #define printf iprintf
 #define F_CPU 84000000L
+<<<<<<< HEAD
 #define ARDUINO 10805
+=======
+#define ARDUINO 10803
+>>>>>>> 66ef4d6da0857c2b5f52e67b73288c861b01b14b
 #define ARDUINO_SAM_DUE
 #define ARDUINO_ARCH_SAM
 #define __SAM3X8E__

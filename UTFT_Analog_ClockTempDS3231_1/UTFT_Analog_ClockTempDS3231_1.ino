@@ -16,7 +16,7 @@
 #include <SPI.h>
 
 // Init the DS3231 using the hardware interface
-DS3231  rtc(SDA, SCL);
+DS3231  rtc(SDA1, SCL1);
 
 #define DHTPIN 50     // what digital pin we're connected to
 #define DHTTYPE DHT11   // DHT 11
