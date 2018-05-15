@@ -4,7 +4,13 @@
 #include "Memory.h"
 #include "InteropStream.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
+#include "Globals.h"
+//--------------------------------------------------------------------------------------------------------------------------------------
+#if TARGET_BOARD == STM32_BOARD
+#include <SdFatSTM32.h>
+#else
 #include <SdFat.h>
+#endif
 //--------------------------------------------------------------------------------------------------------------------------------------
 #define CIPSEND_COMMAND F("AT+CIPSENDBUF=")
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -923,8 +929,8 @@ void CoreESPTransport::update()
 
         #ifdef USE_WIFI_REBOOT_PIN
           // есть пин, который надо использовать при зависании
-          pinMode(WIFI_REBOOT_PIN,OUTPUT);
-          digitalWrite(WIFI_REBOOT_PIN,WIFI_POWER_OFF);
+          WORK_STATUS.PinMode(WIFI_REBOOT_PIN,OUTPUT);
+          WORK_STATUS.PinWrite(WIFI_REBOOT_PIN,WIFI_POWER_OFF);
        #endif
        
         machineState = espReboot;
@@ -1684,8 +1690,8 @@ void CoreESPTransport::update()
             #endif
             
             #ifdef USE_WIFI_REBOOT_PIN
-              pinMode(WIFI_REBOOT_PIN,OUTPUT);
-              digitalWrite(WIFI_REBOOT_PIN,WIFI_POWER_ON);
+              WORK_STATUS.PinMode(WIFI_REBOOT_PIN,OUTPUT);
+              WORK_STATUS.PinWrite(WIFI_REBOOT_PIN,WIFI_POWER_ON);
             #endif
 
             machineState = espWaitInit;
@@ -1732,8 +1738,26 @@ void CoreESPTransport::begin()
   #endif
     
   workStream = &WIFI_SERIAL;
-  WIFI_SERIAL.begin(WIFI_BAUDRATE);
+  WIFI_SERIAL.begin(SERIAL_BAUD_RATE);
 
+  #if TARGET_BOARD == STM32_BOARD
+  
+  if((int*)&(WIFI_SERIAL) == (int*)&Serial) {
+       WORK_STATUS.PinMode(0,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(1,OUTPUT,false);
+  } else if((int*)&(WIFI_SERIAL) == (int*)&Serial1) {
+       WORK_STATUS.PinMode(19,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(18,OUTPUT,false);
+  } else if((int*)&(WIFI_SERIAL) == (int*)&Serial2) {
+       WORK_STATUS.PinMode(17,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(16,OUTPUT,false);
+  } else if((int*)&(WIFI_SERIAL) == (int*)&Serial3) {
+       WORK_STATUS.PinMode(15,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(14,OUTPUT,false);
+  }
+   
+  #else
+  
   if(&(WIFI_SERIAL) == &Serial) {
        WORK_STATUS.PinMode(0,INPUT_PULLUP,true);
        WORK_STATUS.PinMode(1,OUTPUT,false);
@@ -1746,15 +1770,16 @@ void CoreESPTransport::begin()
   } else if(&(WIFI_SERIAL) == &Serial3) {
        WORK_STATUS.PinMode(15,INPUT_PULLUP,true);
        WORK_STATUS.PinMode(14,OUTPUT,false);
-  } 
-  
+  }
+   
+  #endif
 
   restart();
 
   #ifdef USE_WIFI_REBOOT_PIN
     // есть пин, который надо использовать при зависании
-    pinMode(WIFI_REBOOT_PIN,OUTPUT);
-    digitalWrite(WIFI_REBOOT_PIN, WIFI_POWER_OFF);
+    WORK_STATUS.PinMode(WIFI_REBOOT_PIN,OUTPUT);
+    WORK_STATUS.PinWrite(WIFI_REBOOT_PIN, WIFI_POWER_OFF);
     machineState = espReboot;
   #endif
 
@@ -2755,6 +2780,7 @@ void CoreMQTT::update()
             int16_t mqttBufferLength;
   
             String topicName, data;
+            bool retain = false;
 
             if(hasReportTopics)
             {
@@ -2810,6 +2836,8 @@ void CoreMQTT::update()
             else
             if(hasPublishTopics)
             {
+
+              retain = true;
               // есть пакеты для публикации
               MQTTPublishQueue pq = publishList[0];
 
@@ -2838,6 +2866,7 @@ void CoreMQTT::update()
             } // hasPublishTopics
             else
             {
+                retain = true;
                 // обычный режим работы, отсылаем показания с хранилища
                 getNextTopic(topicName,data);
 
@@ -2846,7 +2875,7 @@ void CoreMQTT::update()
               if(data.length() && topicName.length())
               {
                  // конструируем пакет публикации
-                 constructPublishPacket(mqttBuffer,mqttBufferLength,topicName.c_str(), data.c_str()); 
+                 constructPublishPacket(mqttBuffer,mqttBufferLength,topicName.c_str(), data.c_str(), retain); 
       
                 // переключаемся на ожидание результата отсылки пакета
                 machineState = mqttWaitSendPublishPacketDone;
@@ -3041,7 +3070,7 @@ void CoreMQTT::clearReportsQueue()
   reportQueue.clear();
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-void CoreMQTT::constructPublishPacket(String& mqttBuffer,int16_t& mqttBufferLength, const char* topic, const char* payload)
+void CoreMQTT::constructPublishPacket(String& mqttBuffer,int16_t& mqttBufferLength, const char* topic, const char* payload, bool retain)
 {
   MQTTBuffer byteBuffer; // наш буфер из байт, в котором будет содержаться пакет
 
@@ -3062,7 +3091,20 @@ void CoreMQTT::constructPublishPacket(String& mqttBuffer,int16_t& mqttBufferLeng
 
   MQTTBuffer fixedHeader;
   
-  constructFixedHeader(MQTT_PUBLISH_COMMAND,fixedHeader,payloadSize);
+  uint8_t command = MQTT_PUBLISH_COMMAND;
+  
+  if(retain)
+    command |= 1;
+
+  #ifdef MQTT_DEBUG
+    if(retain)
+    {
+      DEBUG_LOG(F("MQTT: RETAIN topic detected, byte #0 is: "));
+      DEBUG_LOG(String(command));
+    }
+  #endif
+  
+  constructFixedHeader(command,fixedHeader,payloadSize);
 
   writePacket(fixedHeader,byteBuffer,mqttBuffer,mqttBufferLength);
   
@@ -3287,7 +3329,7 @@ CoreSIM800Transport::CoreSIM800Transport() : CoreTransport(SIM800_MAX_CLIENTS)
   recursionGuard = 0;
   flags.waitCipstartConnect = false;
   cipstartConnectClient = NULL;
-  workStream = NULL;
+  workStream = NULL;  
 
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -3470,6 +3512,15 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
     }
     break;
 
+    case smaCIPSHUT:
+    {
+      #ifdef GSM_DEBUG_MODE
+      DEBUG_LOGLN(F("SIM800: Deactivate GPRS connection..."));
+      #endif
+      sendCommand(F("AT+CIPSHUT"));      
+    }
+    break;
+
     case smaCIICR:
     {
       #ifdef GSM_DEBUG_MODE
@@ -3578,6 +3629,15 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
     }
     break;
 
+    case smaGPRSMultislotClass:
+    {
+      #ifdef GSM_DEBUG_MODE
+      DEBUG_LOGLN(F("SIM800: Set GPRS multislot class..."));
+      #endif
+      sendCommand(F("AT+CGMSCLASS=4"));
+    }
+    break;    
+
     case smaWaitReg:
     {
       #ifdef GSM_DEBUG_MODE
@@ -3593,8 +3653,25 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
       DEBUG_LOGLN(F("SIM800: Check if modem available..."));
       #endif
       sendCommand(F("AT"));
+      //sendCommand(F("AT+CIPPING=\"google.com\",2,32,2,64"));
+      //sendCommand(F("AT+CGATT?"));
     }
     break;
+
+    #ifdef GSM_PULL_GPRS_BY_PING
+    case smaPING:
+    {
+      #ifdef GSM_DEBUG_MODE
+      DEBUG_LOGLN(F("SIM800: Start PING..."));
+      #endif
+      String cmd = F("AT+CIPPING=\"");
+      cmd += GSM_PING_HOST;
+      cmd += F("\",2,32,2,64");
+      sendCommand(cmd);
+    }
+    break;
+    #endif // GSM_PULL_GPRS_BY_PING
+    
 
     case smaHangUp:
     {
@@ -3658,8 +3735,11 @@ bool CoreSIM800Transport::isKnownAnswer(const String& line, SIM800KnownAnswer& r
     result = gsmCloseOk;
     return true;
   }
-  
-
+   if(line.endsWith(F("SHUT OK")))
+  {
+    result = gsmShutOk;
+    return true;
+  }  
   
   return false;
 }
@@ -3804,7 +3884,7 @@ void CoreSIM800Transport::processKnownStatusFromSIM800(const String& line)
       String s = line.substring(0,idx);
       int16_t clientID = s.toInt();
       if(clientID >=0 && clientID < SIM800_MAX_CLIENTS)
-      {
+      {          
         #ifdef GSM_DEBUG_MODE
           DEBUG_LOG(F("SIM800: client connected - #"));
           DEBUG_LOGLN(String(clientID));
@@ -3839,17 +3919,23 @@ void CoreSIM800Transport::processKnownStatusFromSIM800(const String& line)
       int16_t clientID = s.toInt();
       if(clientID >=0 && clientID < SIM800_MAX_CLIENTS)
       {
+        
+        if(line.indexOf(F("CONNECT FAIL")) != -1) // CONNECT FAIL приходит без ID клиента!!!
+        {
+          clientID = cipstartConnectClientID;
+        }
+        
         #ifdef GSM_DEBUG_MODE
           DEBUG_LOG(F("SIM800: client disconnected - #"));
           DEBUG_LOGLN(String(clientID));
         #endif
 
-        // выставляем клиенту флаг, что он отсоединён
-        CoreTransportClient* client = getClient(clientID);
-        notifyClientConnected(*client,false,CT_ERROR_NONE);
+          // выставляем клиенту флаг, что он отсоединён
+          CoreTransportClient* client = getClient(clientID);
+          notifyClientConnected(*client,false,CT_ERROR_NONE);
 
         if(flags.waitCipstartConnect && cipstartConnectClient != NULL && clientID == cipstartConnectClientID)
-        {                
+        {            
           // есть клиент, для которого надо установить ID
           cipstartConnectClient->bind(clientID);
           notifyClientConnected(*cipstartConnectClient,false,CT_ERROR_NONE);
@@ -3915,6 +4001,16 @@ void CoreSIM800Transport::processKnownStatusFromSIM800(const String& line)
     }
     return;   
   } // if(line.startsWith(F("+CUSD:")))
+  else
+  if(line.startsWith(F("+PDP: DEACT")))
+  {
+      #ifdef GSM_DEBUG_MODE
+        DEBUG_LOGLN(F("SIM800: GPRS connection broken, restart!")); 
+      #endif
+
+      rebootModem();
+      
+  } // if(line.startsWith(F("+PDP:DEACT")))
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 bool CoreSIM800Transport::checkIPD(const TransportReceiveBuffer& buff)
@@ -3934,6 +4030,35 @@ bool CoreSIM800Transport::checkIPD(const TransportReceiveBuffer& buff)
   }
 
   return false;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef GSM_DEBUG_MODE
+void CoreSIM800Transport::dumpReceiveBuffer()
+{
+  Serial.print(F("SIM800 RECEIVE BUFFER, SIZE="));
+  Serial.println(receiveBuffer.size());
+  
+  for(size_t i=0;i<receiveBuffer.size();i++)
+  {
+    Serial.print(WorkStatus::ToHex(receiveBuffer[i]));
+    Serial.print(" ");
+  }
+
+ Serial.println();
+  
+}
+#endif
+//--------------------------------------------------------------------------------------------------------------------------------------
+void CoreSIM800Transport::rebootModem()
+{
+    #ifdef USE_GSM_REBOOT_PIN
+      // есть пин, который надо использовать при зависании
+      WORK_STATUS.PinWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
+    #endif
+
+    machineState = sim800Reboot;
+    timer = millis();
+  
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void CoreSIM800Transport::update()
@@ -3980,19 +4105,8 @@ void CoreSIM800Transport::update()
           DEBUG_LOGLN(F("SIM800: modem not answering, reboot!"));
         #endif
 
-        #ifdef USE_GSM_REBOOT_PIN
-          // есть пин, который надо использовать при зависании
-          digitalWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
-        #endif
-
-        machineState = sim800Reboot;
-        timer = millis();
-        
+        rebootModem();        
       } // if   
-  }
-  else // есть ответ
-  {    
-   // timer = millis();
   }
 
   // выставляем флаг, что мы хотя бы раз получили хоть чего-то от ESP
@@ -4153,9 +4267,23 @@ void CoreSIM800Transport::update()
 
   if(hasAnswerLine && thisCommandLine.startsWith(F("AT+")))
    {
+    #ifdef GSM_DEBUG_MODE
+      DEBUG_LOG(F("Ignored echo: "));
+      DEBUG_LOGLN(thisCommandLine);    
+    #endif    
     // это эхо, игнорируем
       thisCommandLine = "";
       hasAnswerLine = false;
+   }
+
+   if(hasAnswerLine && flags.ignoreNextEmptyLine)
+   {
+      flags.ignoreNextEmptyLine = false;
+      if(thisCommandLine == " ")
+      {
+        hasAnswerLine = false;
+        thisCommandLine = "";
+      }   
    }
 
 
@@ -4295,7 +4423,7 @@ void CoreSIM800Transport::update()
                       command += dataSize;
                       flags.waitForDataWelcome = true; // выставляем флаг, что мы ждём >
                       
-                      sendCommand(command);                      
+                      sendCommand(command);                
                     }
                     break; // actionWrite
                   } // switch
@@ -4314,6 +4442,20 @@ void CoreSIM800Transport::update()
                   sendCommand(smaCheckModemHang);
                   
                 } // if
+                else
+                {
+                  #ifdef GSM_PULL_GPRS_BY_PING
+                    static uint32_t pingTimer = 0;
+                    if(millis() - pingTimer > GSM_PING_INTERVAL)
+                    {
+                        #ifdef GSM_DEBUG_MODE
+                          DEBUG_LOGLN(F("SIM800: PING GPRS!"));
+                        #endif
+                        pingTimer = millis();
+                        sendCommand(smaPING);                      
+                    }
+                  #endif // GSM_PULL_GPRS_BY_PING
+                } // else
                 
               } // else
             } // else inited
@@ -4550,8 +4692,11 @@ void CoreSIM800Transport::update()
                           TransportClientQueueData dt = clientsQueue[0];                     
 
                           #ifdef GSM_DEBUG_MODE
-                              DEBUG_LOGLN(F("SIM800: > received, start write from client to SIM800..."));
+                              DEBUG_LOG(F("SIM800: > received, start write from client to SIM800, DATA LENGTH: "));
+                              DEBUG_LOGLN(String(dt.dataLength));
                           #endif
+
+                          flags.ignoreNextEmptyLine = true;
                           
                           for(size_t kk=0;kk<dt.dataLength;kk++)
                           {
@@ -4563,7 +4708,7 @@ void CoreSIM800Transport::update()
                              ESP.readFromStream();
                              #endif                             
                           }
-
+                          
                           delete [] clientsQueue[0].data;
                           delete [] clientsQueue[0].ip;
                           clientsQueue[0].data = NULL;
@@ -4661,6 +4806,21 @@ void CoreSIM800Transport::update()
                     }
                   }
                   break; // smaCIPHEAD
+
+                  case smaCIPSHUT:
+                  {
+                    if(isKnownAnswer(thisCommandLine,knownAnswer))
+                    {
+                      if(knownAnswer == gsmShutOk || knownAnswer == gsmError)
+                      {
+                        #ifdef GSM_DEBUG_MODE
+                          DEBUG_LOGLN(F("SIM800: CIPSHUT command processed."));
+                        #endif
+                        machineState = sim800Idle; // переходим к следующей команде
+                      }
+                    }
+                  }
+                  break; // smaCIPSHUT                  
 
                   case smaCIICR:
                   {
@@ -4921,6 +5081,27 @@ void CoreSIM800Transport::update()
                   }
                   break; // smaSMSSettings
 
+                  case smaGPRSMultislotClass:
+                  {
+                    if(isKnownAnswer(thisCommandLine,knownAnswer))
+                    {
+                      if(gsmOK == knownAnswer)
+                      {
+                        #ifdef GSM_DEBUG_MODE
+                              DEBUG_LOGLN(F("SIM800: GPRS multislot class is set."));
+                        #endif
+                      }
+                      else
+                      {
+                        #ifdef GSM_DEBUG_MODE
+                              DEBUG_LOGLN(F("SIM800: GPRS multislot class command FAIL!"));
+                        #endif
+                      }
+                      machineState = sim800Idle; // переходим к следующей команде
+                    }                                        
+                  }
+                  break; // smaGPRSMultislotClass                  
+
                   case smaWaitReg:
                   {
                      if(thisCommandLine.indexOf(F("+CREG: 0,1")) != -1)
@@ -4959,6 +5140,22 @@ void CoreSIM800Transport::update()
 
                   }
                   break; // smaCheckModemHang
+
+                  #ifdef GSM_PULL_GPRS_BY_PING
+                  case smaPING:
+                  {                    
+                    if(isKnownAnswer(thisCommandLine,knownAnswer))
+                    {
+                      #ifdef GSM_DEBUG_MODE
+                              DEBUG_LOGLN(F("SIM800: PING done."));
+                      #endif
+                      machineState = sim800Idle; // переходим к следующей команде
+                      
+                    } // if(isKnownAnswer
+
+                  }
+                  break; // smaPING
+                  #endif // GSM_PULL_GPRS_BY_PING
                                     
                 } // switch
 
@@ -4986,11 +5183,11 @@ void CoreSIM800Transport::update()
               #ifdef GSM_DEBUG_MODE
                 DEBUG_LOGLN(F("SIM800: turn power ON!"));
               #endif
-              digitalWrite(GSM_REBOOT_PIN,GSM_POWER_ON);
+              WORK_STATUS.PinWrite(GSM_REBOOT_PIN,GSM_POWER_ON);
             #endif
 
             #ifdef USE_SIM800_POWERKEY
-                digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);
+                WORK_STATUS.PinWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);
             #endif
 
             machineState = sim800WaitInit;
@@ -5022,9 +5219,9 @@ void CoreSIM800Transport::update()
                   DEBUG_LOGLN(F("SIM800: use POWERKEY!"));
                #endif
                                 
-                digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_ON_LEVEL);
+                WORK_STATUS.PinWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_ON_LEVEL);
                 delay(SIM800_POWERKEY_PULSE_DURATION);        
-                digitalWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);          
+                WORK_STATUS.PinWrite(SIM800_POWERKEY_PIN,SIM800_POWERKEY_OFF_LEVEL);          
                 
               #endif            
 
@@ -5096,7 +5293,24 @@ void CoreSIM800Transport::begin()
   #endif
     
   workStream = &GSM_SERIAL;
-  GSM_SERIAL.begin(GSM_BAUDRATE);
+  GSM_SERIAL.begin(SERIAL_BAUD_RATE, SERIAL_8N1);
+
+  #if TARGET_BOARD == STM32_BOARD
+
+  if((int*)&(GSM_SERIAL) == (int*)&Serial) {
+       WORK_STATUS.PinMode(0,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(1,OUTPUT,false);
+  } else if((int*)&(GSM_SERIAL) == (int*)&Serial1) {
+       WORK_STATUS.PinMode(19,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(18,OUTPUT,false);
+  } else if((int*)&(GSM_SERIAL) == (int*)&Serial2) {
+       WORK_STATUS.PinMode(17,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(16,OUTPUT,false);
+  } else if((int*)&(GSM_SERIAL) == (int*)&Serial3) {
+       WORK_STATUS.PinMode(15,INPUT_PULLUP,true);
+       WORK_STATUS.PinMode(14,OUTPUT,false);
+  } 
+  #else
 
   if(&(GSM_SERIAL) == &Serial) {
        WORK_STATUS.PinMode(0,INPUT_PULLUP,true);
@@ -5111,7 +5325,8 @@ void CoreSIM800Transport::begin()
        WORK_STATUS.PinMode(15,INPUT_PULLUP,true);
        WORK_STATUS.PinMode(14,OUTPUT,false);
   } 
-  
+
+  #endif
 
   restart();
 
@@ -5121,12 +5336,12 @@ void CoreSIM800Transport::begin()
       DEBUG_LOGLN(F("SIM800: power OFF!"));
     #endif
     // есть пин, который надо использовать при зависании
-    pinMode(GSM_REBOOT_PIN,OUTPUT);
-    digitalWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
+    WORK_STATUS.PinMode(GSM_REBOOT_PIN,OUTPUT);
+    WORK_STATUS.PinWrite(GSM_REBOOT_PIN,GSM_POWER_OFF);
   #endif
 
   #ifdef USE_SIM800_POWERKEY
-      pinMode(SIM800_POWERKEY_PIN,OUTPUT);
+      WORK_STATUS.PinMode(SIM800_POWERKEY_PIN,OUTPUT);
   #endif
   
   machineState = sim800Reboot;
@@ -5194,6 +5409,7 @@ void CoreSIM800Transport::restart()
   flags.onIdleTimer = false;
   flags.isModuleRegistered = false;
   flags.gprsAvailable = false;
+  flags.ignoreNextEmptyLine = false;
   
   timer = millis();
 
@@ -5210,6 +5426,8 @@ void CoreSIM800Transport::restart()
 //--------------------------------------------------------------------------------------------------------------------------------------
 void CoreSIM800Transport::createInitCommands(bool addResetCommand)
 {  
+  UNUSED(addResetCommand);
+  
   // очищаем очередь команд
   clearInitCommands();
 
@@ -5219,12 +5437,16 @@ void CoreSIM800Transport::createInitCommands(bool addResetCommand)
   {
     initCommandsQueue.push_back(smaCSTT);
   }
-  
+
+  initCommandsQueue.push_back(smaCIPSHUT);
+
   initCommandsQueue.push_back(smaCIPMUX);
   initCommandsQueue.push_back(smaCIPMODE);
   initCommandsQueue.push_back(smaWaitReg); // ждём регистрации
   
   initCommandsQueue.push_back(smaCIPHEAD);
+  
+  initCommandsQueue.push_back(smaGPRSMultislotClass); // настройки вывода SMS
   initCommandsQueue.push_back(smaSMSSettings); // настройки вывода SMS
   initCommandsQueue.push_back(smaUCS2Encoding); // кодировка сообщений
   initCommandsQueue.push_back(smaPDUEncoding); // формат сообщений

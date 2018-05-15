@@ -136,12 +136,12 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\UTFT_Analog_ClockTempDS3231\arduino_du
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/USB/USBAPI.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/RingBuffer.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\cores\arduino/Stream.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\UTFT/UTFT.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\UTFT/hardware/arm/HW_ARM_defines.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\DS3231/DS3231.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\DS3231/hardware/arm/HW_ARM_defines.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\UTouch/UTouch.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\OneWire/OneWire.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\DHT/DHT.h \
- D:\2\ GITTeplica\UTFT_Analog_ClockTempDS3231\libraries\MCP23S17/MCP23S17.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\UTFT/UTFT.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\UTFT/hardware/arm/HW_ARM_defines.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\DS3231/DS3231.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\DS3231/hardware/arm/HW_ARM_defines.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\UTouch/UTouch.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\OneWire/OneWire.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\DHT/DHT.h \
+ D:\2\ GIT\ Teplica\UTFT_Analog_ClockTempDS3231\libraries\MCP23S17/MCP23S17.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\libraries\SPI\src/SPI.h

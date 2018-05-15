@@ -387,6 +387,8 @@ typedef struct
   bool gprsAvailable        : 1; //
   bool pduInNextLine        : 1; //
   bool waitCipstartConnect  : 1;
+
+  bool ignoreNextEmptyLine  : 1;
   
 } CoreSIM800TransportFlags;
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -417,7 +419,11 @@ typedef enum
   smaWaitSMSSendDone,
   smaWaitForSMSClearance,
   smaCUSD,
-  
+  smaGPRSMultislotClass,
+#ifdef GSM_PULL_GPRS_BY_PING  
+  smaPING,
+#endif
+  smaCIPSHUT  
 } SIM800Commands;
 //--------------------------------------------------------------------------------------------------------------------------------------
 typedef Vector<SIM800Commands> SIM800CommandsList;
@@ -445,6 +451,7 @@ typedef enum
   gsmConnectFail,
   gsmAlreadyConnect,
   gsmCloseOk,
+  gsmShutOk,
   
 } SIM800KnownAnswer;
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -483,6 +490,10 @@ class CoreSIM800Transport : public CoreTransport
     void restart();
     void readFromStream();
 
+    #ifdef GSM_DEBUG_MODE
+    void dumpReceiveBuffer();
+    #endif    
+
   protected:
 
     virtual void beginWrite(CoreTransportClient& client); // начинаем писать в транспорт с клиента
@@ -491,6 +502,7 @@ class CoreSIM800Transport : public CoreTransport
 
   private:
 
+      void rebootModem();
 
       Vector<String*> cusdList;
       void sendQueuedCUSD();
@@ -646,7 +658,7 @@ private:
 
   void constructConnectPacket(String& mqttBuffer,int16_t& mqttBufferLength,const char* id, const char* user, const char* pass,const char* willTopic,uint8_t willQoS, uint8_t willRetain, const char* willMessage);
   void constructSubscribePacket(String& mqttBuffer,int16_t& mqttBufferLength, const char* topic);
-  void constructPublishPacket(String& mqttBuffer,int16_t& mqttBufferLength, const char* topic, const char* payload);
+  void constructPublishPacket(String& mqttBuffer,int16_t& mqttBufferLength, const char* topic, const char* payload, bool retain);
   
   void encode(MQTTBuffer& buff,const char* str);
 
