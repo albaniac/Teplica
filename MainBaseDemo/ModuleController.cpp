@@ -206,7 +206,7 @@ void ModuleController::Setup()
   MainController = this;
 
 #ifdef USE_DS3231_REALTIME_CLOCK
-_rtc.begin();
+_rtc.begin(DS3231_WIRE_NUMBER);
 SdFile::dateTimeCallback(setFileDateTime);
 #endif
 
@@ -217,15 +217,15 @@ SdFile::dateTimeCallback(setFileDateTime);
   digitalWrite(SDCARD_CS_PIN,HIGH);
 
  #if TARGET_BOARD == DUE_BOARD
-  delay(400);
-  for(int i=0;i<5;i++)
+  delay(50);
+
+  sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN, SPI_HALF_SPEED); // пробуем инициализировать SD-модуль
+  if(!sdCardInitFlag)
   {
-      sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN, SPI_HALF_SPEED); // пробуем инициализировать SD-модуль
-      if(sdCardInitFlag)
-        break;
-        
-    delay(500);
+    delay(50);
+    sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN, SPI_QUARTER_SPEED); // пробуем инициализировать SD-модуль
   }
+  
  #else
     sdCardInitFlag = SDFat.begin(SDCARD_CS_PIN); // пробуем инициализировать SD-модуль
  #endif

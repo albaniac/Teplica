@@ -33,6 +33,9 @@
     <ClInclude Include="AT24CX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Buzzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CommandBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,7 +60,16 @@
     <ClInclude Include="Configuration_Shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Configuration_STM32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreNextion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CoreTransport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelayedEvents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DeltaModule.h">
@@ -112,6 +124,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LoRa.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LuminosityModule.h">
@@ -227,6 +242,9 @@
     <ClCompile Include="AT24CX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Buzzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CommandBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -236,7 +254,13 @@
     <ClCompile Include="CompositeCommandsModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CoreNextion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CoreTransport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DelayedEvents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeltaModule.cpp">
@@ -282,6 +306,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LogModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LoRa.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LuminosityModule.cpp">

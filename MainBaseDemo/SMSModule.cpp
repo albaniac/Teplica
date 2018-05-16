@@ -238,6 +238,16 @@ void SMSModule::IncomingSMS(const String& phoneNumber,const String& message, boo
     return;
   }
 
+  if(message.startsWith(SMS_RESET_COMMAND))
+  {
+    #ifdef USE_EXTERNAL_WATCHDOG
+      while(1);
+    #else
+      ModuleInterop.QueryCommand(ctSET,F("0|RST"),false);
+    #endif
+    return;
+  }
+
   bool shouldSendSMS = false;
 
     // ищем команды
@@ -890,6 +900,14 @@ void SMSModule::OnClientDataAvailable(CoreTransportClient& client, uint8_t* data
    {
       #ifdef GSM_DEBUG_MODE
         DEBUG_LOGLN(F("DATA AVAILABLE FOR GARDENBOSS.RU !!!"));
+        /*
+        DEBUG_LOGLN(F("DATA IS: "));
+        for(size_t i=0;i<dataSize;i++)
+        {
+          Serial.print((char)data[i]);
+        }
+        Serial.println();
+        */
       #endif
 
       processGardenbossData(data, dataSize, isDone);
@@ -922,6 +940,18 @@ void SMSModule::Update(uint16_t dt)
   UNUSED(dt);
   
   SIM800.update();
+
+  #ifdef SEND_WORK_STARTED_SMS
+    static bool workStartedSmsSent = false;
+    if(SIM800.ready())
+    {
+        if(!workStartedSmsSent)
+        {
+          workStartedSmsSent = true;
+          SIM800.sendSMS(MainController->GetSettings()->GetSmsPhoneNumber(), WORK_STARTED_SMS_TEXT,false);
+        }
+    }
+  #endif
 
     #if defined(USE_ALARM_DISPATCHER) && defined(CLEAR_ALARM_STATUS)
     
@@ -1303,6 +1333,14 @@ bool  SMSModule::ExecCommand(const Command& command, bool wantAnswer)
           PublishSingleton = STAT_COMMAND; 
           PublishSingleton << PARAM_DELIMITER << REG_SUCC;
         }
+        #ifdef GSM_DEBUG_MODE
+        else if(t == F("DUMP"))
+        {
+          SIM800.dumpReceiveBuffer();
+          PublishSingleton.Flags.Status = true;
+          PublishSingleton = t;
+        }
+        #endif
         else if(t == F("PROV")) // запросили провайдера GSM
         {
           PublishSingleton.Flags.Status = true;
