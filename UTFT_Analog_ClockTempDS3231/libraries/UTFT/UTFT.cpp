@@ -81,6 +81,9 @@
 	#elif defined(__CC3200R1M1RGC__)
 		#pragma message("Compiling for TI CC3200 LaunchPad...")
 		#include "hardware/arm/HW_CC3200.h"
+	#elif defined(__SAMD21G18A__)
+		#pragma message("Compiling for TI CC3200 LaunchPad...")
+		#include "hardware/arm/HW_SAMD21G18A.h"
 	#else
 		#error "Unsupported ARM MCU!"
 	#endif
