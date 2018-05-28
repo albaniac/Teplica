@@ -96,7 +96,8 @@ void determine_max_adr()
 
 void setup()
 {
-  Serial.begin(57600);
+  Serial.begin(9600);
+    Serial.println("Start setup");
   Wire.begin();
  // determine_max_adr();
    i2c_test1();
