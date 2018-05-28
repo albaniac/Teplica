@@ -2,7 +2,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_INTERNAL_CLOCK
 
- // #pragma message "Use internal clock..."
+  #pragma message "Use internal clock..."
   // Includes Atmel CMSIS
   #include <chip.h>
   

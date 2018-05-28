@@ -46,7 +46,7 @@ void RealtimeClock::setTime(const RTCTime& time)
 void RealtimeClock::setTime(uint8_t second, uint8_t minute, uint8_t hour, uint8_t dayOfWeek, uint8_t dayOfMonth, uint8_t month, uint16_t year)
 {
   RTC_SetTime (RTC, hour, minute, second);  
-  RTC_SetDate (RTC, year, year, dayOfMonth, dayOfWeek);  
+  RTC_SetDate (RTC, year, month, dayOfMonth, dayOfWeek);  
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 Temperature RealtimeClock::getTemperature()
