@@ -154,27 +154,27 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\In
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\libraries\Wire\src/Wire.h \
  C:\Users\Alex\AppData\Local\arduino15\packages\arduino\hardware\sam\1.6.11\system/libsam/include/twi.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\LogModule.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdFat.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdSpiCard.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdFatConfig.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdInfo.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdSpi.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/SdFatConfig.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatLib.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/ArduinoFiles.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatLibConfig.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/../SdFatConfig.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatFile.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatApiConstants.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatStructs.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatVolume.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/ArduinoStream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/bufstream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/iostream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/istream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/ios.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/ostream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/FatFileSystem.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/StdioStream.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\SdFat/utility/fstream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdFat.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdSpiCard.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdFatConfig.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdInfo.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdSpi.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/SdFatConfig.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatLib.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/ArduinoFiles.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatLibConfig.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/../SdFatConfig.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatFile.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatApiConstants.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatStructs.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatVolume.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/ArduinoStream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/bufstream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/iostream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/istream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/ios.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/ostream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/FatFileSystem.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/StdioStream.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\SdFat/utility/fstream.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\HTTPInterfaces.h

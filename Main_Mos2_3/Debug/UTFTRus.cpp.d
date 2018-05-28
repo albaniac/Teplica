@@ -140,5 +140,5 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\UT
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\Configuration_DUE.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\Configuration_DEBUG.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_Mos2_3\arduino_due_x_dbg\Debug\Configuration_Shared.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\UTFT/UTFT.h \
- D:\2\ GITTeplica\Main_Mos2_3\libraries\UTFT/hardware/arm/HW_ARM_defines.h
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\UTFT/UTFT.h \
+ D:\2\ GIT\ Teplica\Main_Mos2_3\libraries\UTFT/hardware/arm/HW_ARM_defines.h
