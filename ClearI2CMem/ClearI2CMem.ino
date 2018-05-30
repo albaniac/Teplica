@@ -97,7 +97,9 @@ void determine_max_adr()
 void setup()
 {
   Serial.begin(9600);
-    Serial.println("Start setup");
+ // delay(2000);
+  while (!Serial) {}
+  Serial.println("Start setup");
   Wire.begin();
  // determine_max_adr();
    i2c_test1();
