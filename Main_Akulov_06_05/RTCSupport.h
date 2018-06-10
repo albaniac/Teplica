@@ -2,7 +2,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef USE_INTERNAL_CLOCK
 
-  #pragma message "Use internal clock..."
+ // #pragma message "Use internal clock..."
   // Includes Atmel CMSIS
   #include <chip.h>
   
@@ -13,7 +13,7 @@
   #define  XTAL         1
 
 #else
-  #pragma message "Use DS3231 clock..."
+  //#pragma message "Use DS3231 clock..."
 #include <Wire.h>
 #endif
 #include "AbstractModule.h"

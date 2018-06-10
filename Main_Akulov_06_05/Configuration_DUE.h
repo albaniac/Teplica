@@ -580,6 +580,7 @@
 // Примеры:
 // для одного датчика:
  #define HUMIDITY_SENSORS H_SENSOR(50,0,DHT2x)
+//#define HUMIDITY_SENSORS H_SENSOR(50,0,DHT11)
 // для двух и более датчиков:
 // #define HUMIDITY_SENSORS H_SENSOR(12,0,DHT2x), H_SENSOR(14,0,DHT11), H_SENSOR(15,0,DHT2x)
 // ДЛЯ ПЛАТЫ НОМЕРА ВЫВОДОВ ДЛЯ ДВУХ DHT - A6,A7 !!!

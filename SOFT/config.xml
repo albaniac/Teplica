@@ -17,7 +17,7 @@
   <ph_column_w>30</ph_column_w>
   <wph_column_w>30</wph_column_w>
   <delta_column_w>40</delta_column_w>
-  <lastControllerGUID>811644c5c32b466893853418eec3714a</lastControllerGUID>
+  <lastControllerGUID>c8911bf294954e258dd35146d85efc56</lastControllerGUID>
   <widgetMemory>false</widgetMemory>
   <widgetWorkTime>false</widgetWorkTime>
   <widgetControllerTime>true</widgetControllerTime>
@@ -57,10 +57,10 @@
   <lux_gisteresis>0</lux_gisteresis>
   <min_lux_value>250</min_lux_value>
   <connect_to_router>true</connect_to_router>
-  <router_id />
-  <router_password />
-  <station_id />
-  <station_password />
+  <router_id>WiFi-Repeater1</router_id>
+  <router_password>panasonic</router_password>
+  <station_id>Teplitca2</station_id>
+  <station_password>123456789</station_password>
   <work_without_ls>false</work_without_ls>
   <widgets>
     <widget>widgetWindowsChannels</widget>
