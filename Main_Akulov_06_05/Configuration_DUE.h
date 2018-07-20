@@ -534,7 +534,7 @@
 
 // режимы управления пином питания датчиков влажности почвы - [DRIVE_DIRECT, DRIVE_MCP23S17, DRIVE_MCP23017]
 // (настройка актуальна при раскомментированной USE_SOIL_MOISTURE_SENSORS_POWER_MANAGEMENT)
-#define SOIL_MOISTURE_POWER_DRIVE_MODE DRIVE_DIRECT // прямое управление пинами, также можно рулить через расширители портов (MCP23S17 и MCP23017)
+#define SOIL_MOISTURE_POWER_DRIVE_MODE DRIVE_MCP23017 // прямое управление пинами, также можно рулить через расширители портов (MCP23S17 и MCP23017)
 
 // адрес микросхемы MCP23S17, через которую рулим питанием датчиков (если управление в режиме DRIVE_MCP23S17)
 // (настройка актуальна при раскомментированной USE_SOIL_MOISTURE_SENSORS_POWER_MANAGEMENT)
@@ -542,7 +542,7 @@
 
 // адрес микросхемы MCP23017, через которую рулим питанием датчиков (если управление в режиме DRIVE_MCP23017)
 // (настройка актуальна при раскомментированной USE_SOIL_MOISTURE_SENSORS_POWER_MANAGEMENT)
-#define SOIL_MOISTURE_MCP23017_ADDRESS 0 // 0 - первая микросхема по адресу 0x20, 1 - вторая по адресу 0x21 и т.п.
+#define SOIL_MOISTURE_MCP23017_ADDRESS 1 // 0 - первая микросхема по адресу 0x20, 1 - вторая по адресу 0x21 и т.п.
 
 // пин управления питанием датчиков влажности почвы (или номер канала MCP*, если управление 
 // в режимах, отличных от DRIVE_DIRECT)
@@ -579,8 +579,8 @@
 // следующий после первого датчик добавляется через запятую.
 // Примеры:
 // для одного датчика:
-//#define HUMIDITY_SENSORS H_SENSOR(50,0,DHT2x)
-#define HUMIDITY_SENSORS H_SENSOR(50,0,DHT11)
+#define HUMIDITY_SENSORS H_SENSOR(50,0,DHT2x)
+//#define HUMIDITY_SENSORS H_SENSOR(50,0,DHT11)
 // для двух и более датчиков:
 // #define HUMIDITY_SENSORS H_SENSOR(12,0,DHT2x), H_SENSOR(14,0,DHT11), H_SENSOR(15,0,DHT2x)
 // ДЛЯ ПЛАТЫ НОМЕРА ВЫВОДОВ ДЛЯ ДВУХ DHT - A6,A7 !!!
