@@ -227,8 +227,8 @@
 // НАСТРОЙКИ ВНЕШНЕГО ВАТЧДОГА (актуально при раскомментированной команде USE_EXTERNAL_WATCHDOG)
 //--------------------------------------------------------------------------------------------------------------------------------
 #define WATCHDOG_REBOOT_PIN 66 // номер пина, на котором будут меняться уровни
-#define WATCHDOG_NORMAL_LEVEL HIGH // уровень на ноге, который держится WATCHDOG_WORK_INTERVAL миллисекунд
-#define WATCHDOG_TRIGGERED_LEVEL LOW // уровень импульса на ноге, который держится WATCHDOG_PULSE_DURATION миллисекунд
+#define WATCHDOG_NORMAL_LEVEL LOW // уровень на ноге, который держится WATCHDOG_WORK_INTERVAL миллисекунд
+#define WATCHDOG_TRIGGERED_LEVEL HIGH // уровень импульса на ноге, который держится WATCHDOG_PULSE_DURATION миллисекунд
 #define WATCHDOG_WORK_INTERVAL 5000 // через сколько миллисекунд на ноге будет уровень WATCHDOG_TRIGGERED_LEVEL
 #define WATCHDOG_PULSE_DURATION 200 // сколько миллисекунд держать уровень WATCHDOG_TRIGGERED_LEVEL на ноге
 
@@ -599,7 +599,7 @@
 #define DEF_OPEN_INTERVAL 30000 // по умолчанию 30 секунд работы мотора на полное открытие/закрытие фрамуги
 #define DEF_OPEN_TEMP 25 // температура открытия по умолчанию, градусов Цельсия
 #define DEF_CLOSE_TEMP 24 // температура закрытия по умолчанию, градусов Цельсия
-#define SUPPORTED_SENSORS 3 // кол-во поддерживаемых проводных датчиков температуры, подсоединённых к контроллеру
+#define SUPPORTED_SENSORS 2 // кол-во поддерживаемых проводных датчиков температуры, подсоединённых к контроллеру
 
 // поддерживаемые типы датчиков температуры: DS18B20 и DS18S20
 // для добавления датчика температуры используйте конструкцию ADD_T,
