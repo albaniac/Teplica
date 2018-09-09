@@ -5294,6 +5294,7 @@ void CoreSIM800Transport::begin()
     
   workStream = &GSM_SERIAL;
   GSM_SERIAL.begin(SERIAL_BAUD_RATE, SERIAL_8N1);
+  //GSM_SERIAL.begin(9600, SERIAL_8N1);
 
   #if TARGET_BOARD == STM32_BOARD
 

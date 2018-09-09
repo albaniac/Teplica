@@ -11,10 +11,10 @@
   
   #define RC           0
   #define  XTAL         1
-
-#else
+ #else
   #pragma message "Use DS3231 clock..."
 #include <Wire.h>
+
 #endif
 #include "AbstractModule.h"
 //--------------------------------------------------------------------------------------------------------------------------------------

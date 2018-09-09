@@ -52,6 +52,7 @@
  
 */
  
+#include <OneWire.h>
 #include "Globals.h"
 
 #include "CommandBuffer.h"
