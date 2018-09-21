@@ -1,3 +1,7 @@
+Информация дополнительная https://www.terraelectronica.ru/rd/ST/STM32F4DISCOVERY
+
+
+
 {PIN "BOOT0"=138}
 {PIN "NRST"=25}
 {PIN "PA0"=34}
