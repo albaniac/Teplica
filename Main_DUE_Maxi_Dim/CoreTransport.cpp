@@ -3576,6 +3576,8 @@ void CoreSIM800Transport::sendCommand(SIM800Commands command)
     {
       #ifdef GSM_DEBUG_MODE
       DEBUG_LOGLN(F("SIM800: Check for modem READY..."));
+
+
       #endif
       sendCommand(F("AT+CPAS"));
     }

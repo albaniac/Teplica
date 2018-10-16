@@ -1,0 +1,42 @@
+
+ ets Jan  8 2013,rst cause:2, boot mode:(3,6)
+
+load 0x40100000, len 2408, room 16 
+tail 8
+chksum 0xe5
+load 0x3ffe8000, len 776, room 0 
+tail 8
+chksum 0x84
+load 0x3ffe8310, len 632, room 0 
+tail 8
+chksum 0xd8
+csum 0xd8
+
+2nd boot version : 1.6
+  SPI Speed      : 40MHz
+  SPI Mode       : QIO
+  SPI Flash Size & Map: 8Mbit(512KB+512KB)
+jump to run user1 @ 1000
+
+rf cal sector: 249
+rf[112] : 00
+rf[113] : 00
+rf[114] : 01
+
+SDK ver: 2.0.0(5a875ba) compiled @ Aug  9 2016 15:12:27
+phy ver: 1055, pp ver: 10.2
+
+"⸮j⸮l 
+
+
+*********После записи***************
+
+ ets Jan  8 2013,rst cause:2, boot mode:(3,6)
+
+load 0x4010f000, len 1384, room 16 
+tail 8
+chksum 0x2d
+csum 0x2d
+v614f7c32
+~ld
+;&0⸮⸮⸮⸮⸮⸮
