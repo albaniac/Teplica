@@ -178,5 +178,4 @@ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Re
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\HTTPInterfaces.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\TempSensors.h \
  C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\DS18B20Query.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\InteropStream.h \
- C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\CoreTransport.h
+ C:\Users\Alex\AppData\Local\Temp\VMBuilds\Main_DUE_Maxi_Dim\arduino_due_x_dbg\Release\InteropStream.h
