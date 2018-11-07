@@ -385,8 +385,8 @@ const int ledPin13 = 13;
 
 void setup()
 {
-	pinMode(ledPin13, OUTPUT);
-	digitalWrite(ledPin13, LOW);
+	pinMode(66, OUTPUT);
+	digitalWrite(66, LOW);
   myGLCD.InitLCD();
   myGLCD.setFont(BigFont);
 
@@ -442,11 +442,12 @@ void loop()
         drawMin(t.min);
         drawHour(t.hour, t.min);
       }
-       ds18s20();
+      // ds18s20();
        
-  float HumidityDH11 = dht.readHumidity();
+
+ // float HumidityDH11 = dht.readHumidity();
   // Read temperature as Celsius (the default)
-  float TemperatureDH11 = dht.readTemperature();
+ // float TemperatureDH11 = dht.readTemperature();
  
 //
 //  // Check if any reads failed and exit early (to try again).
@@ -455,10 +456,10 @@ void loop()
 //    return;
 //  }
        
-      myGLCD.print("Humidity", 250, 95);
+    /*  myGLCD.print("Humidity", 250, 95);
       myGLCD.printNumF((float)HumidityDH11,1, 250, 115);
       myGLCD.print("Temperature", 250, 140);
-      myGLCD.printNumF((float)TemperatureDH11,2, 240, 160);
+      myGLCD.printNumF((float)TemperatureDH11,2, 240, 160);*/
 
 
       drawSec(t.sec);
