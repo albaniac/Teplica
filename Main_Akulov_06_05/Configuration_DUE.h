@@ -30,7 +30,7 @@
 // start this line with comment, if you don't want to use DS3231 realtime clock (not recommended, this device used by some modules)
 #define USE_DS3231_REALTIME_CLOCK
 #define DS3231_WIRE_NUMBER 0 // номер I2C для часов (0 - первый I2C, 1 - второй I2C)
-#define USE_INTERNAL_CLOCK // раскомментировать, если надо использовать внутренние часы Arduino Due (если закомментировано - используются часы DS3231)
+//#define USE_INTERNAL_CLOCK // раскомментировать, если надо использовать внутренние часы Arduino Due (если закомментировано - используются часы DS3231)
 #define INTERNAL_CLOCK_OSC XTAL // генератор для внутренних часов (RC или XTAL)
 //--------------------------------------------------------------------------------------------------------------------------------
 // закомментировать, если не нужен модуль управления пинами
